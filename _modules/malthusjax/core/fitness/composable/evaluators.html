@@ -203,8 +203,6 @@
 <p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../extension_cli_guide.html">Extension CLI Guide: Building MalthusJAX Projects</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../toml_guide.html">TOML Configuration &amp; Scaffolding Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../../framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
@@ -376,7 +374,9 @@
     <span class="n">BaseSupervisedEnvironment</span><span class="p">,</span>
     <span class="n">BaseTransform</span><span class="p">,</span>
     <span class="n">IdentityTransform</span><span class="p">,</span>
+    <span class="n">ScalarOutput</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.composable.interpreters</span><span class="w"> </span><span class="kn">import</span> <span class="n">IdentityInterpreter</span>
 
 <span class="n">E</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">"E"</span><span class="p">)</span>
 <span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">"T"</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">BaseTransform</span><span class="p">)</span>
@@ -393,12 +393,14 @@
 <a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.BaseComposableEvaluator">[docs]</a>
 <span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BaseComposableEvaluator</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">E</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">O</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">"""Base class for the 4-axis evaluator paradigm."""</span>
+<span class="w">    </span><span class="sd">"""Base class for the 4-axis evaluator paradigm: Environment × Transform × Interpreter × Output."""</span>
 
     <span class="n">env</span><span class="p">:</span> <span class="n">E</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">interpreter</span><span class="p">:</span> <span class="n">I</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">output</span><span class="p">:</span> <span class="n">O</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">transform</span><span class="p">:</span> <span class="n">T</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default_factory</span><span class="o">=</span><span class="n">IdentityTransform</span><span class="p">)</span>
+    <span class="n">interpreter</span><span class="p">:</span> <span class="n">I</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default_factory</span><span class="o">=</span><span class="n">IdentityInterpreter</span><span class="p">)</span>
+    <span class="n">output</span><span class="p">:</span> <span class="n">O</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span>
+        <span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">ScalarOutput</span><span class="p">(</span><span class="n">maximize</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="p">)</span>
 
 <div class="viewcode-block" id="BaseComposableEvaluator.get_gap_to_optimum">
 <a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.BaseComposableEvaluator.get_gap_to_optimum">[docs]</a>
@@ -631,7 +633,8 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">:</span>
         <span class="c1"># 1. Initialize a localized TensorNEAT State to manage PRNG for this generation</span>
         <span class="n">key</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span> <span class="k">if</span> <span class="n">rng</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">rng</span>
-        <span class="n">tn_state</span> <span class="o">=</span> <span class="n">TNState</span><span class="p">(</span><span class="n">randkey</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">generation</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">generation</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="s2">"generation"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">if</span> <span class="n">state</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">tn_state</span> <span class="o">=</span> <span class="n">TNState</span><span class="p">(</span><span class="n">randkey</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">generation</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">generation</span><span class="p">))</span>
 
         <span class="c1"># 2. Extract raw topology matrices</span>
         <span class="n">pop_values</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">population</span><span class="o">.</span><span class="n">genes</span><span class="p">,</span> <span class="s2">"values"</span><span class="p">,</span> <span class="n">population</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>

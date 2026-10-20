@@ -203,8 +203,6 @@
 <p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../extension_cli_guide.html">Extension CLI Guide: Building MalthusJAX Projects</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../toml_guide.html">TOML Configuration &amp; Scaffolding Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
@@ -360,9 +358,16 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">flax</span><span class="w"> </span><span class="kn">import</span> <span class="n">struct</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qdax.core.containers.mapelites_repertoire</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">compute_cvt_centroids</span><span class="p">,</span>
-<span class="p">)</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">qdax.core.containers.mapelites_repertoire</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">compute_cvt_centroids</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">_HAS_QDAX</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">compute_cvt_centroids</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: ignore[assignment]</span>
+    <span class="n">_HAS_QDAX</span> <span class="o">=</span> <span class="kc">False</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">StepLoggingConfig</span><span class="p">,</span> <span class="n">get_logger</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.engine.qd.map_elites</span><span class="w"> </span><span class="kn">import</span> <span class="n">MapElitesEngine</span><span class="p">,</span> <span class="n">MapElitesState</span>
@@ -428,6 +433,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">step_logging</span> <span class="o">=</span> <span class="n">step_logging</span>
 
         <span class="c1"># Precompute CVT Voronoi centroids for static repertoire layout</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_HAS_QDAX</span> <span class="ow">or</span> <span class="n">compute_cvt_centroids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+                <span class="s2">"MapElitesAdapter requires `qdax` to compute CVT centroids. "</span>
+                <span class="s2">"Please install it with: pip install 'malthusjax[qdax]'"</span>
+            <span class="p">)</span>
+
         <span class="n">k_cent</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="n">centroids_key</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">centroids</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">compute_cvt_centroids</span><span class="p">(</span>
             <span class="n">num_descriptors</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">minval</span><span class="p">),</span>
@@ -528,6 +539,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">topology</span> <span class="o">=</span> <span class="n">topology</span>
 
         <span class="c1"># Precompute centroids shared across all islands</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_HAS_QDAX</span> <span class="ow">or</span> <span class="n">compute_cvt_centroids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+                <span class="s2">"IslandMapElitesAdapter requires `qdax` to compute CVT centroids. "</span>
+                <span class="s2">"Please install it with: pip install 'malthusjax[qdax]'"</span>
+            <span class="p">)</span>
+
         <span class="n">k_cent</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="n">centroids_key</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">centroids</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">compute_cvt_centroids</span><span class="p">(</span>
             <span class="n">num_descriptors</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">minval</span><span class="p">),</span>

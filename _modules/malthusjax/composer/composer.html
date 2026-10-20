@@ -203,8 +203,6 @@
 <p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../extension_cli_guide.html">Extension CLI Guide: Building MalthusJAX Projects</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../toml_guide.html">TOML Configuration &amp; Scaffolding Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
@@ -360,15 +358,14 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">jax.random</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jr</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">infer_genome_length</span><span class="p">,</span> <span class="n">normalize_seeds</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.engine_factory_v2</span><span class="w"> </span><span class="kn">import</span> <span class="n">EngineFactory</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.experiment_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExperimentConfig</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.strategies.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseStrategy</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">..benchmarking</span><span class="w"> </span><span class="kn">import</span> <span class="n">BenchmarkRunner</span><span class="p">,</span> <span class="n">ExperimentResult</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">..benchmarking.results</span><span class="w"> </span><span class="kn">import</span> <span class="n">ComparisonResult</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..benchmarking.results</span><span class="w"> </span><span class="kn">import</span> <span class="n">ComparisonResult</span><span class="p">,</span> <span class="n">ExperimentResult</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..benchmarking.runner</span><span class="w"> </span><span class="kn">import</span> <span class="n">BenchmarkRunner</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..core.logger</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">StepLoggingConfig</span><span class="p">,</span>
     <span class="n">configure_logging</span><span class="p">,</span>
@@ -386,7 +383,7 @@
 
 
 <div class="viewcode-block" id="Composer">
-<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.composer.Composer">[docs]</a>
+<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.Composer">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Composer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""High-level interface for running evolutionary algorithms.</span>
@@ -465,7 +462,7 @@
     <span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Composer.quick_run">
-<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.composer.Composer.quick_run">[docs]</a>
+<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.Composer.quick_run">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">quick_run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">seeds</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
@@ -885,40 +882,29 @@
                     <span class="k">pass</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_initial_population</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">pop_seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Deterministically generate a shared initial population matrix for a given pipeline config.</span>
+<span class="w">        </span><span class="sd">"""Deterministically generate a shared initial population for a given pipeline config.</span>
 
-<span class="sd">        Ensures that pipelines with identical bounds, population sizes, and dimensionality</span>
-<span class="sd">        receive the exact same starting points, while dynamically scaling to the requested pop_size.</span>
+<span class="sd">        Dispatches to the registered BackendProvider.generate_initial_population()</span>
+<span class="sd">        to support backend- and genome-specific initialization polymorphically.</span>
 <span class="sd">        """</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.backend_registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_backend</span>
+
+        <span class="n">backend_name</span> <span class="o">=</span> <span class="s2">"malthusjax"</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">"backend"</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">):</span>
+            <span class="n">backend_name</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">backend_name</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"backend"</span><span class="p">,</span> <span class="s2">"malthusjax"</span><span class="p">)</span>
+
+        <span class="n">provider</span> <span class="o">=</span> <span class="n">get_backend</span><span class="p">(</span><span class="n">backend_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">provider</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">provider</span><span class="p">,</span> <span class="s2">"generate_initial_population"</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">provider</span><span class="o">.</span><span class="n">generate_initial_population</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">pop_seed</span><span class="p">)</span>
+
         <span class="kn">from</span><span class="w"> </span><span class="nn">.backends._population_init</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_initial_population</span>
 
-        <span class="n">result</span> <span class="o">=</span> <span class="n">generate_initial_population</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">pop_seed</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">result</span>
-
-        <span class="n">pop_size</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="nb">int</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pop_size"</span><span class="p">,</span> <span class="mi">50</span><span class="p">))</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="n">config</span><span class="o">.</span><span class="n">population</span><span class="o">.</span><span class="n">size</span>
-        <span class="p">)</span>
-        <span class="n">genome_length</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">infer_genome_length</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
-            <span class="k">else</span> <span class="n">config</span><span class="o">.</span><span class="n">population</span><span class="o">.</span><span class="n">genome_length</span>
-        <span class="p">)</span>
-        <span class="n">bounds</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"bounds"</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">))</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
-            <span class="k">else</span> <span class="n">config</span><span class="o">.</span><span class="n">population</span><span class="o">.</span><span class="n">bounds</span>
-        <span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">jr</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span>
-            <span class="n">jr</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="n">pop_seed</span><span class="p">),</span>
-            <span class="p">(</span><span class="n">pop_size</span><span class="p">,</span> <span class="n">genome_length</span><span class="p">),</span>
-            <span class="n">minval</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
-            <span class="n">maxval</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
-        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">generate_initial_population</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">pop_seed</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Composer.compare">
-<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.composer.Composer.compare">[docs]</a>
+<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.Composer.compare">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">compare</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">pipelines</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
@@ -1095,16 +1081,17 @@
 
             <span class="k">if</span> <span class="n">shared_initial_population</span> <span class="ow">and</span> <span class="s2">"initial_population"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">merged</span><span class="p">:</span>
                 <span class="n">pipeline_init_pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_initial_population</span><span class="p">(</span><span class="n">merged</span><span class="p">,</span> <span class="n">pop_seed</span><span class="p">)</span>
-                <span class="n">p_genome_length</span> <span class="o">=</span> <span class="n">infer_genome_length</span><span class="p">(</span><span class="n">merged</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">pipeline_init_pop</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">p_genome_length</span> <span class="o">=</span> <span class="n">infer_genome_length</span><span class="p">(</span><span class="n">merged</span><span class="p">)</span>
 
-                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pipeline_init_pop</span><span class="p">,</span> <span class="s2">"shape"</span><span class="p">):</span>
-                    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">pipeline_init_pop</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">!=</span> <span class="n">p_genome_length</span><span class="p">:</span>
-                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                            <span class="s2">"Shared initial population dimension mismatch: "</span>
-                            <span class="sa">f</span><span class="s2">"expected </span><span class="si">{</span><span class="n">p_genome_length</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">pipeline_init_pop</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
-                        <span class="p">)</span>
-                <span class="n">merged</span><span class="p">[</span><span class="s2">"initial_population"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pipeline_init_pop</span>
-                <span class="n">last_init_pop</span> <span class="o">=</span> <span class="n">pipeline_init_pop</span>
+                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pipeline_init_pop</span><span class="p">,</span> <span class="s2">"shape"</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">pipeline_init_pop</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">!=</span> <span class="n">p_genome_length</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                                <span class="s2">"Shared initial population dimension mismatch: "</span>
+                                <span class="sa">f</span><span class="s2">"expected </span><span class="si">{</span><span class="n">p_genome_length</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">pipeline_init_pop</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+                            <span class="p">)</span>
+                    <span class="n">merged</span><span class="p">[</span><span class="s2">"initial_population"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pipeline_init_pop</span>
+                    <span class="n">last_init_pop</span> <span class="o">=</span> <span class="n">pipeline_init_pop</span>
 
             <span class="n">results</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quick_run</span><span class="p">(</span><span class="o">**</span><span class="n">merged</span><span class="p">)</span>
             <span class="n">maximize_flag</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">merged</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"maximize"</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
@@ -1134,7 +1121,7 @@
 
 
 <div class="viewcode-block" id="Composer.from_toml">
-<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.composer.Composer.from_toml">[docs]</a>
+<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.Composer.from_toml">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">from_toml</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span>
@@ -1312,11 +1299,16 @@
             <span class="p">}</span>
             <span class="n">pipeline_overrides</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">overrides</span>
 
+        <span class="n">shared_init_pop</span> <span class="o">=</span> <span class="n">experiment_meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s2">"shared_initial_population"</span><span class="p">,</span>
+            <span class="n">shared</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"shared_initial_population"</span><span class="p">,</span> <span class="n">shared_initial_population</span><span class="p">),</span>
+        <span class="p">)</span>
+
         <span class="n">composer</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">create_default</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">composer</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span>
             <span class="n">pipelines</span><span class="o">=</span><span class="n">pipeline_overrides</span><span class="p">,</span>
             <span class="n">seeds</span><span class="o">=</span><span class="n">seeds</span><span class="p">,</span>
-            <span class="n">shared_initial_population</span><span class="o">=</span><span class="n">shared_initial_population</span><span class="p">,</span>
+            <span class="n">shared_initial_population</span><span class="o">=</span><span class="n">shared_init_pop</span><span class="p">,</span>
             <span class="n">pop_seed</span><span class="o">=</span><span class="n">pop_seed</span><span class="p">,</span>
             <span class="n">trace_dir</span><span class="o">=</span><span class="n">trace_dir</span><span class="p">,</span>
             <span class="n">data_config</span><span class="o">=</span><span class="n">data_registry</span><span class="p">,</span>
@@ -1325,7 +1317,7 @@
 
 
 <div class="viewcode-block" id="Composer.create_default">
-<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.composer.Composer.create_default">[docs]</a>
+<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.Composer.create_default">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">create_default</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"Composer"</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Create a :class:`Composer` instance with default configuration.</span>

@@ -203,8 +203,6 @@
 <p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../extension_cli_guide.html">Extension CLI Guide: Building MalthusJAX Projects</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../toml_guide.html">TOML Configuration &amp; Scaffolding Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
@@ -523,8 +521,9 @@
 <span class="w">    </span><span class="sd">"""Infer genome length from config, preferring explicit values.</span>
 <span class="sd">    Priority:</span>
 <span class="sd">    1) ``genome_length`` kwarg</span>
-<span class="sd">    2) ``fitness`` spec params ``dim`` / ``num_dims``</span>
-<span class="sd">    3) default 10</span>
+<span class="sd">    2) ``fitness`` spec params ``dim`` / ``num_dims`` / ``num_items`` / ``num_cities``</span>
+<span class="sd">    3) Data registry item/city count for ``data_id``</span>
+<span class="sd">    4) default 10</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="s2">"genome_length"</span> <span class="ow">in</span> <span class="n">cfg</span> <span class="ow">and</span> <span class="n">cfg</span><span class="p">[</span><span class="s2">"genome_length"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">cfg</span><span class="p">[</span><span class="s2">"genome_length"</span><span class="p">])</span>
@@ -533,21 +532,38 @@
         <span class="kn">from</span><span class="w"> </span><span class="nn">.catalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorCatalog</span>
 
         <span class="n">parsed_name</span><span class="p">,</span> <span class="n">parsed_params</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span><span class="o">.</span><span class="n">parse_spec</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">)</span>
-        <span class="n">dim_val</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"dim"</span><span class="p">,</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"num_dims"</span><span class="p">))</span>
+        <span class="n">dim_val</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s2">"dim"</span><span class="p">,</span>
+            <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s2">"num_dims"</span><span class="p">,</span>
+                <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"num_items"</span><span class="p">,</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"num_cities"</span><span class="p">)),</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="n">dim_val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">dim_val</span><span class="p">)</span>
+
+        <span class="n">data_id</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"data_id"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data_id</span><span class="p">:</span>
+            <span class="n">data_sec</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"data_config"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"data_registry"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"data"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data_sec</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">data_id</span> <span class="ow">in</span> <span class="n">data_sec</span><span class="p">:</span>
+                <span class="n">ds</span> <span class="o">=</span> <span class="n">data_sec</span><span class="p">[</span><span class="n">data_id</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="n">len_val</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"num_items"</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"num_cities"</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"num_dims"</span><span class="p">)))</span>
+                    <span class="k">if</span> <span class="n">len_val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">len_val</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
         <span class="k">if</span> <span class="s2">"interpreter"</span> <span class="ow">in</span> <span class="n">fitness_spec</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">[</span><span class="s2">"interpreter"</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
-            <span class="c1"># If interpreter is specified, its input_dim might be the genome length if identity,</span>
-            <span class="c1"># or it might have a num_weights property. We can check `input_dim`.</span>
             <span class="k">pass</span>
         <span class="k">if</span> <span class="s2">"env"</span> <span class="ow">in</span> <span class="n">fitness_spec</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">[</span><span class="s2">"env"</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
-            <span class="c1"># Same logic</span>
             <span class="n">env_spec</span> <span class="o">=</span> <span class="n">fitness_spec</span><span class="p">[</span><span class="s2">"env"</span><span class="p">]</span>
             <span class="k">if</span> <span class="s2">"num_dims"</span> <span class="ow">in</span> <span class="n">env_spec</span><span class="p">:</span>
                 <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">env_spec</span><span class="p">[</span><span class="s2">"num_dims"</span><span class="p">])</span>
             <span class="k">if</span> <span class="s2">"dim"</span> <span class="ow">in</span> <span class="n">env_spec</span><span class="p">:</span>
                 <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">env_spec</span><span class="p">[</span><span class="s2">"dim"</span><span class="p">])</span>
+            <span class="k">if</span> <span class="s2">"num_items"</span> <span class="ow">in</span> <span class="n">env_spec</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">env_spec</span><span class="p">[</span><span class="s2">"num_items"</span><span class="p">])</span>
+            <span class="k">if</span> <span class="s2">"num_cities"</span> <span class="ow">in</span> <span class="n">env_spec</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">env_spec</span><span class="p">[</span><span class="s2">"num_cities"</span><span class="p">])</span>
     <span class="k">return</span> <span class="mi">10</span></div>
 
 </pre></div>

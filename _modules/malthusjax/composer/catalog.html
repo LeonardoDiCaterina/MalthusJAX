@@ -203,8 +203,6 @@
 <p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../extension_cli_guide.html">Extension CLI Guide: Building MalthusJAX Projects</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../toml_guide.html">TOML Configuration &amp; Scaffolding Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
@@ -381,16 +379,29 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_ensure_registered</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Force-import every operator sub-package so that their</span>
-<span class="sd">    ``_register_*()`` calls run and populate the global registry.</span>
+<span class="w">    </span><span class="sd">"""Force-import every operator sub-package and register their</span>
+<span class="sd">    factories into the global registry.</span>
 
 <span class="sd">    Idempotent — repeated calls are cheap (Python caches imports).</span>
 <span class="sd">    """</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.core.fitness</span>  <span class="c1"># noqa: F401</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.operators.crossover</span>  <span class="c1"># noqa: F401</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.operators.emitters</span>  <span class="c1"># noqa: F401</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.operators.mutation</span>  <span class="c1"># noqa: F401</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.operators.selection</span>  <span class="c1"># noqa: F401</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.core.fitness</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fitness_mod</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.operators.crossover</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">crossover_mod</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.operators.emitters</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">emitters_mod</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.operators.mutation</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mutation_mod</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.operators.selection</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">selection_mod</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">._registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_table</span>
+
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fitness_mod</span><span class="p">,</span> <span class="s2">"register_fitness_catalog"</span><span class="p">):</span>
+        <span class="n">fitness_mod</span><span class="o">.</span><span class="n">register_fitness_catalog</span><span class="p">(</span><span class="n">register_table</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">crossover_mod</span><span class="p">,</span> <span class="s2">"register_crossover_catalog"</span><span class="p">):</span>
+        <span class="n">crossover_mod</span><span class="o">.</span><span class="n">register_crossover_catalog</span><span class="p">(</span><span class="n">register_table</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">emitters_mod</span><span class="p">,</span> <span class="s2">"register_emitters_catalog"</span><span class="p">):</span>
+        <span class="n">emitters_mod</span><span class="o">.</span><span class="n">register_emitters_catalog</span><span class="p">(</span><span class="n">register_table</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">mutation_mod</span><span class="p">,</span> <span class="s2">"register_mutation_catalog"</span><span class="p">):</span>
+        <span class="n">mutation_mod</span><span class="o">.</span><span class="n">register_mutation_catalog</span><span class="p">(</span><span class="n">register_table</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">selection_mod</span><span class="p">,</span> <span class="s2">"register_selection_catalog"</span><span class="p">):</span>
+        <span class="n">selection_mod</span><span class="o">.</span><span class="n">register_selection_catalog</span><span class="p">(</span><span class="n">register_table</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="OperatorCatalog">

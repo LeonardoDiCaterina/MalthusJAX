@@ -203,8 +203,6 @@
 <p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../extension_cli_guide.html">Extension CLI Guide: Building MalthusJAX Projects</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../toml_guide.html">TOML Configuration &amp; Scaffolding Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
@@ -406,6 +404,25 @@
             <span class="sa">f</span><span class="s2">"Missing or non-callable methods: </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
     <span class="n">_raw_register_backend</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">provider</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="n">defaults</span><span class="p">,</span> <span class="n">override</span><span class="o">=</span><span class="n">override</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_backend">
+<a class="viewcode-back" href="../../../api/malthusjax.composer.backend_registry.html#malthusjax.composer.backend_registry.get_backend">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_backend</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Retrieve registered BackendProvider instance for *name*.</span>
+
+<span class="sd">    Automatically loads plugins if backend is not yet registered.</span>
+<span class="sd">    """</span>
+    <span class="n">backends</span> <span class="o">=</span> <span class="n">get_backends</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">backends</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.plugins</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_plugins</span>
+
+        <span class="n">load_plugins</span><span class="p">()</span>
+        <span class="n">backends</span> <span class="o">=</span> <span class="n">get_backends</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">backends</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">backends</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
 
 </pre></div>
         </article>

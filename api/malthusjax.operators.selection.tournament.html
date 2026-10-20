@@ -204,8 +204,6 @@
 <p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../extension_cli_guide.html">Extension CLI Guide: Building MalthusJAX Projects</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../toml_guide.html">TOML Configuration &amp; Scaffolding Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
@@ -412,12 +410,12 @@ Very efficient on GPUs due to vectorization of tournament sampling.</p>
 - Consistent selection pressure across generations</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.operators.selection.tournament.TournamentSelection.tournament_size">
-<span class="sig-name descname"><span class="pre">tournament_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#malthusjax.operators.selection.tournament.TournamentSelection.tournament_size" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">tournament_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#malthusjax.operators.selection.tournament.TournamentSelection.tournament_size" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="malthusjax.operators.selection.tournament.TournamentSelection.num_keys_per_atomic_operation">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.selection.tournament.TournamentSelection.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_keys_per_atomic_operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.operators.selection.tournament.TournamentSelection.num_keys_per_atomic_operation" title="Link to this definition">¶</a></dt>
 <dd><p>Keys required per selection (0 for deterministic, ≥1 for stochastic).</p>
 </dd></dl>
 
@@ -431,11 +429,11 @@ Very efficient on GPUs due to vectorization of tournament sampling.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>num_selections</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
-<li><p><strong>n_elites</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>tournament_size</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>num_selections</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>input_length</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>typed_keys</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
+<li><p><strong>n_elites</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>tournament_size</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
 </ul>
 </dd>
 </dl>

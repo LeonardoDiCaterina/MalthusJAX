@@ -204,8 +204,6 @@
 <p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../extension_cli_guide.html">Extension CLI Guide: Building MalthusJAX Projects</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../toml_guide.html">TOML Configuration &amp; Scaffolding Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
@@ -362,7 +360,7 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.core.BaseGenome">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.</span></span><span class="sig-name descname"><span class="pre">BaseGenome</span></span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BaseGenome"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.BaseGenome" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></a></p>
 <p>Immutable genome representation optimized for JAX PyTree lifting.</p>
 <p>Single-genome methods compose with jax.vmap to implement population-level
 operations via the Struct-of-Arrays (SoA) pattern: each leaf array in the
@@ -389,7 +387,7 @@ concrete <cite>BaseGenome</cite> subclass instance ready for evaluation.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>key</strong> (<em>Array</em>)</p></li>
-<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -439,11 +437,11 @@ Implementations should cast ‘other’ to their specific type.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>other</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><em>BaseGenome</em></a>)</p></li>
-<li><p><strong>metric</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>metric</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a> | <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a> | <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)">int</a></p>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a> | <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)">float</a> | <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)">int</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -456,7 +454,7 @@ Implementations should cast ‘other’ to their specific type.</p>
 the genome remains in a valid state.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><em>BaseGenome</em></a></p>
@@ -466,13 +464,13 @@ the genome remains in a valid state.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="malthusjax.core.BaseGenome.size">
-<span class="property"><span class="k"><span class="pre">abstract</span></span><span class="w"> </span><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.core.BaseGenome.size" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">abstract</span></span><span class="w"> </span><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.core.BaseGenome.size" title="Link to this definition">¶</a></dt>
 <dd><p>The total number of parameters/elements within the genome.</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="malthusjax.core.BaseGenome.shape">
-<span class="property"><span class="k"><span class="pre">abstract</span></span><span class="w"> </span><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">shape</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.core.BaseGenome.shape" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">abstract</span></span><span class="w"> </span><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">shape</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.core.BaseGenome.shape" title="Link to this definition">¶</a></dt>
 <dd><p>The logical shape of the genome’s primary data payload.</p>
 </dd></dl>
 
@@ -487,7 +485,7 @@ JIT tracing without Python conditionals.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>arr</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
-<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -507,8 +505,8 @@ population size.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>key</strong> (<em>Array</em>)</p></li>
-<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
-<li><p><strong>pop_size</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>pop_size</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -528,7 +526,7 @@ population size.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.core.BasePopulation">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.</span></span><span class="sig-name descname"><span class="pre">BasePopulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">genes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BasePopulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.BasePopulation" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">G</span></code>]</p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">G</span></code>]</p>
 <p>A unified container for a collection of candidate solutions.</p>
 <p>This class implements the Struct-of-Arrays (SoA) pattern. The ‘genes’
 attribute holds a single <cite>BaseGenome</cite> instance where every internal leaf
@@ -551,8 +549,8 @@ purely on PyTree manipulations.</p>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>genes</strong> (<em>G</em>)</p></li>
 <li><p><strong>fitness</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
-<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
-<li><p><strong>info</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>info</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>]</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -568,12 +566,12 @@ purely on PyTree manipulations.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.BasePopulation.config">
-<span class="sig-name descname"><span class="pre">config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#malthusjax.core.BasePopulation.config" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#malthusjax.core.BasePopulation.config" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.BasePopulation.info">
-<span class="sig-name descname"><span class="pre">info</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.core.BasePopulation.info" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">info</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.core.BasePopulation.info" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -617,9 +615,9 @@ fitness values are initialized to <code class="docutils literal notranslate"><sp
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>arr</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
-<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
-<li><p><strong>genome_cls</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.14)"><em>Type</em></a><em>[</em><em>G</em><em>]</em>)</p></li>
-<li><p><strong>axis</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>genome_cls</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.15)"><em>Type</em></a><em>[</em><em>G</em><em>]</em>)</p></li>
+<li><p><strong>axis</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -640,7 +638,7 @@ when the values are immediately overwritten.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>new_genes</strong> (<em>G</em>)</p></li>
 <li><p><strong>fitness</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a><em> | </em><em>None</em>)</p></li>
-<li><p><strong>info</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>info</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -656,7 +654,7 @@ when the values are immediately overwritten.</p>
 in the population in parallel using jax.vmap.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<em>G</em>]</p>
@@ -673,7 +671,7 @@ and remain fully JIT-compatible. Metric is forwarded to each genome’s
 <code class="docutils literal notranslate"><span class="pre">distance</span></code> method; results form an (N, N) matrix.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>metric</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p>
+<dd class="field-odd"><p><strong>metric</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a></p>
@@ -692,21 +690,21 @@ and remain fully JIT-compatible. Metric is forwarded to each genome’s
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.core.DistanceMetric">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.</span></span><span class="sig-name descname"><span class="pre">DistanceMetric</span></span><a class="reference internal" href="../_modules/malthusjax/core/base.html#DistanceMetric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.DistanceMetric" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Standard metrics supported by most genomes.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.DistanceMetric.HAMMING">
-<span class="sig-name descname"><span class="pre">HAMMING</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'hamming'</span></span><a class="headerlink" href="#malthusjax.core.DistanceMetric.HAMMING" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">HAMMING</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'hamming'</span></span><a class="headerlink" href="#malthusjax.core.DistanceMetric.HAMMING" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.DistanceMetric.EUCLIDEAN">
-<span class="sig-name descname"><span class="pre">EUCLIDEAN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'euclidean'</span></span><a class="headerlink" href="#malthusjax.core.DistanceMetric.EUCLIDEAN" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">EUCLIDEAN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'euclidean'</span></span><a class="headerlink" href="#malthusjax.core.DistanceMetric.EUCLIDEAN" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.DistanceMetric.MANHATTAN">
-<span class="sig-name descname"><span class="pre">MANHATTAN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'manhattan'</span></span><a class="headerlink" href="#malthusjax.core.DistanceMetric.MANHATTAN" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">MANHATTAN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'manhattan'</span></span><a class="headerlink" href="#malthusjax.core.DistanceMetric.MANHATTAN" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -714,7 +712,7 @@ and remain fully JIT-compatible. Metric is forwarded to each genome’s
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.core.PRNGImpl">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.</span></span><span class="sig-name descname"><span class="pre">PRNGImpl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/random.html#PRNGImpl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.PRNGImpl" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></a></p>
 <p>Available JAX PRNG implementations.</p>
 <p>Mirrors the pattern used by other enums in the codebase.</p>
 <dl class="py attribute">
@@ -750,7 +748,7 @@ to propagate the implementation information.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
 <li><p><strong>impl</strong> (<a class="reference internal" href="malthusjax.core.random.html#malthusjax.core.random.PRNGImpl" title="malthusjax.core.random.PRNGImpl"><em>PRNGImpl</em></a><em> | </em><em>None</em>)</p></li>
 </ul>
 </dd>
@@ -781,10 +779,10 @@ If omitted or None, returns the root <code class="docutils literal notranslate">
 </section>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p>
+<dd class="field-odd"><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> | </em><em>None</em>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.14)"><em>Logger</em></a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.15)"><em>Logger</em></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -802,7 +800,7 @@ If omitted or None, returns the root <code class="docutils literal notranslate">
 </section>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>level</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p>
+<dd class="field-odd"><p><strong>level</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>None</p>
@@ -839,15 +837,15 @@ If omitted or None, returns the root <code class="docutils literal notranslate">
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>level</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>log_file</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><em>Path</em></a><em> | </em><em>None</em>)</p></li>
-<li><p><strong>format_type</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
-<li><p><strong>show_timestamps</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
-<li><p><strong>force</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>level</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>log_file</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><em>Path</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>format_type</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>)</p></li>
+<li><p><strong>show_timestamps</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
+<li><p><strong>force</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.14)"><em>Logger</em></a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.15)"><em>Logger</em></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -855,7 +853,7 @@ If omitted or None, returns the root <code class="docutils literal notranslate">
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.core.StepLoggingConfig">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.</span></span><span class="sig-name descname"><span class="pre">StepLoggingConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_nan_watchdog</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'malthusjax.engine.step'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/logger.html#StepLoggingConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.StepLoggingConfig" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Configuration for device-to-host JIT telemetry via <code class="docutils literal notranslate"><span class="pre">jax.debug.callback</span></code>.</p>
 <section id="id4">
 <h2>Parameters<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h2>
@@ -871,17 +869,17 @@ non-finite (NaN or Inf) values occur.</p>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.StepLoggingConfig.log_interval">
-<span class="sig-name descname"><span class="pre">log_interval</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#malthusjax.core.StepLoggingConfig.log_interval" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">log_interval</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#malthusjax.core.StepLoggingConfig.log_interval" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.StepLoggingConfig.log_nan_watchdog">
-<span class="sig-name descname"><span class="pre">log_nan_watchdog</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#malthusjax.core.StepLoggingConfig.log_nan_watchdog" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">log_nan_watchdog</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#malthusjax.core.StepLoggingConfig.log_nan_watchdog" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.StepLoggingConfig.logger_name">
-<span class="sig-name descname"><span class="pre">logger_name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'malthusjax.engine.step'</span></span><a class="headerlink" href="#malthusjax.core.StepLoggingConfig.logger_name" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">logger_name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'malthusjax.engine.step'</span></span><a class="headerlink" href="#malthusjax.core.StepLoggingConfig.logger_name" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -890,7 +888,7 @@ non-finite (NaN or Inf) values occur.</p>
 <dd><p>Return True if either step interval logging or NaN watchdog is enabled.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)">bool</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)">bool</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -899,9 +897,9 @@ non-finite (NaN or Inf) values occur.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>log_interval</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> | </em><em>None</em>)</p></li>
-<li><p><strong>log_nan_watchdog</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
-<li><p><strong>logger_name</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>log_interval</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>log_nan_watchdog</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
+<li><p><strong>logger_name</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -931,7 +929,7 @@ formatted diagnostic report before process termination.</p>
 <p>Can be disabled by setting <cite>MALTHUSJAX_DISABLE_CRASH_HANDLER=1</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>enable_fault_handler</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p>
+<dd class="field-odd"><p><strong>enable_fault_handler</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>None</p>
@@ -956,10 +954,10 @@ formatted diagnostic report before process termination.</p>
 <dd><p>Formats an actionable, human-readable diagnostic banner for a native crash signal.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>signum</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p>
+<dd class="field-odd"><p><strong>signum</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -970,7 +968,7 @@ formatted diagnostic report before process termination.</p>
 <dd><p>Inspects the active runtime and returns a structured health diagnostics dictionary.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.15)"><em>Dict</em></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -981,7 +979,7 @@ formatted diagnostic report before process termination.</p>
 <dd><p>Formats and prints an environment health card to the given output stream.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>stream</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TextIO" title="(in Python v3.14)"><em>TextIO</em></a><em> | </em><em>None</em>)</p>
+<dd class="field-odd"><p><strong>stream</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TextIO" title="(in Python v3.15)"><em>TextIO</em></a><em> | </em><em>None</em>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>None</p>
@@ -1039,9 +1037,9 @@ formatted diagnostic report before process termination.</p>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="malthusjax.core.fitness.html#malthusjax.core.fitness.BaseComposableEvaluator"><code class="docutils literal notranslate"><span class="pre">BaseComposableEvaluator</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.html#malthusjax.core.fitness.BaseComposableEvaluator.env"><code class="docutils literal notranslate"><span class="pre">BaseComposableEvaluator.env</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.html#malthusjax.core.fitness.BaseComposableEvaluator.transform"><code class="docutils literal notranslate"><span class="pre">BaseComposableEvaluator.transform</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.html#malthusjax.core.fitness.BaseComposableEvaluator.interpreter"><code class="docutils literal notranslate"><span class="pre">BaseComposableEvaluator.interpreter</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.html#malthusjax.core.fitness.BaseComposableEvaluator.output"><code class="docutils literal notranslate"><span class="pre">BaseComposableEvaluator.output</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.html#malthusjax.core.fitness.BaseComposableEvaluator.transform"><code class="docutils literal notranslate"><span class="pre">BaseComposableEvaluator.transform</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.html#malthusjax.core.fitness.BaseComposableEvaluator.get_gap_to_optimum"><code class="docutils literal notranslate"><span class="pre">BaseComposableEvaluator.get_gap_to_optimum()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.html#malthusjax.core.fitness.BaseComposableEvaluator.evaluate"><code class="docutils literal notranslate"><span class="pre">BaseComposableEvaluator.evaluate()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.fitness.html#malthusjax.core.fitness.BaseComposableEvaluator.evaluate_population"><code class="docutils literal notranslate"><span class="pre">BaseComposableEvaluator.evaluate_population()</span></code></a></li>
@@ -1423,6 +1421,7 @@ formatted diagnostic report before process termination.</p>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.genome.html#malthusjax.core.genome.CategoricalGenomeConfig.num_categories"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.num_categories</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.genome.html#malthusjax.core.genome.CategoricalGenomeConfig.shape"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.shape</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.genome.html#malthusjax.core.genome.CategoricalGenomeConfig.dtype"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.dtype</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.genome.html#malthusjax.core.genome.CategoricalGenomeConfig.is_permutation"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.is_permutation</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.genome.html#malthusjax.core.genome.CategoricalGenomeConfig.init_population"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.init_population()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.genome.html#malthusjax.core.genome.CategoricalGenomeConfig.replace"><code class="docutils literal notranslate"><span class="pre">CategoricalGenomeConfig.replace()</span></code></a></li>
 </ul>

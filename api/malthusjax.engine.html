@@ -204,8 +204,6 @@
 <p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../extension_cli_guide.html">Extension CLI Guide: Building MalthusJAX Projects</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../toml_guide.html">TOML Configuration &amp; Scaffolding Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
@@ -356,7 +354,7 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.engine.AbstractEngine">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.</span></span><span class="sig-name descname"><span class="pre">AbstractEngine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine_params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#AbstractEngine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.AbstractEngine" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">G</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">P</span></code>], <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">G</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">P</span></code>], <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></a></p>
 <p>Abstract base class for all evolutionary engines.</p>
 <p>Standardizes the evolution loop using JAX scan.</p>
 <dl class="field-list simple">
@@ -379,7 +377,7 @@ should convert it to a typed PRNG key using the configured backend.
 The returned state is cached and reused by <code class="docutils literal notranslate"><span class="pre">step</span></code> and <code class="docutils literal notranslate"><span class="pre">run</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>rng_key</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> | </em><em>Array</em>)</p>
+<dd class="field-odd"><p><strong>rng_key</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> | </em><em>Array</em>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a>[<em>G</em>, <em>P</em>]</p>
@@ -400,7 +398,7 @@ method returns the updated state together with a KPI payload.</p>
 <dd class="field-odd"><p><strong>state</strong> (<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a><em>[</em><em>G</em><em>, </em><em>P</em><em>]</em>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a>[<em>G</em>, <em>P</em>], <a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractGenerationOutput" title="malthusjax.engine.base.AbstractGenerationOutput"><em>AbstractGenerationOutput</em></a>]</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.15)"><em>Tuple</em></a>[<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a>[<em>G</em>, <em>P</em>], <a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractGenerationOutput" title="malthusjax.engine.base.AbstractGenerationOutput"><em>AbstractGenerationOutput</em></a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -414,7 +412,7 @@ method returns the updated state together with a KPI payload.</p>
 <dd class="field-odd"><p><strong>state</strong> (<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a><em>[</em><em>G</em><em>, </em><em>P</em><em>]</em>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a>[<em>G</em>, <em>P</em>], <a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractGenerationOutput" title="malthusjax.engine.base.AbstractGenerationOutput"><em>AbstractGenerationOutput</em></a>]</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.15)"><em>Tuple</em></a>[<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a>[<em>G</em>, <em>P</em>], <a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractGenerationOutput" title="malthusjax.engine.base.AbstractGenerationOutput"><em>AbstractGenerationOutput</em></a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -428,7 +426,7 @@ method returns the updated state together with a KPI payload.</p>
 <dd class="field-odd"><p><strong>initial_state</strong> (<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a><em>[</em><em>G</em><em>, </em><em>P</em><em>]</em>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a>[<em>G</em>, <em>P</em>], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><em>List</em></a>[<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractGenerationOutput" title="malthusjax.engine.base.AbstractGenerationOutput"><em>AbstractGenerationOutput</em></a>]]</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.15)"><em>Tuple</em></a>[<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a>[<em>G</em>, <em>P</em>], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.15)"><em>List</em></a>[<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractGenerationOutput" title="malthusjax.engine.base.AbstractGenerationOutput"><em>AbstractGenerationOutput</em></a>]]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -446,15 +444,15 @@ and an optional elapsed time.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>initial_state</strong> (<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a><em>[</em><em>G</em><em>, </em><em>P</em><em>]</em>)</p></li>
-<li><p><strong>time_it</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
-<li><p><strong>compile</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
-<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
-<li><p><strong>return_history</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>time_it</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
+<li><p><strong>compile</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
+<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
+<li><p><strong>return_history</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
 <li><p><strong>step_logging</strong> (<a class="reference internal" href="malthusjax.core.html#malthusjax.core.StepLoggingConfig" title="malthusjax.core.logger.StepLoggingConfig"><em>StepLoggingConfig</em></a><em> | </em><em>None</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a>[<em>G</em>, <em>P</em>], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)">float</a> | None]</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.15)"><em>Tuple</em></a>[<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a>[<em>G</em>, <em>P</em>], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)">float</a> | None]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -474,7 +472,7 @@ this method.</p>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEngine" title="malthusjax.engine.base.AbstractEngine"><em>AbstractEngine</em></a>[<em>G</em>, <em>P</em>], <em>P</em>]</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.15)"><em>Tuple</em></a>[<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEngine" title="malthusjax.engine.base.AbstractEngine"><em>AbstractEngine</em></a>[<em>G</em>, <em>P</em>], <em>P</em>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -510,12 +508,12 @@ If optimize=False, shows the raw graph (faster, good for debugging shapes).</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>initial_state</strong> (<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a><em>[</em><em>G</em><em>, </em><em>P</em><em>]</em>)</p></li>
-<li><p><strong>optimize</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
-<li><p><strong>print_analysis</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>optimize</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
+<li><p><strong>print_analysis</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -531,7 +529,7 @@ If optimize=False, shows the raw graph (faster, good for debugging shapes).</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.engine.AbstractEvolutionState">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.</span></span><span class="sig-name descname"><span class="pre">AbstractEvolutionState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">best_genome</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">best_fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng_key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#AbstractEvolutionState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.AbstractEvolutionState" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">G</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">P</span></code>]</p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">G</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">P</span></code>]</p>
 <p>Mutable state container for evolution across generations (carries data through scan).
 Concrete implementations (GeneticEvolutionState) extend this with resource_map, operators.</p>
 <p>Type System Note:
@@ -552,7 +550,7 @@ structure (e.g., <cite>.values</cite>).</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>population</strong> (<em>P</em>)</p></li>
 <li><p><strong>best_genome</strong> (<em>G</em>)</p></li>
-<li><p><strong>generation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>generation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
 <li><p><strong>best_fitness</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
 <li><p><strong>rng_key</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
 </ul>
@@ -570,7 +568,7 @@ structure (e.g., <cite>.values</cite>).</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.AbstractEvolutionState.generation">
-<span class="sig-name descname"><span class="pre">generation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.engine.AbstractEvolutionState.generation" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">generation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.engine.AbstractEvolutionState.generation" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -606,7 +604,7 @@ and random keys) to prevent JAX buffer donation errors when reusing states.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.engine.AbstractEngineParams">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.</span></span><span class="sig-name descname"><span class="pre">AbstractEngineParams</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pop_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elitism</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unroll_num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">track_metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_logging</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#AbstractEngineParams"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.AbstractEngineParams" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Base immutable configuration for evolution engines (pytree_node=False).
 All fields remain static during JIT compilation; mutations use .replace().
 - pop_size: Population size (must be &gt; 0).
@@ -616,43 +614,43 @@ All fields remain static during JIT compilation; mutations use .replace().
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pop_size</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>elitism</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>num_generations</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>unroll_num</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>track_metrics</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>pop_size</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>elitism</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>num_generations</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>unroll_num</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>track_metrics</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
 <li><p><strong>step_logging</strong> (<a class="reference internal" href="malthusjax.core.html#malthusjax.core.StepLoggingConfig" title="malthusjax.core.logger.StepLoggingConfig"><em>StepLoggingConfig</em></a><em> | </em><em>None</em>)</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.AbstractEngineParams.pop_size">
-<span class="sig-name descname"><span class="pre">pop_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">100</span></span><a class="headerlink" href="#malthusjax.engine.AbstractEngineParams.pop_size" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">pop_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">100</span></span><a class="headerlink" href="#malthusjax.engine.AbstractEngineParams.pop_size" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.AbstractEngineParams.elitism">
-<span class="sig-name descname"><span class="pre">elitism</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#malthusjax.engine.AbstractEngineParams.elitism" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">elitism</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#malthusjax.engine.AbstractEngineParams.elitism" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.AbstractEngineParams.num_generations">
-<span class="sig-name descname"><span class="pre">num_generations</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">50</span></span><a class="headerlink" href="#malthusjax.engine.AbstractEngineParams.num_generations" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">num_generations</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">50</span></span><a class="headerlink" href="#malthusjax.engine.AbstractEngineParams.num_generations" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.AbstractEngineParams.unroll_num">
-<span class="sig-name descname"><span class="pre">unroll_num</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#malthusjax.engine.AbstractEngineParams.unroll_num" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">unroll_num</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#malthusjax.engine.AbstractEngineParams.unroll_num" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.AbstractEngineParams.track_metrics">
-<span class="sig-name descname"><span class="pre">track_metrics</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#malthusjax.engine.AbstractEngineParams.track_metrics" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">track_metrics</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#malthusjax.engine.AbstractEngineParams.track_metrics" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.AbstractEngineParams.step_logging">
-<span class="sig-name descname"><span class="pre">step_logging</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="malthusjax.core.html#malthusjax.core.StepLoggingConfig" title="malthusjax.core.logger.StepLoggingConfig"><span class="pre">StepLoggingConfig</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#malthusjax.engine.AbstractEngineParams.step_logging" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">step_logging</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="malthusjax.core.html#malthusjax.core.StepLoggingConfig" title="malthusjax.core.logger.StepLoggingConfig"><span class="pre">StepLoggingConfig</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#malthusjax.engine.AbstractEngineParams.step_logging" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -666,7 +664,7 @@ All fields remain static during JIT compilation; mutations use .replace().
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.engine.AbstractGenerationOutput">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.</span></span><span class="sig-name descname"><span class="pre">AbstractGenerationOutput</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">best_fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean_fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">std_fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#AbstractGenerationOutput"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.AbstractGenerationOutput" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>KPI payload returned at every evolution step (collected by JAX scan).
 Foundation for universal dashboard generation.
 - best_fitness: Scalar best fitness this generation.
@@ -709,7 +707,7 @@ stacks all KPI instances into (num_generations,) shaped arrays per field.</p>
 <span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_kpi_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/base.html#AbstractGenerationOutput.get_kpi_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.AbstractGenerationOutput.get_kpi_names" title="Link to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><em>List</em></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)">str</a>]</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.15)"><em>List</em></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -725,7 +723,7 @@ stacks all KPI instances into (num_generations,) shaped arrays per field.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.engine.BaseIslandModel">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.</span></span><span class="sig-name descname"><span class="pre">BaseIslandModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_islands</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">migration_interval</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_migrants</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/island_model/base.html#BaseIslandModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.BaseIslandModel" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">E</span></code>]</p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">E</span></code>]</p>
 <p>A Meta-Engine that distributes a standard MalthusJAX Engine across isolated islands.</p>
 <p><strong>WIP / ARCHITECTURAL NOTE: Host Synchronization</strong>
 This model currently runs the inner evolutionary loop inside <cite>jax.vmap</cite> for <cite>migration_interval</cite>
@@ -740,9 +738,9 @@ and then applying a customizable topological migration policy.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>engine</strong> (<em>E</em>)</p></li>
-<li><p><strong>num_islands</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>migration_interval</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>num_migrants</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>num_islands</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>migration_interval</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>num_migrants</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -753,17 +751,17 @@ and then applying a customizable topological migration policy.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.BaseIslandModel.num_islands">
-<span class="sig-name descname"><span class="pre">num_islands</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.engine.BaseIslandModel.num_islands" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">num_islands</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.engine.BaseIslandModel.num_islands" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.BaseIslandModel.migration_interval">
-<span class="sig-name descname"><span class="pre">migration_interval</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.engine.BaseIslandModel.migration_interval" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">migration_interval</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.engine.BaseIslandModel.migration_interval" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.BaseIslandModel.num_migrants">
-<span class="sig-name descname"><span class="pre">num_migrants</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.engine.BaseIslandModel.num_migrants" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">num_migrants</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><a class="headerlink" href="#malthusjax.engine.BaseIslandModel.num_migrants" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -775,7 +773,7 @@ and then applying a customizable topological migration policy.</p>
 <dd class="field-odd"><p><strong>key</strong> (<em>Array</em>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -789,11 +787,11 @@ and then applying a customizable topological migration policy.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>key</strong> (<em>Array</em>)</p></li>
-<li><p><strong>multi_pop</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
+<li><p><strong>multi_pop</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>]</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]</p>
+<dd class="field-even"><p><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -804,10 +802,10 @@ and then applying a customizable topological migration policy.</p>
 <dd><p>Outer generation step (1 step = <cite>migration_interval</cite> local generations).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>multi_state</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p>
+<dd class="field-odd"><p><strong>multi_state</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.15)"><em>Tuple</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -831,9 +829,9 @@ shuffles them, and redistributes them randomly across all islands.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>engine</strong> (<em>E</em>)</p></li>
-<li><p><strong>num_islands</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>migration_interval</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>num_migrants</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>num_islands</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>migration_interval</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>num_migrants</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -846,11 +844,11 @@ shuffles them, and redistributes them randomly across all islands.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>key</strong> (<em>Array</em>)</p></li>
-<li><p><strong>multi_pop</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
+<li><p><strong>multi_pop</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>]</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]</p>
+<dd class="field-even"><p><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -874,9 +872,9 @@ exactly one island to the right, injecting them into the worst spots.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>engine</strong> (<em>E</em>)</p></li>
-<li><p><strong>num_islands</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>migration_interval</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>num_migrants</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>num_islands</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>migration_interval</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>num_migrants</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -889,11 +887,11 @@ exactly one island to the right, injecting them into the worst spots.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>key</strong> (<em>Array</em>)</p></li>
-<li><p><strong>multi_pop</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
+<li><p><strong>multi_pop</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>]</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]</p>
+<dd class="field-even"><p><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -909,23 +907,23 @@ exactly one island to the right, injecting them into the worst spots.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.engine.IslandEngineAdapter">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.</span></span><span class="sig-name descname"><span class="pre">IslandEngineAdapter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">island_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">history_metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_logging</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/island_model/adapter.html#IslandEngineAdapter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.IslandEngineAdapter" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Adapts a BaseIslandModel to expose .run(), .init_state(), .step(), and .run_once().</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>island_model</strong> (<a class="reference internal" href="#malthusjax.engine.BaseIslandModel" title="malthusjax.engine.BaseIslandModel"><em>BaseIslandModel</em></a><em>[</em><em>Any</em><em>]</em>)</p></li>
-<li><p><strong>generations</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>generations</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
 <li><p><strong>genome_config</strong> (<em>Any</em>)</p></li>
-<li><p><strong>maximize</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
-<li><p><strong>history_metrics</strong> (<em>Optional</em><em>[</em><em>Sequence</em><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em><em>]</em>)</p></li>
+<li><p><strong>maximize</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
+<li><p><strong>history_metrics</strong> (<em>Optional</em><em>[</em><em>Sequence</em><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>]</em><em>]</em>)</p></li>
 <li><p><strong>step_logging</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="malthusjax.html#malthusjax.StepLoggingConfig" title="malthusjax.StepLoggingConfig"><em>StepLoggingConfig</em></a><em>]</em>)</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="malthusjax.engine.IslandEngineAdapter.engine">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">engine</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.IslandEngineAdapter.engine" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">engine</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.IslandEngineAdapter.engine" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -936,7 +934,7 @@ exactly one island to the right, injecting them into the worst spots.</p>
 <dd class="field-odd"><p><strong>key</strong> (<em>Array</em>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -946,10 +944,10 @@ exactly one island to the right, injecting them into the worst spots.</p>
 <span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">multi_state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/island_model/adapter.html#IslandEngineAdapter.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.IslandEngineAdapter.step" title="Link to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>multi_state</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p>
+<dd class="field-odd"><p><strong>multi_state</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.15)"><em>Tuple</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -961,12 +959,12 @@ exactly one island to the right, injecting them into the worst spots.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>init_state</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
-<li><p><strong>kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
+<li><p><strong>init_state</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference internal" href="#malthusjax.engine.IslandEvolutionState" title="malthusjax.engine.island_model.adapter.IslandEvolutionState"><em>IslandEvolutionState</em></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.15)"><em>Tuple</em></a>[<a class="reference internal" href="#malthusjax.engine.IslandEvolutionState" title="malthusjax.engine.island_model.adapter.IslandEvolutionState"><em>IslandEvolutionState</em></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -983,7 +981,7 @@ exactly one island to the right, injecting them into the worst spots.</p>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.15)"><em>Dict</em></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -993,44 +991,44 @@ exactly one island to the right, injecting them into the worst spots.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.engine.IslandEvolutionState">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.</span></span><span class="sig-name descname"><span class="pre">IslandEvolutionState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">multi_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">best_genome</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">best_fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/island_model/adapter.html#IslandEvolutionState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.IslandEvolutionState" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Evolution state wrapper returned by IslandEngineAdapter.run().</p>
 <p>Provides consistent attribute access (best_genome, best_fitness, population, generation)
 compatible with GeneticEvolutionState.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>multi_state</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
-<li><p><strong>best_genome</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
-<li><p><strong>best_fitness</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
-<li><p><strong>population</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
-<li><p><strong>generation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>multi_state</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>best_genome</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>best_fitness</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>population</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>generation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.IslandEvolutionState.multi_state">
-<span class="sig-name descname"><span class="pre">multi_state</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.IslandEvolutionState.multi_state" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">multi_state</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.IslandEvolutionState.multi_state" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.IslandEvolutionState.best_genome">
-<span class="sig-name descname"><span class="pre">best_genome</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.IslandEvolutionState.best_genome" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">best_genome</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.IslandEvolutionState.best_genome" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.IslandEvolutionState.best_fitness">
-<span class="sig-name descname"><span class="pre">best_fitness</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.IslandEvolutionState.best_fitness" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">best_fitness</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.IslandEvolutionState.best_fitness" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.IslandEvolutionState.population">
-<span class="sig-name descname"><span class="pre">population</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.IslandEvolutionState.population" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">population</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.IslandEvolutionState.population" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.IslandEvolutionState.generation">
-<span class="sig-name descname"><span class="pre">generation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#malthusjax.engine.IslandEvolutionState.generation" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">generation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#malthusjax.engine.IslandEvolutionState.generation" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1044,21 +1042,21 @@ compatible with GeneticEvolutionState.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.engine.MapElitesEngineAdapter">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.</span></span><span class="sig-name descname"><span class="pre">MapElitesEngineAdapter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_centroids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_init_cvt_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">0.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1.0,</span> <span class="pre">1.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_logging</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centroids_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/qd/adapter.html#MapElitesEngineAdapter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.MapElitesEngineAdapter" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Adapts MapElitesEngine to expose standard .init_state(), .step(), and .run().</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>engine</strong> (<em>MapElitesEngine</em><em>[</em><em>Any</em><em>, </em><em>Any</em><em>]</em>)</p></li>
 <li><p><strong>genome_config</strong> (<em>Any</em>)</p></li>
-<li><p><strong>generations</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>num_centroids</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>num_init_cvt_samples</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>minval</strong> (<em>Sequence</em><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em>)</p></li>
-<li><p><strong>maxval</strong> (<em>Sequence</em><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em>)</p></li>
-<li><p><strong>maximize</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>generations</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>num_centroids</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>num_init_cvt_samples</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>minval</strong> (<em>Sequence</em><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>]</em>)</p></li>
+<li><p><strong>maxval</strong> (<em>Sequence</em><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>]</em>)</p></li>
+<li><p><strong>maximize</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
 <li><p><strong>step_logging</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="malthusjax.html#malthusjax.StepLoggingConfig" title="malthusjax.StepLoggingConfig"><em>StepLoggingConfig</em></a><em>]</em>)</p></li>
-<li><p><strong>centroids_key</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>centroids_key</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -1071,7 +1069,7 @@ compatible with GeneticEvolutionState.</p>
 <dd class="field-odd"><p><strong>key</strong> (<em>Array</em>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><em>MapElitesState</em>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]</p>
+<dd class="field-even"><p><em>MapElitesState</em>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1082,10 +1080,10 @@ compatible with GeneticEvolutionState.</p>
 <dd><p>Steps one generation of MAP-Elites.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>state</strong> (<em>MapElitesState</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p>
+<dd class="field-odd"><p><strong>state</strong> (<em>MapElitesState</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>]</em>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<em>MapElitesState</em>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.15)"><em>Tuple</em></a>[<em>MapElitesState</em>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1097,12 +1095,12 @@ compatible with GeneticEvolutionState.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>init_state</strong> (<em>MapElitesState</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
+<li><p><strong>init_state</strong> (<em>MapElitesState</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>]</em>)</p></li>
 <li><p><strong>key</strong> (<em>Array</em><em> | </em><em>None</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference internal" href="#malthusjax.engine.MapElitesEvolutionState" title="malthusjax.engine.qd.adapter.MapElitesEvolutionState"><em>MapElitesEvolutionState</em></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)">int</a>]</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.15)"><em>Tuple</em></a>[<a class="reference internal" href="#malthusjax.engine.MapElitesEvolutionState" title="malthusjax.engine.qd.adapter.MapElitesEvolutionState"><em>MapElitesEvolutionState</em></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)">int</a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1112,24 +1110,24 @@ compatible with GeneticEvolutionState.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.engine.IslandMapElitesAdapter">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.</span></span><span class="sig-name descname"><span class="pre">IslandMapElitesAdapter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_islands</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">migration_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_migrants</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_centroids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_init_cvt_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">0.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1.0,</span> <span class="pre">1.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topology</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ring'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centroids_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/qd/adapter.html#IslandMapElitesAdapter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.IslandMapElitesAdapter" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Distributed Quality-Diversity Island Model across isolated MAP-Elites repertoires.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>engine</strong> (<em>MapElitesEngine</em><em>[</em><em>Any</em><em>, </em><em>Any</em><em>]</em>)</p></li>
 <li><p><strong>genome_config</strong> (<em>Any</em>)</p></li>
-<li><p><strong>num_islands</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>migration_interval</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>num_migrants</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>generations</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>num_centroids</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>num_init_cvt_samples</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>minval</strong> (<em>Sequence</em><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em>)</p></li>
-<li><p><strong>maxval</strong> (<em>Sequence</em><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em>)</p></li>
-<li><p><strong>maximize</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
-<li><p><strong>topology</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
-<li><p><strong>centroids_key</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>num_islands</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>migration_interval</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>num_migrants</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>generations</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>num_centroids</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>num_init_cvt_samples</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>minval</strong> (<em>Sequence</em><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>]</em>)</p></li>
+<li><p><strong>maxval</strong> (<em>Sequence</em><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>]</em>)</p></li>
+<li><p><strong>maximize</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
+<li><p><strong>topology</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>)</p></li>
+<li><p><strong>centroids_key</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -1142,7 +1140,7 @@ compatible with GeneticEvolutionState.</p>
 <dd class="field-odd"><p><strong>key</strong> (<em>Array</em>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1153,10 +1151,10 @@ compatible with GeneticEvolutionState.</p>
 <dd><p>Evolves all islands in parallel for migration_interval steps, then migrates elites.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>multi_state</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p>
+<dd class="field-odd"><p><strong>multi_state</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.15)"><em>Tuple</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1168,12 +1166,12 @@ compatible with GeneticEvolutionState.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>init_state</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
+<li><p><strong>init_state</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
 <li><p><strong>key</strong> (<em>Array</em><em> | </em><em>None</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference internal" href="#malthusjax.engine.IslandMapElitesEvolutionState" title="malthusjax.engine.qd.adapter.IslandMapElitesEvolutionState"><em>IslandMapElitesEvolutionState</em></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)">int</a>]</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.15)"><em>Tuple</em></a>[<a class="reference internal" href="#malthusjax.engine.IslandMapElitesEvolutionState" title="malthusjax.engine.qd.adapter.IslandMapElitesEvolutionState"><em>IslandMapElitesEvolutionState</em></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)">int</a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1183,48 +1181,48 @@ compatible with GeneticEvolutionState.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.engine.MapElitesEvolutionState">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.</span></span><span class="sig-name descname"><span class="pre">MapElitesEvolutionState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">best_genome</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">best_fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repertoire</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/qd/adapter.html#MapElitesEvolutionState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.MapElitesEvolutionState" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Standardized evolution state wrapper for MAP-Elites.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>state</strong> (<em>MapElitesState</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
-<li><p><strong>best_genome</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
-<li><p><strong>best_fitness</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
-<li><p><strong>repertoire</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
-<li><p><strong>population</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
-<li><p><strong>generation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>state</strong> (<em>MapElitesState</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>]</em>)</p></li>
+<li><p><strong>best_genome</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>best_fitness</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>repertoire</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>population</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>generation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.MapElitesEvolutionState.state">
-<span class="sig-name descname"><span class="pre">state</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">MapElitesState</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.engine.MapElitesEvolutionState.state" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">state</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">MapElitesState</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.engine.MapElitesEvolutionState.state" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.MapElitesEvolutionState.best_genome">
-<span class="sig-name descname"><span class="pre">best_genome</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.MapElitesEvolutionState.best_genome" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">best_genome</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.MapElitesEvolutionState.best_genome" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.MapElitesEvolutionState.best_fitness">
-<span class="sig-name descname"><span class="pre">best_fitness</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.MapElitesEvolutionState.best_fitness" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">best_fitness</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.MapElitesEvolutionState.best_fitness" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.MapElitesEvolutionState.repertoire">
-<span class="sig-name descname"><span class="pre">repertoire</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.MapElitesEvolutionState.repertoire" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">repertoire</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.MapElitesEvolutionState.repertoire" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.MapElitesEvolutionState.population">
-<span class="sig-name descname"><span class="pre">population</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.MapElitesEvolutionState.population" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">population</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.MapElitesEvolutionState.population" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.MapElitesEvolutionState.generation">
-<span class="sig-name descname"><span class="pre">generation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#malthusjax.engine.MapElitesEvolutionState.generation" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">generation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#malthusjax.engine.MapElitesEvolutionState.generation" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1238,42 +1236,42 @@ compatible with GeneticEvolutionState.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.engine.IslandMapElitesEvolutionState">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.</span></span><span class="sig-name descname"><span class="pre">IslandMapElitesEvolutionState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">multi_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">best_genome</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">best_fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repertoire</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/qd/adapter.html#IslandMapElitesEvolutionState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.IslandMapElitesEvolutionState" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Standardized evolution state wrapper for Island MAP-Elites.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>multi_state</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
-<li><p><strong>best_genome</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
-<li><p><strong>best_fitness</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
-<li><p><strong>repertoire</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
-<li><p><strong>generation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>multi_state</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>best_genome</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>best_fitness</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>repertoire</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>generation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.IslandMapElitesEvolutionState.multi_state">
-<span class="sig-name descname"><span class="pre">multi_state</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.IslandMapElitesEvolutionState.multi_state" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">multi_state</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.IslandMapElitesEvolutionState.multi_state" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.IslandMapElitesEvolutionState.best_genome">
-<span class="sig-name descname"><span class="pre">best_genome</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.IslandMapElitesEvolutionState.best_genome" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">best_genome</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.IslandMapElitesEvolutionState.best_genome" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.IslandMapElitesEvolutionState.best_fitness">
-<span class="sig-name descname"><span class="pre">best_fitness</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.IslandMapElitesEvolutionState.best_fitness" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">best_fitness</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.IslandMapElitesEvolutionState.best_fitness" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.IslandMapElitesEvolutionState.repertoire">
-<span class="sig-name descname"><span class="pre">repertoire</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.IslandMapElitesEvolutionState.repertoire" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">repertoire</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.IslandMapElitesEvolutionState.repertoire" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.IslandMapElitesEvolutionState.generation">
-<span class="sig-name descname"><span class="pre">generation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#malthusjax.engine.IslandMapElitesEvolutionState.generation" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">generation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#malthusjax.engine.IslandMapElitesEvolutionState.generation" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1287,7 +1285,7 @@ compatible with GeneticEvolutionState.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.engine.GeneticEngine">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.</span></span><span class="sig-name descname"><span class="pre">GeneticEngine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evaluator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crossover</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_progress_bar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_entropy_buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/genetic_fastengine.html#GeneticEngine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.GeneticEngine" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEngine" title="malthusjax.engine.base.AbstractEngine"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractEngine</span></code></a>[<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseGenome</span></code></a>, <a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><code class="xref py py-class docutils literal notranslate"><span class="pre">BasePopulation</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code></a>]]</p>
+<dd><p>Bases: <a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEngine" title="malthusjax.engine.base.AbstractEngine"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractEngine</span></code></a>[<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseGenome</span></code></a>, <a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><code class="xref py py-class docutils literal notranslate"><span class="pre">BasePopulation</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code></a>]]</p>
 <p>High-Performance Genetic Algorithm Engine with Init-Phase JIT Compilation.</p>
 <p><strong>Key Design</strong>: The engine compiles once during <a class="reference internal" href="#malthusjax.engine.GeneticEngine.init_state" title="malthusjax.engine.GeneticEngine.init_state"><code class="xref py py-meth docutils literal notranslate"><span class="pre">init_state()</span></code></a>, caching the
 complete execution plan (ResourceMap) and optimized operators. Subsequent calls
@@ -1365,32 +1363,32 @@ Create instances with <code class="docutils literal notranslate"><span class="pr
 them requires re-calling <a class="reference internal" href="#malthusjax.engine.GeneticEngine.init_state" title="malthusjax.engine.GeneticEngine.init_state"><code class="xref py py-meth docutils literal notranslate"><span class="pre">init_state()</span></code></a>.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.GeneticEngine.genome_config">
-<span class="sig-name descname"><span class="pre">genome_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.GeneticEngine.genome_config" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">genome_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a></span><a class="headerlink" href="#malthusjax.engine.GeneticEngine.genome_config" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.GeneticEngine.evaluator">
-<span class="sig-name descname"><span class="pre">evaluator</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="malthusjax.core.fitness.base.html#malthusjax.core.fitness.base.BaseEvaluator" title="malthusjax.core.fitness.base.BaseEvaluator"><span class="pre">BaseEvaluator</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.engine.GeneticEngine.evaluator" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">evaluator</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="malthusjax.core.fitness.base.html#malthusjax.core.fitness.base.BaseEvaluator" title="malthusjax.core.fitness.base.BaseEvaluator"><span class="pre">BaseEvaluator</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.engine.GeneticEngine.evaluator" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.GeneticEngine.selection">
-<span class="sig-name descname"><span class="pre">selection</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseSelection" title="malthusjax.operators.base.BaseSelection"><span class="pre">BaseSelection</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.engine.GeneticEngine.selection" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">selection</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseSelection" title="malthusjax.operators.base.BaseSelection"><span class="pre">BaseSelection</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.engine.GeneticEngine.selection" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.GeneticEngine.crossover">
-<span class="sig-name descname"><span class="pre">crossover</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseCrossover" title="malthusjax.operators.base.BaseCrossover"><span class="pre">BaseCrossover</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.engine.GeneticEngine.crossover" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">crossover</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseCrossover" title="malthusjax.operators.base.BaseCrossover"><span class="pre">BaseCrossover</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.engine.GeneticEngine.crossover" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.GeneticEngine.mutation">
-<span class="sig-name descname"><span class="pre">mutation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseMutation" title="malthusjax.operators.base.BaseMutation"><span class="pre">BaseMutation</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.engine.GeneticEngine.mutation" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">mutation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseMutation" title="malthusjax.operators.base.BaseMutation"><span class="pre">BaseMutation</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.engine.GeneticEngine.mutation" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.GeneticEngine.enable_progress_bar">
-<span class="sig-name descname"><span class="pre">enable_progress_bar</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#malthusjax.engine.GeneticEngine.enable_progress_bar" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">enable_progress_bar</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#malthusjax.engine.GeneticEngine.enable_progress_bar" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1404,12 +1402,12 @@ method returns the updated state together with a KPI payload.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>args</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
-<li><p><strong>kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
+<li><p><strong>args</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1420,10 +1418,10 @@ method returns the updated state together with a KPI payload.</p>
 <dd><p>Run one generation phase-by-phase and print intermediate summaries.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>state</strong> (<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a><em>[</em><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><em>BaseGenome</em></a><em>, </em><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em><em>]</em>)</p>
+<dd class="field-odd"><p><strong>state</strong> (<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a><em>[</em><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><em>BaseGenome</em></a><em>, </em><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>]</em><em>]</em>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEvolutionState" title="malthusjax.engine.genetic_fastengine.GeneticEvolutionState"><em>GeneticEvolutionState</em></a>, <a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticGenerationOutput" title="malthusjax.engine.genetic_fastengine.GeneticGenerationOutput"><em>GeneticGenerationOutput</em></a>]</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.15)"><em>Tuple</em></a>[<a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEvolutionState" title="malthusjax.engine.genetic_fastengine.GeneticEvolutionState"><em>GeneticEvolutionState</em></a>, <a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticGenerationOutput" title="malthusjax.engine.genetic_fastengine.GeneticGenerationOutput"><em>GeneticGenerationOutput</em></a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1509,16 +1507,16 @@ large populations). Subsequent calls use cached compiled kernels.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>initial_state</strong> (<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a><em>[</em><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><em>BaseGenome</em></a><em>, </em><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em><em>]</em>)</p></li>
-<li><p><strong>time_it</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
-<li><p><strong>compile</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
-<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
-<li><p><strong>return_history</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>initial_state</strong> (<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a><em>[</em><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><em>BaseGenome</em></a><em>, </em><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>]</em><em>]</em>)</p></li>
+<li><p><strong>time_it</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
+<li><p><strong>compile</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
+<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
+<li><p><strong>return_history</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
 <li><p><strong>step_logging</strong> (<a class="reference internal" href="malthusjax.core.html#malthusjax.core.StepLoggingConfig" title="malthusjax.core.logger.StepLoggingConfig"><em>StepLoggingConfig</em></a><em> | </em><em>None</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a>[<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><em>BaseGenome</em></a>, <a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]], <a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractGenerationOutput" title="malthusjax.engine.base.AbstractGenerationOutput"><em>AbstractGenerationOutput</em></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.15)"><em>Tuple</em></a>[<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a>[<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><em>BaseGenome</em></a>, <a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>]], <a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractGenerationOutput" title="malthusjax.engine.base.AbstractGenerationOutput"><em>AbstractGenerationOutput</em></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1591,7 +1589,7 @@ and sharding layout. Subsequent <a class="reference internal" href="#malthusjax.
 </section>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>rng_key</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> | </em><em>Array</em>)</p>
+<dd class="field-odd"><p><strong>rng_key</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> | </em><em>Array</em>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEvolutionState" title="malthusjax.engine.genetic_fastengine.GeneticEvolutionState"><em>GeneticEvolutionState</em></a></p>
@@ -1668,7 +1666,7 @@ this generation. Do not use the original engine for <a class="reference internal
 <dd class="field-odd"><p><strong>state</strong> (<a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEvolutionState" title="malthusjax.engine.genetic_fastengine.GeneticEvolutionState"><em>GeneticEvolutionState</em></a>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine" title="malthusjax.engine.genetic_fastengine.GeneticEngine"><em>GeneticEngine</em></a>, <a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]]</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.15)"><em>Tuple</em></a>[<a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine" title="malthusjax.engine.genetic_fastengine.GeneticEngine"><em>GeneticEngine</em></a>, <a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>]]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1682,12 +1680,12 @@ overriding <code class="docutils literal notranslate"><span class="pre">state.rn
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>state</strong> (<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a><em>[</em><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><em>BaseGenome</em></a><em>, </em><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em><em>]</em>)</p></li>
+<li><p><strong>state</strong> (<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a><em>[</em><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><em>BaseGenome</em></a><em>, </em><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>]</em><em>]</em>)</p></li>
 <li><p><strong>rng_key</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine" title="malthusjax.engine.genetic_fastengine.GeneticEngine"><em>GeneticEngine</em></a>, <a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]]</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.15)"><em>Tuple</em></a>[<a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine" title="malthusjax.engine.genetic_fastengine.GeneticEngine"><em>GeneticEngine</em></a>, <a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>]]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1764,7 +1762,7 @@ reuses cached compiled kernels.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>state</strong> (<a class="reference internal" href="malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEvolutionState" title="malthusjax.engine.genetic_fastengine.GeneticEvolutionState"><em>GeneticEvolutionState</em></a>)</p></li>
-<li><p><strong>population</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
+<li><p><strong>population</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>]</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -1783,8 +1781,8 @@ intentionally not consumed here.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>state</strong> (<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a><em>[</em><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><em>BaseGenome</em></a><em>, </em><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em><em>]</em>)</p></li>
-<li><p><strong>population</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
+<li><p><strong>state</strong> (<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEvolutionState" title="malthusjax.engine.base.AbstractEvolutionState"><em>AbstractEvolutionState</em></a><em>[</em><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BaseGenome" title="malthusjax.core.base.BaseGenome"><em>BaseGenome</em></a><em>, </em><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>]</em><em>]</em>)</p></li>
+<li><p><strong>population</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>]</em>)</p></li>
 <li><p><strong>rng_key</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
 </ul>
 </dd>
@@ -1805,13 +1803,13 @@ intentionally not consumed here.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>engine_params</strong> (<a class="reference internal" href="malthusjax.engine.base.html#malthusjax.engine.base.AbstractEngineParams" title="malthusjax.engine.base.AbstractEngineParams"><em>AbstractEngineParams</em></a>)</p></li>
-<li><p><strong>genome_config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
-<li><p><strong>evaluator</strong> (<a class="reference internal" href="malthusjax.core.fitness.base.html#malthusjax.core.fitness.base.BaseEvaluator" title="malthusjax.core.fitness.base.BaseEvaluator"><em>BaseEvaluator</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
-<li><p><strong>selection</strong> (<a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseSelection" title="malthusjax.operators.base.BaseSelection"><em>BaseSelection</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
-<li><p><strong>crossover</strong> (<a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseCrossover" title="malthusjax.operators.base.BaseCrossover"><em>BaseCrossover</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
-<li><p><strong>mutation</strong> (<a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseMutation" title="malthusjax.operators.base.BaseMutation"><em>BaseMutation</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>)</p></li>
-<li><p><strong>enable_progress_bar</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
-<li><p><strong>_entropy_buffer</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>, </em><em>...</em><em>]</em>)</p></li>
+<li><p><strong>genome_config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>evaluator</strong> (<a class="reference internal" href="malthusjax.core.fitness.base.html#malthusjax.core.fitness.base.BaseEvaluator" title="malthusjax.core.fitness.base.BaseEvaluator"><em>BaseEvaluator</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>]</em>)</p></li>
+<li><p><strong>selection</strong> (<a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseSelection" title="malthusjax.operators.base.BaseSelection"><em>BaseSelection</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>]</em>)</p></li>
+<li><p><strong>crossover</strong> (<a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseCrossover" title="malthusjax.operators.base.BaseCrossover"><em>BaseCrossover</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>]</em>)</p></li>
+<li><p><strong>mutation</strong> (<a class="reference internal" href="malthusjax.operators.base.html#malthusjax.operators.base.BaseMutation" title="malthusjax.operators.base.BaseMutation"><em>BaseMutation</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>]</em>)</p></li>
+<li><p><strong>enable_progress_bar</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
+<li><p><strong>_entropy_buffer</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.15)"><em>Tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>, </em><em>...</em><em>]</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -1910,27 +1908,27 @@ instance that will trigger XLA recompilation on next execution.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.GeneticEngineParams.track_metrics">
-<span class="sig-name descname"><span class="pre">track_metrics</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#malthusjax.engine.GeneticEngineParams.track_metrics" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">track_metrics</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#malthusjax.engine.GeneticEngineParams.track_metrics" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.GeneticEngineParams.initial_strength">
-<span class="sig-name descname"><span class="pre">initial_strength</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></span><a class="headerlink" href="#malthusjax.engine.GeneticEngineParams.initial_strength" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">initial_strength</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></span><a class="headerlink" href="#malthusjax.engine.GeneticEngineParams.initial_strength" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.GeneticEngineParams.final_strength">
-<span class="sig-name descname"><span class="pre">final_strength</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></span><a class="headerlink" href="#malthusjax.engine.GeneticEngineParams.final_strength" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">final_strength</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></span><a class="headerlink" href="#malthusjax.engine.GeneticEngineParams.final_strength" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.GeneticEngineParams.debug_tracing">
-<span class="sig-name descname"><span class="pre">debug_tracing</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#malthusjax.engine.GeneticEngineParams.debug_tracing" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">debug_tracing</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#malthusjax.engine.GeneticEngineParams.debug_tracing" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.engine.GeneticEngineParams.forward_presplit_keys">
-<span class="sig-name descname"><span class="pre">forward_presplit_keys</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#malthusjax.engine.GeneticEngineParams.forward_presplit_keys" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">forward_presplit_keys</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#malthusjax.engine.GeneticEngineParams.forward_presplit_keys" title="Link to this definition">¶</a></dt>
 <dd><p>False).</p>
 <p>When False (default) the traceable decorators are no-ops, allowing XLA to
 fuse all phases into a single kernel.  Set to True to get named labels in
@@ -1952,20 +1950,20 @@ the XLA HLO / profiler output.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pop_size</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>elitism</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>num_generations</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>unroll_num</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>track_metrics</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
+<li><p><strong>pop_size</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>elitism</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>num_generations</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>unroll_num</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>track_metrics</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
 <li><p><strong>step_logging</strong> (<a class="reference internal" href="malthusjax.core.html#malthusjax.core.StepLoggingConfig" title="malthusjax.core.logger.StepLoggingConfig"><em>StepLoggingConfig</em></a><em> | </em><em>None</em>)</p></li>
 <li><p><strong>key_derivation</strong> (<a class="reference internal" href="malthusjax.engine.resource_mapper.html#malthusjax.engine.resource_mapper.KeyDerivationStrategy" title="malthusjax.engine.resource_mapper.KeyDerivationStrategy"><em>KeyDerivationStrategy</em></a>)</p></li>
 <li><p><strong>prng_impl</strong> (<a class="reference internal" href="malthusjax.core.random.html#malthusjax.core.random.PRNGImpl" title="malthusjax.core.random.PRNGImpl"><em>PRNGImpl</em></a>)</p></li>
 <li><p><strong>schedule_type</strong> (<a class="reference internal" href="malthusjax.engine.schedules.html#malthusjax.engine.schedules.ScheduleType" title="malthusjax.engine.schedules.ScheduleType"><em>ScheduleType</em></a>)</p></li>
 <li><p><strong>track_best</strong> (<a class="reference internal" href="malthusjax.engine.schedules.html#malthusjax.engine.schedules.TrackBest" title="malthusjax.engine.schedules.TrackBest"><em>TrackBest</em></a>)</p></li>
-<li><p><strong>initial_strength</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
-<li><p><strong>final_strength</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
-<li><p><strong>debug_tracing</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
-<li><p><strong>forward_presplit_keys</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>initial_strength</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>)</p></li>
+<li><p><strong>final_strength</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>)</p></li>
+<li><p><strong>debug_tracing</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
+<li><p><strong>forward_presplit_keys</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -2003,7 +2001,7 @@ the XLA HLO / profiler output.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.engine.ScheduleType">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.</span></span><span class="sig-name descname"><span class="pre">ScheduleType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/schedules.html#ScheduleType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.ScheduleType" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.IntEnum" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntEnum</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.IntEnum" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntEnum</span></code></a></p>
 <p>Mutation strength schedule type.</p>
 <p>Each variant maps to a row in the vectorized schedule lookup table
 inside <code class="docutils literal notranslate"><span class="pre">compute_scheduled_strength</span></code>.  Using IntEnum ensures the
@@ -2035,7 +2033,7 @@ field — the JIT static fingerprint changes only if the schedule
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.engine.TrackBest">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.</span></span><span class="sig-name descname"><span class="pre">TrackBest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/schedules.html#TrackBest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.TrackBest" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.IntEnum" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntEnum</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.IntEnum" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntEnum</span></code></a></p>
 <p>Controls how the Hall-of-Fame (best individual) is tracked during
 the <code class="docutils literal notranslate"><span class="pre">jax.lax.scan</span></code> evolution loop.</p>
 <p>Selecting a lighter mode reduces scan-carry size and eliminates
@@ -2093,10 +2091,10 @@ depend on it.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>schedule</strong> (<a class="reference internal" href="malthusjax.engine.schedules.html#malthusjax.engine.schedules.ScheduleType" title="malthusjax.engine.schedules.ScheduleType"><em>ScheduleType</em></a>)</p></li>
-<li><p><strong>generation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>max_generations</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>initial_strength</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
-<li><p><strong>final_strength</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>generation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>max_generations</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>initial_strength</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>)</p></li>
+<li><p><strong>final_strength</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -2115,10 +2113,10 @@ size. It remains here for backwards compatibility and now always returns
 <code class="docutils literal notranslate"><span class="pre">1</span></code> regardless of <em>num_generations</em>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>num_generations</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p>
+<dd class="field-odd"><p><strong>num_generations</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)">int</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)">int</a></p>
 </dd>
 </dl>
 </dd></dl>

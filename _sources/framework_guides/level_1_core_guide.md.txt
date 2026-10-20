@@ -3,6 +3,11 @@
 ## 📚 Overview
 MalthusJAX is designed with a strict hierarchical architecture. **Level 1** represents the absolute foundation: `src/malthusjax/core/`.
 
+> [!TIP]
+> **New to MalthusJAX?**
+> If you simply want to optimize a benchmark function or run an evolutionary algorithm without writing low-level JAX PyTrees, start with the **[5-Minute Quickstart Notebook](../../notebooks/00_quickstart_in_5_minutes.ipynb)** or **[Level 4: Declarative Composer](level_4_composer_guide.md)**.
+> Level 1 is specifically for researchers writing custom low-level JAX algorithms from scratch!
+
 If you decide to use *only* Level 1, you are opting out of the automated Resource Mapper, the Operator Registry, and the Engine's `lax.scan` loop. Instead, you are using MalthusJAX as a highly optimized, type-safe PyTree structuring library to manage your evolutionary state while you manually write the JAX training loops yourself.
 
 This is highly recommended for researchers who want to prototype wild new algorithmic structures (e.g., crazy nested RL loops, custom meta-evolution) where the standard Genetic Engine feels too restrictive.

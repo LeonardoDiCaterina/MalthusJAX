@@ -203,8 +203,6 @@
 <p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../extension_cli_guide.html">Extension CLI Guide: Building MalthusJAX Projects</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../toml_guide.html">TOML Configuration &amp; Scaffolding Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
@@ -384,12 +382,18 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_ensure_engines_registered</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Force-import the engine package so that its</span>
-<span class="sd">    ``_register_engines()`` call runs and populates the global registry.</span>
+<span class="w">    </span><span class="sd">"""Force-import the engine package and populate the global registry.</span>
 
 <span class="sd">    Idempotent — repeated calls are cheap (Python caches imports).</span>
 <span class="sd">    """</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.engine</span>  <span class="c1"># noqa: F401</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">malthusjax.engine</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">engine_mod</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.engine_registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_table</span>
+
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">engine_mod</span><span class="p">,</span> <span class="s2">"register_engine_catalog"</span><span class="p">):</span>
+        <span class="n">engine_mod</span><span class="o">.</span><span class="n">register_engine_catalog</span><span class="p">(</span><span class="n">register_table</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">engine_mod</span><span class="p">,</span> <span class="s2">"_register_engines"</span><span class="p">):</span>
+        <span class="n">engine_mod</span><span class="o">.</span><span class="n">_register_engines</span><span class="p">()</span>
 
 
 <div class="viewcode-block" id="EngineRegistry">

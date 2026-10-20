@@ -204,8 +204,6 @@
 <p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../extension_cli_guide.html">Extension CLI Guide: Building MalthusJAX Projects</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../toml_guide.html">TOML Configuration &amp; Scaffolding Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
@@ -377,7 +375,7 @@ ConcretizationTypeError or silently froze schedule values.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.engine.schedules.ScheduleType">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.schedules.</span></span><span class="sig-name descname"><span class="pre">ScheduleType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/schedules.html#ScheduleType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.schedules.ScheduleType" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.IntEnum" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntEnum</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.IntEnum" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntEnum</span></code></a></p>
 <p>Mutation strength schedule type.</p>
 <p>Each variant maps to a row in the vectorized schedule lookup table
 inside <code class="docutils literal notranslate"><span class="pre">compute_scheduled_strength</span></code>.  Using IntEnum ensures the
@@ -409,7 +407,7 @@ field — the JIT static fingerprint changes only if the schedule
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.engine.schedules.TrackBest">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.schedules.</span></span><span class="sig-name descname"><span class="pre">TrackBest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/schedules.html#TrackBest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.schedules.TrackBest" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.IntEnum" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntEnum</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.IntEnum" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntEnum</span></code></a></p>
 <p>Controls how the Hall-of-Fame (best individual) is tracked during
 the <code class="docutils literal notranslate"><span class="pre">jax.lax.scan</span></code> evolution loop.</p>
 <p>Selecting a lighter mode reduces scan-carry size and eliminates
@@ -455,7 +453,7 @@ of <code class="docutils literal notranslate"><span class="pre">jax.lax.cond</sp
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.engine.schedules.TrackMetrics">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.schedules.</span></span><span class="sig-name descname"><span class="pre">TrackMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/schedules.html#TrackMetrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.schedules.TrackMetrics" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.IntEnum" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntEnum</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.IntEnum" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntEnum</span></code></a></p>
 <p>Controls how fitness metrics are tracked during the evolution loop.</p>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">NONE</span></code></dt><dd><p>No metrics are tracked. mean_fitness and std_fitness are dummy zeros.
@@ -498,10 +496,10 @@ depend on it.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>schedule</strong> (<a class="reference internal" href="#malthusjax.engine.schedules.ScheduleType" title="malthusjax.engine.schedules.ScheduleType"><em>ScheduleType</em></a>)</p></li>
-<li><p><strong>generation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>max_generations</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>initial_strength</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
-<li><p><strong>final_strength</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>generation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>max_generations</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>initial_strength</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>)</p></li>
+<li><p><strong>final_strength</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>

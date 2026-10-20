@@ -203,8 +203,6 @@
 <p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../extension_cli_guide.html">Extension CLI Guide: Building MalthusJAX Projects</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../toml_guide.html">TOML Configuration &amp; Scaffolding Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
@@ -376,9 +374,6 @@
     <span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
     <span class="n">tqdm</span> <span class="o">=</span> <span class="kc">None</span>
-
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.engine_protocol</span><span class="w"> </span><span class="kn">import</span> <span class="n">Engine</span> <span class="k">as</span> <span class="n">Engine</span>
 
 
 <div class="viewcode-block" id="BenchmarkRunner">
@@ -632,6 +627,10 @@
         <span class="p">}</span></div>
 </div>
 
+
+
+<span class="c1"># Deferred import to break circular dependency with composer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.engine_protocol</span><span class="w"> </span><span class="kn">import</span> <span class="n">Engine</span> <span class="k">as</span> <span class="n">Engine</span>
 </pre></div>
         </article>
       </div>

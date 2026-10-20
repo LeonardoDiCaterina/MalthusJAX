@@ -203,8 +203,6 @@
 <p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../extension_cli_guide.html">Extension CLI Guide: Building MalthusJAX Projects</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../toml_guide.html">TOML Configuration &amp; Scaffolding Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
@@ -577,53 +575,55 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">default_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseStrategy</span><span class="p">:</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.strategies.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">TensorNEATStrategy</span>
 
-        <span class="n">algo_kwargs</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"algorithm_kwargs"</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">algo_kwargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">exclude</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">"tensorneat_algorithm"</span><span class="p">,</span>
-                <span class="s2">"tensorneat_genome"</span><span class="p">,</span>
-                <span class="s2">"tensorneat_problem"</span><span class="p">,</span>
-                <span class="s2">"tensorneat_num_inputs"</span><span class="p">,</span>
-                <span class="s2">"tensorneat_num_outputs"</span><span class="p">,</span>
-                <span class="s2">"backend"</span><span class="p">,</span>
-                <span class="s2">"fitness"</span><span class="p">,</span>
-                <span class="s2">"pop_size"</span><span class="p">,</span>
-                <span class="s2">"generations"</span><span class="p">,</span>
-                <span class="s2">"seeds"</span><span class="p">,</span>
-                <span class="s2">"maximize"</span><span class="p">,</span>
-                <span class="s2">"bounds"</span><span class="p">,</span>
-                <span class="s2">"genome_length"</span><span class="p">,</span>
-                <span class="s2">"prng_impl"</span><span class="p">,</span>
-                <span class="s2">"step_logging"</span><span class="p">,</span>
-                <span class="s2">"history_metrics"</span><span class="p">,</span>
-                <span class="s2">"strategy"</span><span class="p">,</span>
-                <span class="s2">"data_config"</span><span class="p">,</span>
-                <span class="s2">"composable"</span><span class="p">,</span>
-                <span class="s2">"genome"</span><span class="p">,</span>
-                <span class="s2">"engine_type"</span><span class="p">,</span>
-                <span class="s2">"genome_type"</span><span class="p">,</span>
-                <span class="s2">"selection"</span><span class="p">,</span>
-                <span class="s2">"crossover"</span><span class="p">,</span>
-                <span class="s2">"mutation"</span><span class="p">,</span>
-                <span class="s2">"elitism"</span><span class="p">,</span>
-                <span class="s2">"experiment_name"</span><span class="p">,</span>
-                <span class="s2">"output_dir"</span><span class="p">,</span>
-                <span class="s2">"engine"</span><span class="p">,</span>
-                <span class="s2">"trace_dir"</span><span class="p">,</span>
-                <span class="s2">"eval_mode"</span><span class="p">,</span>
-                <span class="s2">"evosax_strategy"</span><span class="p">,</span>
-                <span class="s2">"evosax_es_params"</span><span class="p">,</span>
-                <span class="s2">"qdax_strategy"</span><span class="p">,</span>
-                <span class="s2">"qdax_num_descriptors"</span><span class="p">,</span>
-                <span class="s2">"qdax_num_centroids"</span><span class="p">,</span>
-                <span class="s2">"qdax_mutation_sigma"</span><span class="p">,</span>
-                <span class="s2">"seed"</span><span class="p">,</span>
-                <span class="s2">"num_dims"</span><span class="p">,</span>
-                <span class="s2">"num_parallel"</span><span class="p">,</span>
-                <span class="s2">"num_inputs"</span><span class="p">,</span>
-                <span class="s2">"num_outputs"</span><span class="p">,</span>
-            <span class="p">}</span>
-            <span class="n">algo_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude</span><span class="p">}</span>
+        <span class="n">algo_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"algorithm_kwargs"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
+        <span class="n">exclude</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"tensorneat_algorithm"</span><span class="p">,</span>
+            <span class="s2">"tensorneat_genome"</span><span class="p">,</span>
+            <span class="s2">"tensorneat_problem"</span><span class="p">,</span>
+            <span class="s2">"tensorneat_num_inputs"</span><span class="p">,</span>
+            <span class="s2">"tensorneat_num_outputs"</span><span class="p">,</span>
+            <span class="s2">"backend"</span><span class="p">,</span>
+            <span class="s2">"fitness"</span><span class="p">,</span>
+            <span class="s2">"pop_size"</span><span class="p">,</span>
+            <span class="s2">"generations"</span><span class="p">,</span>
+            <span class="s2">"seeds"</span><span class="p">,</span>
+            <span class="s2">"maximize"</span><span class="p">,</span>
+            <span class="s2">"bounds"</span><span class="p">,</span>
+            <span class="s2">"genome_length"</span><span class="p">,</span>
+            <span class="s2">"prng_impl"</span><span class="p">,</span>
+            <span class="s2">"step_logging"</span><span class="p">,</span>
+            <span class="s2">"history_metrics"</span><span class="p">,</span>
+            <span class="s2">"strategy"</span><span class="p">,</span>
+            <span class="s2">"data_config"</span><span class="p">,</span>
+            <span class="s2">"composable"</span><span class="p">,</span>
+            <span class="s2">"genome"</span><span class="p">,</span>
+            <span class="s2">"engine_type"</span><span class="p">,</span>
+            <span class="s2">"genome_type"</span><span class="p">,</span>
+            <span class="s2">"selection"</span><span class="p">,</span>
+            <span class="s2">"crossover"</span><span class="p">,</span>
+            <span class="s2">"mutation"</span><span class="p">,</span>
+            <span class="s2">"elitism"</span><span class="p">,</span>
+            <span class="s2">"experiment_name"</span><span class="p">,</span>
+            <span class="s2">"output_dir"</span><span class="p">,</span>
+            <span class="s2">"engine"</span><span class="p">,</span>
+            <span class="s2">"trace_dir"</span><span class="p">,</span>
+            <span class="s2">"eval_mode"</span><span class="p">,</span>
+            <span class="s2">"evosax_strategy"</span><span class="p">,</span>
+            <span class="s2">"evosax_es_params"</span><span class="p">,</span>
+            <span class="s2">"qdax_strategy"</span><span class="p">,</span>
+            <span class="s2">"qdax_num_descriptors"</span><span class="p">,</span>
+            <span class="s2">"qdax_num_centroids"</span><span class="p">,</span>
+            <span class="s2">"qdax_mutation_sigma"</span><span class="p">,</span>
+            <span class="s2">"seed"</span><span class="p">,</span>
+            <span class="s2">"num_dims"</span><span class="p">,</span>
+            <span class="s2">"num_parallel"</span><span class="p">,</span>
+            <span class="s2">"num_inputs"</span><span class="p">,</span>
+            <span class="s2">"num_outputs"</span><span class="p">,</span>
+            <span class="s2">"algorithm_kwargs"</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude</span> <span class="ow">and</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">algo_kwargs</span><span class="p">:</span>
+                <span class="n">algo_kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
 
         <span class="k">return</span> <span class="n">TensorNEATStrategy</span><span class="p">(</span>
             <span class="n">algorithm_name</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tensorneat_algorithm"</span><span class="p">,</span> <span class="s2">"NEAT"</span><span class="p">),</span>
@@ -765,26 +765,55 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.composer.backends.tensorneat.html#malthusjax.composer.backends.tensorneat.TensorneatProvider.generate_initial_population">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">generate_initial_population</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
         <span class="n">pop_seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
-        <span class="kn">import</span><span class="w"> </span><span class="nn">tensorneat.algorithm</span>
-        <span class="kn">import</span><span class="w"> </span><span class="nn">tensorneat.genome</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">tensorneat.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">State</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">tensorneat.algorithm</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">tensorneat.genome</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">tensorneat.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">State</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
 
-        <span class="n">pop_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pop_size"</span><span class="p">,</span> <span class="mi">50</span><span class="p">))</span>
-        <span class="n">num_inputs</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"num_inputs"</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-        <span class="n">num_outputs</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"num_outputs"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">"population"</span><span class="p">):</span>
+            <span class="n">pop_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">population</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">pop_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pop_size"</span><span class="p">,</span> <span class="mi">50</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pop_size</span> <span class="o">=</span> <span class="mi">50</span>
 
-        <span class="n">genome</span> <span class="o">=</span> <span class="n">tensorneat</span><span class="o">.</span><span class="n">genome</span><span class="o">.</span><span class="n">DefaultGenome</span><span class="p">(</span><span class="n">num_inputs</span><span class="o">=</span><span class="n">num_inputs</span><span class="p">,</span> <span class="n">num_outputs</span><span class="o">=</span><span class="n">num_outputs</span><span class="p">)</span>
-        <span class="n">algorithm</span> <span class="o">=</span> <span class="n">tensorneat</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">NEAT</span><span class="p">(</span><span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span> <span class="n">genome</span><span class="o">=</span><span class="n">genome</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">"backend"</span><span class="p">):</span>
+            <span class="n">num_inputs</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="s2">"num_inputs"</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">num_outputs</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="s2">"num_outputs"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">species_size</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="s2">"species_size"</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+            <span class="n">max_nodes</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="s2">"max_nodes"</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+            <span class="n">max_conns</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="s2">"max_conns"</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">num_inputs</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"num_inputs"</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tensorneat_num_inputs"</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+            <span class="n">num_outputs</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"num_outputs"</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tensorneat_num_outputs"</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">species_size</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"species_size"</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+            <span class="n">max_nodes</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"max_nodes"</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+            <span class="n">max_conns</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"max_conns"</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">num_inputs</span><span class="p">,</span> <span class="n">num_outputs</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span>
+            <span class="n">species_size</span> <span class="o">=</span> <span class="mi">5</span>
+            <span class="n">max_nodes</span><span class="p">,</span> <span class="n">max_conns</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span>
+
+        <span class="n">genome</span> <span class="o">=</span> <span class="n">tensorneat</span><span class="o">.</span><span class="n">genome</span><span class="o">.</span><span class="n">DefaultGenome</span><span class="p">(</span>
+            <span class="n">num_inputs</span><span class="o">=</span><span class="n">num_inputs</span><span class="p">,</span>
+            <span class="n">num_outputs</span><span class="o">=</span><span class="n">num_outputs</span><span class="p">,</span>
+            <span class="n">max_nodes</span><span class="o">=</span><span class="n">max_nodes</span><span class="p">,</span>
+            <span class="n">max_conns</span><span class="o">=</span><span class="n">max_conns</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">algorithm</span> <span class="o">=</span> <span class="n">tensorneat</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">NEAT</span><span class="p">(</span>
+            <span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span>
+            <span class="n">species_size</span><span class="o">=</span><span class="n">species_size</span><span class="p">,</span>
+            <span class="n">genome</span><span class="o">=</span><span class="n">genome</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="n">state</span> <span class="o">=</span> <span class="n">State</span><span class="p">(</span><span class="n">randkey</span><span class="o">=</span><span class="n">jr</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="n">pop_seed</span><span class="p">))</span>
         <span class="n">state</span> <span class="o">=</span> <span class="n">algorithm</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-
-        <span class="n">pop_nodes</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="s2">"pop_nodes"</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">state_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pop_nodes"</span><span class="p">))</span>
-        <span class="n">pop_conns</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="s2">"pop_conns"</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">state_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pop_conns"</span><span class="p">))</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">pop_nodes</span><span class="p">,</span> <span class="n">pop_conns</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">algorithm</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="n">state</span><span class="p">)</span></div>
 </div>
 
 
