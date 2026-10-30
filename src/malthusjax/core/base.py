@@ -290,8 +290,9 @@ class BasePopulation(Generic[G]):
         """Build a population by interpreting one axis of *arr* as individuals.
 
         The method moves *axis* to the front and delegates to
-        ``genome_cls.from_tensor`` for per‑individual wrapping. Output
-        fitness values are initialized to ``-inf`` as a sentinel.
+        ``genome_cls.from_tensor`` for per‑individual wrapping (including
+        casting to ``config.dtype`` when configured). Output fitness values
+        are initialized to ``-inf`` as a sentinel.
         """
         arr_batched = jnp.moveaxis(arr, axis, 0)
         pop_size = arr_batched.shape[0]

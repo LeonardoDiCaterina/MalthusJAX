@@ -57,10 +57,12 @@ class RealGenomeConfig:
         - bounds=(-5.12, 5.12) → Rastrigin function standard
         - bounds=(-512.0, 512.0) → Schwefel function standard
 
-    dtype : type or jnp.dtype
-        JAX floating-point dtype for all gene values.
-        - jnp.float32 (default): 32-bit precision, GPU-efficient
-        - jnp.float64: 64-bit precision, higher accuracy but slower
+    dtype : type or jnp.dtype or str
+        JAX floating-point dtype for all gene values (or string alias).
+        - jnp.float32 / "float32" (default): 32-bit precision, standard GPU float
+        - jnp.bfloat16 / "bfloat16": 16-bit brain float, preserves float32 dynamic range
+        - jnp.float16 / "float16": 16-bit IEEE half precision
+        - jnp.float64 / "float64": 64-bit precision (requires jax_enable_x64)
         Default: jnp.float32
 
     Notes
@@ -199,21 +201,24 @@ class RealGenome(BaseGenome):
 
     def add_noise(self, key: chex.PRNGKey, noise_std: float = 0.1) -> RealGenome:
         """
-        Applies Gaussian jitter to the genome, often used as a mutation operator.
+        Applies Gaussian jitter to the genome in its native dtype.
         """
-        noise = jax.random.normal(key, self.values.shape) * noise_std
+        dtype = self.values.dtype
+        noise = jax.random.normal(key, self.values.shape, dtype=dtype) * jnp.asarray(
+            noise_std, dtype=dtype
+        )
         noisy_values = self.values + noise
         return cast(RealGenome, cast(Any, self).replace(values=noisy_values))
 
     @classmethod
     def from_tensor(cls, arr: chex.Array, config: Any = None) -> "RealGenome":
-        """Construct a batched RealGenome from a raw array.
+        """Construct a batched RealGenome from a raw array, casting to ``config.dtype`` if provided.
 
-        This is intentionally a trivial factory: it wraps the provided array in
-        the `RealGenome` dataclass. Keep the implementation pure and avoid
-        Python-side validation so it remains JIT-traceable.
+        Remains pure and free of Python-side branching so it is safe under
+        ``jax.jit`` and ``jax.vmap``.
         """
-        return cls(values=arr)
+        dtype = getattr(config, "dtype", None)
+        return cls(values=jnp.asarray(arr, dtype=dtype))
 
 
 @struct.dataclass

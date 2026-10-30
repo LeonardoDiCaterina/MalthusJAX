@@ -243,7 +243,9 @@ def build_engine(
 
         if genome_type == "real":
             genome_config = RealGenomeConfig(
-                shape=genome_shape, bounds=bounds, dtype=kwargs.get("dtype", "float32")
+                shape=genome_shape,
+                bounds=bounds,
+                dtype=jnp.dtype(kwargs.get("dtype", "float32")),
             )
         elif genome_type == "binary":
             genome_config = BinaryGenomeConfig(shape=genome_shape)

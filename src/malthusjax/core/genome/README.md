@@ -98,7 +98,7 @@ MalthusJAX ships with a diverse suite of JAX-native genome representations cover
 
 | Representation | Class & Config | Payload Structure | Domain Constraints & Autocorrect | Primary Applications |
 | :--- | :--- | :--- | :--- | :--- |
-| **Real Vector** | `RealGenome`<br>`RealGenomeConfig` | `values: chex.Array` (`float32`) | Clips values to `bounds=(min, max)`. Supports L2 normalization. | Continuous optimization, BBOB, physics parameters, direct policy weights. |
+| **Real Vector** | `RealGenome`<br>`RealGenomeConfig` | `values: chex.Array` (`float32`, `bfloat16`, `float16`) | Clips values to `bounds=(min, max)`. Supports L2 normalization and reduced-precision casting via `from_tensor`. | Continuous optimization, BBOB, physics parameters, direct policy weights. |
 | **Binary String** | `BinaryGenome`<br>`BinaryGenomeConfig` | `values: chex.Array` (`int32` bits in `{0, 1}`) | Bounds checking and binary cast. Supports `to_int()` decoding. | Combinatorial search, OneMax, 0/1 Knapsack, feature selection. |
 | **Categorical** | `CategoricalGenome`<br>`CategoricalGenomeConfig` | `values: chex.Array` (`int32` indices) | Snaps out-of-range categories; checks permutation validity via `is_permutation()`. | TSP, scheduling, discrete choice, permutation problems. |
 | **Series / Temporal** | `SeriesGenome`<br>`SeriesGenomeConfig` | `values: chex.Array` (`(n_dims, n_coeffs)`) | Basis expansion projection (`basis: BasisFunction`) and coefficient bounding. | Time-series prediction, trajectory optimization, dynamical signal shaping. |
@@ -111,7 +111,7 @@ MalthusJAX ships with a diverse suite of JAX-native genome representations cover
 #### 1. `RealGenomeConfig`
 - `shape: Tuple[int, ...]`: Shape of the continuous tensor payload (e.g. `(10,)` or `(5, 5)`).
 - `bounds: Tuple[float, float]`: Min/max bounds enforced during `autocorrect()`.
-- `dtype: Any`: Precision dtype (default `jnp.float32`).
+- `dtype: Any`: Precision dtype (default `jnp.float32`; supports `jnp.bfloat16`, `jnp.float16`, and string aliases `"float32"`, `"bfloat16"`, `"float16"`). Enforced both on `random_init` and when wrapping external arrays via `RealGenome.from_tensor(arr, config)` / `RealPopulation.from_array(arr, config, RealGenome)`.
 
 #### 2. `BinaryGenomeConfig`
 - `shape: Tuple[int, ...]`: Shape of binary array (defaults to `(1,)`).

@@ -23,6 +23,15 @@ from malthusjax.operators.mutation.real import (
 __all__ = ["EvosaxGaussianWrapper", "InjectionGaussianMutation", "BatchedEvosaxGaussianWrapper"]
 
 
+def _safe_evosax_mutation(key: Any, solution: Any, std: float) -> Any:
+    """Safely apply evosax mutation while strictly preserving solution dtype (e.g. float16, bfloat16)."""
+    target_dtype = solution.dtype
+    if jnp.issubdtype(target_dtype, jnp.inexact) and target_dtype != jnp.float32:
+        noise = jax.random.normal(key, solution.shape, dtype=target_dtype)
+        return solution + noise * jnp.asarray(std, dtype=target_dtype)
+    return evosax_mutation(key=key, solution=solution, std=std)
+
+
 @struct.dataclass
 class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig]):
     """
@@ -62,7 +71,7 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig]):
         else:
             prng_key = keys.reshape((-1, keys.shape[-1]))[0]
 
-        mutated_values = evosax_mutation(
+        mutated_values = _safe_evosax_mutation(
             key=prng_key,
             solution=genome.values,
             std=self.mutation_strength,
@@ -117,7 +126,7 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig]):
                 subkeys = all_keys.reshape(n * self.num_offspring, all_keys.shape[-1])
 
         def _call_evosax(k: chex.Array, sol: chex.Array) -> chex.Array:
-            return evosax_mutation(key=k, solution=sol, std=self.mutation_strength)
+            return _safe_evosax_mutation(key=k, solution=sol, std=self.mutation_strength)
 
         if self.num_offspring == 1:
             return jax.vmap(_call_evosax)(subkeys, flat_values)
@@ -168,7 +177,7 @@ class EvosaxGaussianWrapper(BaseMutation[RealGenome, RealGenomeConfig]):
 
         def _call_evosax(k: Any, sol: Any) -> Any:
             # evosax library is untyped; keep helper untyped to match
-            return evosax_mutation(key=k, solution=sol, std=self.mutation_strength)
+            return _safe_evosax_mutation(key=k, solution=sol, std=self.mutation_strength)
 
         if self.num_offspring == 1:
             mutated_vals = jax.vmap(_call_evosax)(subkeys, population.genes.values)
@@ -211,7 +220,7 @@ class BatchedEvosaxGaussianWrapper(EvosaxGaussianWrapper):
             genes = jnp.repeat(genes, self.num_offspring, axis=0)
 
         # evosax_mutation automatically scales the noise shape to match the solution shape!
-        mutated_vals = evosax_mutation(
+        mutated_vals = _safe_evosax_mutation(
             key=k,
             solution=genes,
             std=self.mutation_strength,
