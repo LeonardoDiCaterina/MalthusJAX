@@ -74,13 +74,23 @@ class OLSRegressionAnalyzer:
                         md_path = analysis_dir / f"{prefix}_{var}_ols_summary.md"
                         md_path.write_text(regression_to_markdown(ols_res))
 
-                        # Extract p-values and coefficients
+                        # Extract p-values and coefficients (support both snake_case and Title-Case diagnostic names)
                         bp_pval = next(
-                            (d.p_value for d in ols_res.diagnostics if d.name == "Breusch-Pagan"),
+                            (
+                                d.p_value
+                                for d in ols_res.diagnostics
+                                if d.name.lower().replace("-", "_") == "breusch_pagan"
+                                and d.p_value is not None
+                            ),
                             np.nan,
                         )
                         sw_pval = next(
-                            (d.p_value for d in ols_res.diagnostics if d.name == "Shapiro-Wilk"),
+                            (
+                                d.p_value
+                                for d in ols_res.diagnostics
+                                if d.name.lower().replace("-", "_") == "shapiro_wilk"
+                                and d.p_value is not None
+                            ),
                             np.nan,
                         )
 
@@ -120,13 +130,15 @@ class OLSRegressionAnalyzer:
             p_cols = ["beta_3_pval"] + [f"beta_3_pval_{hc}" for hc in self.spec.robust_cov_types]
             for pval_col in p_cols:
                 if pval_col in df_pivot.columns:
-                    valid_idx = df_pivot[pval_col].notna()
-                    if valid_idx.any():
-                        _, corrected, _, _ = multipletests(
-                            df_pivot.loc[valid_idx, pval_col],
-                            method=self.spec.multiple_testing_method,
-                        )
-                        df_pivot.loc[valid_idx, f"{pval_col}_holm"] = corrected
+                    df_pivot[f"{pval_col}_holm"] = np.nan
+                    for _, group_df in df_pivot.groupby("Dependent_Var"):
+                        valid_idx = group_df[pval_col].dropna().index
+                        if len(valid_idx) > 0:
+                            _, corrected, _, _ = multipletests(
+                                df_pivot.loc[valid_idx, pval_col],
+                                method=self.spec.multiple_testing_method,
+                            )
+                            df_pivot.loc[valid_idx, f"{pval_col}_holm"] = corrected
 
             # Reorder columns to ensure Target, Benchmark, Dependent_Var are first
             cols = ["Target", "Benchmark", "Dependent_Var"] + [

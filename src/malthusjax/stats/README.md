@@ -19,6 +19,10 @@ hold, and reports effect sizes alongside every p-value.
 | `comparator.py` | Orchestration — runs the configured tests, checks normality, decides pass/fail and reliability. |
 | `correction.py` | Suite-level multiple-testing correction (Holm, FDR-BH). |
 | `effects.py` | Effect size computation (Cohen's dz and friends). |
+| `diagnostics.py` | Residual diagnostics (`breusch_pagan`, `shapiro_wilk`) for OLS regressions. |
+| `dataset_builder.py` | Strictly paired `(fn_name, seed, D, P, G)` dataset synthesis and centered log-design matrix builder. |
+| `regression.py` | OLS model fitting (`fit_ols`) with HC0/HC1/HC3 heteroskedasticity-robust standard errors. |
+| `regression_analyzer.py` | Suite-level OLS interaction analyzer (`OLSRegressionAnalyzer`) with Holm-Bonferroni correction partitioned per `Dependent_Var` family. |
 | `io.py` | Renders a result as Markdown (for `mjax parity` / reports) or JSON. |
 
 ## Quick start
