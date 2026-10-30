@@ -94,18 +94,19 @@ def test_reproducibility_same_seed(make_engine):
     chex.assert_trees_all_close(f1.population.genes.values, f2.population.genes.values)
 
 
-def test_different_impl_produces_different_run(make_engine):
-    try:
-        k1 = create_key(1234, impl=PRNGImpl.THREEFRY)
-        k2 = create_key(1234, impl=PRNGImpl.PHILOX)
-    except ValueError:
-        pytest.skip("PHILOX not supported")
+@pytest.mark.parametrize(
+    "impl",
+    [PRNGImpl.PHILOX, PRNGImpl.RBG, PRNGImpl.UNSAFE_RBG],
+)
+def test_different_impl_produces_different_run(make_engine, impl):
+    k_threefry = create_key(1234, impl=PRNGImpl.THREEFRY)
+    k_other = create_key(1234, impl=impl)
 
     engine = make_engine()
-    s1 = engine.init_state(k1)
+    s1 = engine.init_state(k_threefry)
     f1, _, _ = engine.run(s1, compile=False)
 
-    s2 = engine.init_state(k2)
+    s2 = engine.init_state(k_other)
     f2, _, _ = engine.run(s2, compile=False)
 
     assert not jnp.allclose(f1.population.genes.values, f2.population.genes.values)

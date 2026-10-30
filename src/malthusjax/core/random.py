@@ -9,10 +9,79 @@ from __future__ import annotations
 
 import warnings
 from enum import Enum
+import math
 from typing import Optional, cast
 
 import jax
+import jax.lax as lax
 import jax.numpy as jnp
+
+
+def _register_philox_prng() -> None:
+    """Register the native XLA Philox-4x32-10 PRNG implementation with JAX if not present."""
+    try:
+        from jax._src import prng as _prng
+        import jax.extend.random as jext_rnd
+
+        if "philox4x32" in _prng.prngs:
+            return
+
+        def _xla_philox_seed(seed: jax.Array) -> jax.Array:
+            halfkey = _prng.threefry_seed(seed)
+            return jnp.concatenate(
+                [halfkey, halfkey ^ jnp.array([0x9E3779B9, 0xBB67AE85], dtype=jnp.uint32)]
+            )
+
+        def _xla_philox_split(key: jax.Array, shape: tuple[int, ...]) -> jax.Array:
+            num = math.prod(shape)
+            _, keys = lax.rng_bit_generator(
+                key,
+                (num, 4),
+                dtype=jnp.uint32,
+                algorithm=lax.RandomAlgorithm.RNG_PHILOX,
+            )
+            return keys.reshape(*shape, 4)
+
+        def _xla_philox_fold_in(key: jax.Array, data: jax.Array) -> jax.Array:
+            data_u32 = jnp.asarray(data, dtype=jnp.uint32)
+            mixed = key ^ jnp.stack([data_u32, jnp.uint32(0x9E3779B9), jnp.uint32(0), jnp.uint32(0)])
+            _, bits = lax.rng_bit_generator(
+                mixed,
+                (4,),
+                dtype=jnp.uint32,
+                algorithm=lax.RandomAlgorithm.RNG_PHILOX,
+            )
+            return bits
+
+        def _xla_philox_random_bits(key: jax.Array, bit_width: int, shape: tuple[int, ...]) -> jax.Array:
+            uint_dtypes = {8: jnp.uint8, 16: jnp.uint16, 32: jnp.uint32, 64: jnp.uint64}
+            if not (key.shape == (4,) and key.dtype == jnp.dtype("uint32")):
+                raise TypeError("_xla_philox_random_bits got invalid prng key.")
+            if bit_width not in uint_dtypes:
+                raise TypeError("requires 8-, 16-, 32- or 64-bit field width.")
+            _, bits = lax.rng_bit_generator(
+                key,
+                shape,
+                dtype=uint_dtypes[bit_width],
+                algorithm=lax.RandomAlgorithm.RNG_PHILOX,
+            )
+            return bits
+
+        spec = jext_rnd.define_prng_impl(
+            key_shape=(4,),
+            seed=_xla_philox_seed,
+            split=_xla_philox_split,
+            random_bits=_xla_philox_random_bits,
+            fold_in=_xla_philox_fold_in,
+            name="philox4x32",
+            tag="phx",
+        )
+        _prng.register_prng(getattr(spec, "_impl", spec))
+    except Exception as e:
+        warnings.warn(f"Failed to register native XLA Philox PRNG: {e}", RuntimeWarning)
+
+
+_register_philox_prng()
 
 
 class PRNGImpl(str, Enum):
