@@ -107,9 +107,11 @@ def parse_global_data(results_dir: Path, target_metrics: list = None) -> pd.Data
                     for metric in target_metrics:
                         val = run.get(metric, np.nan)
 
-                        # Fallbacks for execution time aliases
+                        # Fallbacks for execution time aliases: prioritize pure execution over total
                         if metric == "execution_time" and pd.isna(val):
-                            if "timings" in run and "total" in run["timings"]:
+                            if "timings" in run and "execution" in run["timings"]:
+                                val = run["timings"]["execution"]
+                            elif "timings" in run and "total" in run["timings"]:
                                 val = run["timings"]["total"]
                             else:
                                 val = run.get("duration_seconds", np.nan)
