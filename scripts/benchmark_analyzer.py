@@ -135,6 +135,32 @@ def parse_global_data(results_dir: Path, target_metrics: list = None) -> pd.Data
 # synthesize_regression_dataset has been moved to malthusjax.stats.dataset_builder
 
 
+def align_cartesian_pairs(df_d: pd.DataFrame, metric: str) -> pd.DataFrame:
+    """Strictly align target (is_treatment==1) and reference (is_treatment==0) runs on (P, G, seed).
+
+    Drops any run with a missing metric value before inner-joining on ``['P', 'G', 'seed']``
+    so that multi-(P, G) grids or missing runs never cross-pair across configurations.
+    """
+    if metric not in df_d.columns:
+        return pd.DataFrame()
+
+    sort_cols = [c for c in ["P", "G", "seed"] if c in df_d.columns]
+    df_target = df_d[df_d["is_treatment"] == 1].dropna(subset=[metric])
+    df_ref = df_d[df_d["is_treatment"] == 0].dropna(subset=[metric])
+
+    if df_target.empty or df_ref.empty:
+        return pd.DataFrame()
+
+    merged = pd.merge(
+        df_target[sort_cols + [metric]],
+        df_ref[sort_cols + [metric]],
+        on=sort_cols,
+        suffixes=("_target", "_ref"),
+        how="inner",
+    )
+    return merged.sort_values(sort_cols).reset_index(drop=True)
+
+
 def generate_boxplots(df: pd.DataFrame, output_dir: Path, prefix: str, target_metrics: list):
     """Generate side-by-side boxplots for dynamically specified metrics."""
     n_metrics = len(target_metrics)
@@ -286,36 +312,33 @@ def analyze_suite(toml_path: str, data_dir_override: str = None):
                     f"  -> {fn_name}: Cartesian run detected. Using malthusjax.stats.comparator for TOST and Wilcoxon."
                 )
 
-                # Split and test per Dimensionality
+                # Split per Dimensionality while strictly pairing on (P, G, seed)
                 for D_val in df_fn["D"].unique():
                     df_D = df_fn[df_fn["D"] == D_val]
-                    df_target = df_D[df_D["is_treatment"] == 1].sort_values("seed")
-                    df_ref = df_D[df_D["is_treatment"] == 0].sort_values("seed")
-
                     prefix_D = f"{prefix}_d{int(D_val)}"
 
                     datasets = []
                     for var in config.analysis.target_metrics:
-                        if var not in df_target.columns or var not in df_ref.columns:
+                        aligned = align_cartesian_pairs(df_D, var)
+                        if aligned.empty:
                             continue
 
-                        target_vals = df_target[var].dropna().values
-                        ref_vals = df_ref[var].dropna().values
+                        target_vals = aligned[f"{var}_target"].to_numpy()
+                        ref_vals = aligned[f"{var}_ref"].to_numpy()
 
-                        if len(target_vals) > 0 and len(target_vals) == len(ref_vals):
-                            datasets.append(
-                                PairedMetricDataset(
-                                    label=f"{prefix_D}_{var}",
-                                    left_name=target,
-                                    right_name=ref_pipeline,
-                                    seeds=df_target["seed"].tolist(),
-                                    left_values=target_vals,
-                                    right_values=ref_vals,
-                                    metric_name=var,
-                                    metric_source="summary",
-                                    metadata={"D": float(D_val)},
-                                )
+                        datasets.append(
+                            PairedMetricDataset(
+                                label=f"{prefix_D}_{var}",
+                                left_name=target,
+                                right_name=ref_pipeline,
+                                seeds=aligned["seed"].tolist(),
+                                left_values=target_vals,
+                                right_values=ref_vals,
+                                metric_name=var,
+                                metric_source="summary",
+                                metadata={"D": float(D_val)},
                             )
+                        )
 
                     if datasets:
                         for ds in datasets:

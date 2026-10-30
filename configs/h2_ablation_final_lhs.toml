@@ -49,7 +49,7 @@ elitism = 0
 [pipelines.mjx_ablate_crossover]
 backend = "malthusjax"
 selection = "evosax_mimic_selection:num_selections={pop_size},elite_k={elite_k}"
-crossover = "uniform_real"
+crossover = "uniform_real:crossover_rate=0.3"
 mutation = "evosax_gaussian:mutation_strength=1.0"
 elitism = 0
 
@@ -70,7 +70,7 @@ elitism = 0
 [pipelines.mjx_ablate_crossover_batched]
 backend = "malthusjax"
 selection = "evosax_mimic_selection:num_selections={pop_size},elite_k={elite_k}"
-crossover = "batched_uniform_crossover"
+crossover = "batched_uniform_crossover:crossover_rate=0.3"
 mutation = "evosax_gaussian:mutation_strength=1.0"
 elitism = 0
 
