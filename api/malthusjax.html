@@ -686,8 +686,9 @@ across multi-seed or multi-pipeline evaluations.</p>
 <span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_cls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BasePopulation.from_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.BasePopulation.from_array" title="Link to this definition">¶</a></dt>
 <dd><p>Build a population by interpreting one axis of <em>arr</em> as individuals.</p>
 <p>The method moves <em>axis</em> to the front and delegates to
-<code class="docutils literal notranslate"><span class="pre">genome_cls.from_tensor</span></code> for per‑individual wrapping. Output
-fitness values are initialized to <code class="docutils literal notranslate"><span class="pre">-inf</span></code> as a sentinel.</p>
+<code class="docutils literal notranslate"><span class="pre">genome_cls.from_tensor</span></code> for per‑individual wrapping (including
+casting to <code class="docutils literal notranslate"><span class="pre">config.dtype</span></code> when configured). Output fitness values
+are initialized to <code class="docutils literal notranslate"><span class="pre">-inf</span></code> as a sentinel.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1892,7 +1893,7 @@ Utilizes jnp.where to prevent division by zero during JIT compilation.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.RealGenome.add_noise">
 <span class="sig-name descname"><span class="pre">add_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/real_genome.html#RealGenome.add_noise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.RealGenome.add_noise" title="Link to this definition">¶</a></dt>
-<dd><p>Applies Gaussian jitter to the genome, often used as a mutation operator.</p>
+<dd><p>Applies Gaussian jitter to the genome in its native dtype.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1909,10 +1910,9 @@ Utilizes jnp.where to prevent division by zero during JIT compilation.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.RealGenome.from_tensor">
 <span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/genome/real_genome.html#RealGenome.from_tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.RealGenome.from_tensor" title="Link to this definition">¶</a></dt>
-<dd><p>Construct a batched RealGenome from a raw array.</p>
-<p>This is intentionally a trivial factory: it wraps the provided array in
-the <cite>RealGenome</cite> dataclass. Keep the implementation pure and avoid
-Python-side validation so it remains JIT-traceable.</p>
+<dd><p>Construct a batched RealGenome from a raw array, casting to <code class="docutils literal notranslate"><span class="pre">config.dtype</span></code> if provided.</p>
+<p>Remains pure and free of Python-side branching so it is safe under
+<code class="docutils literal notranslate"><span class="pre">jax.jit</span></code> and <code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1962,9 +1962,11 @@ Default: (-∞, +∞) (unbounded)</p>
 - bounds=(-5.12, 5.12) → Rastrigin function standard
 - bounds=(-512.0, 512.0) → Schwefel function standard</p>
 </dd>
-<dt>dtype<span class="classifier">type or jnp.dtype</span></dt><dd><p>JAX floating-point dtype for all gene values.
-- jnp.float32 (default): 32-bit precision, GPU-efficient
-- jnp.float64: 64-bit precision, higher accuracy but slower
+<dt>dtype<span class="classifier">type or jnp.dtype or str</span></dt><dd><p>JAX floating-point dtype for all gene values (or string alias).
+- jnp.float32 / “float32” (default): 32-bit precision, standard GPU float
+- jnp.bfloat16 / “bfloat16”: 16-bit brain float, preserves float32 dynamic range
+- jnp.float16 / “float16”: 16-bit IEEE half precision
+- jnp.float64 / “float64”: 64-bit precision (requires jax_enable_x64)
 Default: jnp.float32</p>
 </dd>
 </dl>

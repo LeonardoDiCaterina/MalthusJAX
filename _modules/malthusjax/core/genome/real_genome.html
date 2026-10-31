@@ -407,10 +407,12 @@
 <span class="sd">        - bounds=(-5.12, 5.12) → Rastrigin function standard</span>
 <span class="sd">        - bounds=(-512.0, 512.0) → Schwefel function standard</span>
 
-<span class="sd">    dtype : type or jnp.dtype</span>
-<span class="sd">        JAX floating-point dtype for all gene values.</span>
-<span class="sd">        - jnp.float32 (default): 32-bit precision, GPU-efficient</span>
-<span class="sd">        - jnp.float64: 64-bit precision, higher accuracy but slower</span>
+<span class="sd">    dtype : type or jnp.dtype or str</span>
+<span class="sd">        JAX floating-point dtype for all gene values (or string alias).</span>
+<span class="sd">        - jnp.float32 / "float32" (default): 32-bit precision, standard GPU float</span>
+<span class="sd">        - jnp.bfloat16 / "bfloat16": 16-bit brain float, preserves float32 dynamic range</span>
+<span class="sd">        - jnp.float16 / "float16": 16-bit IEEE half precision</span>
+<span class="sd">        - jnp.float64 / "float64": 64-bit precision (requires jax_enable_x64)</span>
 <span class="sd">        Default: jnp.float32</span>
 
 <span class="sd">    Notes</span>
@@ -572,9 +574,12 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.real_genome.html#malthusjax.RealGenome.add_noise">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">noise_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RealGenome</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
-<span class="sd">        Applies Gaussian jitter to the genome, often used as a mutation operator.</span>
+<span class="sd">        Applies Gaussian jitter to the genome in its native dtype.</span>
 <span class="sd">        """</span>
-        <span class="n">noise</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">noise_std</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="n">noise</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span> <span class="o">*</span> <span class="n">jnp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
+            <span class="n">noise_std</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span>
+        <span class="p">)</span>
         <span class="n">noisy_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">+</span> <span class="n">noise</span>
         <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">RealGenome</span><span class="p">,</span> <span class="n">cast</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">noisy_values</span><span class="p">))</span></div>
 
@@ -583,13 +588,13 @@
 <a class="viewcode-back" href="../../../../api/malthusjax.core.genome.real_genome.html#malthusjax.RealGenome.from_tensor">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">from_tensor</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">arr</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"RealGenome"</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Construct a batched RealGenome from a raw array.</span>
+<span class="w">        </span><span class="sd">"""Construct a batched RealGenome from a raw array, casting to ``config.dtype`` if provided.</span>
 
-<span class="sd">        This is intentionally a trivial factory: it wraps the provided array in</span>
-<span class="sd">        the `RealGenome` dataclass. Keep the implementation pure and avoid</span>
-<span class="sd">        Python-side validation so it remains JIT-traceable.</span>
+<span class="sd">        Remains pure and free of Python-side branching so it is safe under</span>
+<span class="sd">        ``jax.jit`` and ``jax.vmap``.</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">arr</span><span class="p">)</span></div>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">"dtype"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">))</span></div>
 </div>
 
 

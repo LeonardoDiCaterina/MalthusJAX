@@ -609,8 +609,9 @@ across multi-seed or multi-pipeline evaluations.</p>
 <span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_cls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BasePopulation.from_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.BasePopulation.from_array" title="Link to this definition">¶</a></dt>
 <dd><p>Build a population by interpreting one axis of <em>arr</em> as individuals.</p>
 <p>The method moves <em>axis</em> to the front and delegates to
-<code class="docutils literal notranslate"><span class="pre">genome_cls.from_tensor</span></code> for per‑individual wrapping. Output
-fitness values are initialized to <code class="docutils literal notranslate"><span class="pre">-inf</span></code> as a sentinel.</p>
+<code class="docutils literal notranslate"><span class="pre">genome_cls.from_tensor</span></code> for per‑individual wrapping (including
+casting to <code class="docutils literal notranslate"><span class="pre">config.dtype</span></code> when configured). Output fitness values
+are initialized to <code class="docutils literal notranslate"><span class="pre">-inf</span></code> as a sentinel.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

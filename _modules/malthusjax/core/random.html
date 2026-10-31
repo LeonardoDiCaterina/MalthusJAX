@@ -354,10 +354,79 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">cast</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.lax</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">lax</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_register_philox_prng</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Register the native XLA Philox-4x32-10 PRNG implementation with JAX if not present."""</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">jax._src</span><span class="w"> </span><span class="kn">import</span> <span class="n">prng</span> <span class="k">as</span> <span class="n">_prng</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">jax.extend.random</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jext_rnd</span>
+
+        <span class="k">if</span> <span class="s2">"philox4x32"</span> <span class="ow">in</span> <span class="n">_prng</span><span class="o">.</span><span class="n">prngs</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_xla_philox_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
+            <span class="n">halfkey</span> <span class="o">=</span> <span class="n">_prng</span><span class="o">.</span><span class="n">threefry_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">halfkey</span><span class="p">,</span> <span class="n">halfkey</span> <span class="o">^</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mh">0x9E3779B9</span><span class="p">,</span> <span class="mh">0xBB67AE85</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">uint32</span><span class="p">)]</span>
+            <span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_xla_philox_split</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
+            <span class="n">num</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">keys</span> <span class="o">=</span> <span class="n">lax</span><span class="o">.</span><span class="n">rng_bit_generator</span><span class="p">(</span>
+                <span class="n">key</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+                <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">uint32</span><span class="p">,</span>
+                <span class="n">algorithm</span><span class="o">=</span><span class="n">lax</span><span class="o">.</span><span class="n">RandomAlgorithm</span><span class="o">.</span><span class="n">RNG_PHILOX</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">keys</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">*</span><span class="n">shape</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_xla_philox_fold_in</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
+            <span class="n">data_u32</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span>
+            <span class="n">mixed</span> <span class="o">=</span> <span class="n">key</span> <span class="o">^</span> <span class="n">jnp</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">data_u32</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">uint32</span><span class="p">(</span><span class="mh">0x9E3779B9</span><span class="p">),</span> <span class="n">jnp</span><span class="o">.</span><span class="n">uint32</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">jnp</span><span class="o">.</span><span class="n">uint32</span><span class="p">(</span><span class="mi">0</span><span class="p">)])</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">bits</span> <span class="o">=</span> <span class="n">lax</span><span class="o">.</span><span class="n">rng_bit_generator</span><span class="p">(</span>
+                <span class="n">mixed</span><span class="p">,</span>
+                <span class="p">(</span><span class="mi">4</span><span class="p">,),</span>
+                <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">uint32</span><span class="p">,</span>
+                <span class="n">algorithm</span><span class="o">=</span><span class="n">lax</span><span class="o">.</span><span class="n">RandomAlgorithm</span><span class="o">.</span><span class="n">RNG_PHILOX</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">bits</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_xla_philox_random_bits</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">bit_width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
+            <span class="n">uint_dtypes</span> <span class="o">=</span> <span class="p">{</span><span class="mi">8</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="mi">16</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">uint16</span><span class="p">,</span> <span class="mi">32</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">uint32</span><span class="p">,</span> <span class="mi">64</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">uint64</span><span class="p">}</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">4</span><span class="p">,)</span> <span class="ow">and</span> <span class="n">key</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="s2">"uint32"</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"_xla_philox_random_bits got invalid prng key."</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">bit_width</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">uint_dtypes</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"requires 8-, 16-, 32- or 64-bit field width."</span><span class="p">)</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">bits</span> <span class="o">=</span> <span class="n">lax</span><span class="o">.</span><span class="n">rng_bit_generator</span><span class="p">(</span>
+                <span class="n">key</span><span class="p">,</span>
+                <span class="n">shape</span><span class="p">,</span>
+                <span class="n">dtype</span><span class="o">=</span><span class="n">uint_dtypes</span><span class="p">[</span><span class="n">bit_width</span><span class="p">],</span>
+                <span class="n">algorithm</span><span class="o">=</span><span class="n">lax</span><span class="o">.</span><span class="n">RandomAlgorithm</span><span class="o">.</span><span class="n">RNG_PHILOX</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">bits</span>
+
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">jext_rnd</span><span class="o">.</span><span class="n">define_prng_impl</span><span class="p">(</span>
+            <span class="n">key_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,),</span>
+            <span class="n">seed</span><span class="o">=</span><span class="n">_xla_philox_seed</span><span class="p">,</span>
+            <span class="n">split</span><span class="o">=</span><span class="n">_xla_philox_split</span><span class="p">,</span>
+            <span class="n">random_bits</span><span class="o">=</span><span class="n">_xla_philox_random_bits</span><span class="p">,</span>
+            <span class="n">fold_in</span><span class="o">=</span><span class="n">_xla_philox_fold_in</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">"philox4x32"</span><span class="p">,</span>
+            <span class="n">tag</span><span class="o">=</span><span class="s2">"phx"</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">_prng</span><span class="o">.</span><span class="n">register_prng</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="s2">"_impl"</span><span class="p">,</span> <span class="n">spec</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Failed to register native XLA Philox PRNG: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="ne">RuntimeWarning</span><span class="p">)</span>
+
+
+<span class="n">_register_philox_prng</span><span class="p">()</span>
 
 
 <div class="viewcode-block" id="PRNGImpl">

@@ -605,7 +605,9 @@
 
         <span class="k">if</span> <span class="n">genome_type</span> <span class="o">==</span> <span class="s2">"real"</span><span class="p">:</span>
             <span class="n">genome_config</span> <span class="o">=</span> <span class="n">RealGenomeConfig</span><span class="p">(</span>
-                <span class="n">shape</span><span class="o">=</span><span class="n">genome_shape</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"dtype"</span><span class="p">,</span> <span class="s2">"float32"</span><span class="p">)</span>
+                <span class="n">shape</span><span class="o">=</span><span class="n">genome_shape</span><span class="p">,</span>
+                <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span>
+                <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"dtype"</span><span class="p">,</span> <span class="s2">"float32"</span><span class="p">)),</span>
             <span class="p">)</span>
         <span class="k">elif</span> <span class="n">genome_type</span> <span class="o">==</span> <span class="s2">"binary"</span><span class="p">:</span>
             <span class="n">genome_config</span> <span class="o">=</span> <span class="n">BinaryGenomeConfig</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">genome_shape</span><span class="p">)</span>
