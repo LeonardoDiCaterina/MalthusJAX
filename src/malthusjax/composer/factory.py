@@ -142,5 +142,6 @@ def build_real_engine(
         selection=resolved_selection,
         crossover=resolved_crossover,
         mutation=resolved_mutation,
+        genome_type=genome_type,
         **config,
     )
