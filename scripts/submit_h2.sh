@@ -21,9 +21,10 @@ echo "CUDA Device: $CUDA_VISIBLE_DEVICES"
 echo "Started at:  $(date)"
 echo "=========================================================="
 
-# Activate Conda environment
-source ~/.bashrc
-conda activate post_sub
+# Activate Conda environment safely for non-interactive Slurm
+export PATH="/home/20240485/.conda/envs/post_sub/bin:$PATH"
+source ~/.bashrc 2>/dev/null || true
+conda activate post_sub 2>/dev/null || true
 
 # Prevent JAX greedy preallocation / OOM on shared GPU cluster
 export XLA_PYTHON_CLIENT_PREALLOCATE=false
