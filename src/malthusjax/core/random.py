@@ -20,7 +20,10 @@ import jax.numpy as jnp
 def _register_philox_prng() -> None:
     """Register the native XLA Philox-4x32-10 PRNG implementation with JAX if not present."""
     try:
-        from jax._src import prng as _prng
+        try:
+            import jax._src.prng as _prng
+        except ImportError:
+            from jax._src import prng as _prng
         import jax.extend.random as jext_rnd
 
         if "philox4x32" in _prng.prngs:

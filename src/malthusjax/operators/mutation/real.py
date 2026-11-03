@@ -606,8 +606,13 @@ class BatchedGaussianMutation(GaussianMutation):
     def __call__(
         self, all_keys: chex.Array, population: Any, config: RealGenomeConfig, generation: int = 0
     ) -> Any:
-        k_mask = all_keys[0] if len(all_keys.shape) == 2 else all_keys[0][0]
-        k_noise = all_keys[1] if len(all_keys.shape) == 2 else all_keys[0][1]
+        keys_flat = (
+            all_keys.reshape(-1, 2)
+            if (all_keys.ndim > 1 and all_keys.shape[-1] == 2 and all_keys.dtype == jnp.uint32)
+            else all_keys.reshape(-1)
+        )
+        k_mask = keys_flat[0]
+        k_noise = keys_flat[1]
 
         strength = compute_scheduled_strength(
             self.schedule_type,

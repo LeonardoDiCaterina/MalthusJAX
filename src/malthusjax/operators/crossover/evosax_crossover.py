@@ -238,7 +238,12 @@ class BatchedEvosaxUniformWrapper(EvosaxUniformCrossoverWrapper):
         config: RealGenomeConfig,
         generation: int = 0,
     ) -> BasePopulation[RealGenome]:
-        k = all_keys[0] if len(all_keys.shape) == 2 else all_keys[0][0]
+        keys_flat = (
+            all_keys.reshape(-1, 2)
+            if (all_keys.ndim > 1 and all_keys.shape[-1] == 2 and all_keys.dtype == jnp.uint32)
+            else all_keys.reshape(-1)
+        )
+        k = keys_flat[0]
 
         p1_vals = p1_pop.genes.values
         p2_vals = p2_pop.genes.values

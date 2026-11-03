@@ -811,7 +811,12 @@ class BatchedUniformCrossover(UniformCrossover):
         config: RealGenomeConfig,
         generation: int = 0,
     ) -> Any:
-        k_mask = all_keys[0] if len(all_keys.shape) == 2 else all_keys[0][0]
+        keys_flat = (
+            all_keys.reshape(-1, 2)
+            if (all_keys.ndim > 1 and all_keys.shape[-1] == 2 and all_keys.dtype == jnp.uint32)
+            else all_keys.reshape(-1)
+        )
+        k_mask = keys_flat[0]
 
         g1 = p1_pop.genes.values
         g2 = p2_pop.genes.values
