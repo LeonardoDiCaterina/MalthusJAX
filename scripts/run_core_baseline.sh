@@ -30,7 +30,7 @@ echo ""
   echo "1. Running pytest with coverage..."
   echo "Command: pytest --maxfail=1 --disable-warnings -q --cov=src/malthusjax/core --cov-report=term-missing tests/core/"
   echo ""
-  pytest --maxfail=1 --disable-warnings -q --cov=src/malthusjax/core --cov-report=term-missing tests/core/ || true
+  pytest --maxfail=1 --disable-warnings -q --cov=src/malthusjax/core --cov-report=term-missing tests/core/
   echo ""
   echo "✓ Pytest coverage report complete"
   echo ""
@@ -39,7 +39,7 @@ echo ""
   echo "2. Running ruff check..."
   echo "Command: ruff check src/malthusjax/core/"
   echo ""
-  ruff check src/malthusjax/core/ || true
+  ruff check src/malthusjax/core/
   echo ""
   echo "✓ Ruff check complete"
   echo ""
@@ -48,7 +48,7 @@ echo ""
   echo "3. Running mypy type check..."
   echo "Command: mypy --strict src/malthusjax/core/ --ignore-missing-imports"
   echo ""
-  mypy --strict src/malthusjax/core/ --ignore-missing-imports || true
+  mypy --strict src/malthusjax/core/ --ignore-missing-imports
   echo ""
   echo "✓ Mypy check complete"
   echo ""
