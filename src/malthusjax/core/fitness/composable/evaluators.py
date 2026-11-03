@@ -216,6 +216,7 @@ class RLEvaluator(
 try:
     from tensorneat.common import State as TNState
 except ImportError:
+
     @struct.dataclass
     class TNState:  # type: ignore[no-redef]
         randkey: Any = None

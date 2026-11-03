@@ -7,10 +7,10 @@ legacy/compat detection and warnings.
 
 from __future__ import annotations
 
+import math
 import warnings
 from enum import Enum
-import math
-from typing import Optional, cast
+from typing import Any, Optional, cast
 
 import jax
 import jax.lax as lax
@@ -50,20 +50,24 @@ def _register_philox_prng() -> None:
                 dtype=jnp.uint32,
                 algorithm=lax.RandomAlgorithm.RNG_PHILOX,
             )
-            return keys.reshape(*shape, 4)
+            return cast(jax.Array, keys.reshape(*shape, 4))
 
-        def _xla_philox_fold_in(key: jax.Array, data: jax.Array) -> jax.Array:
+        def _xla_philox_fold_in(key: jax.Array, data: Any) -> jax.Array:
             data_u32 = jnp.asarray(data, dtype=jnp.uint32)
-            mixed = key ^ jnp.stack([data_u32, jnp.uint32(0x9E3779B9), jnp.uint32(0), jnp.uint32(0)])
+            mixed = key ^ jnp.stack(
+                [data_u32, jnp.uint32(0x9E3779B9), jnp.uint32(0), jnp.uint32(0)]
+            )
             _, bits = lax.rng_bit_generator(
                 mixed,
                 (4,),
                 dtype=jnp.uint32,
                 algorithm=lax.RandomAlgorithm.RNG_PHILOX,
             )
-            return bits
+            return cast(jax.Array, bits)
 
-        def _xla_philox_random_bits(key: jax.Array, bit_width: int, shape: tuple[int, ...]) -> jax.Array:
+        def _xla_philox_random_bits(
+            key: jax.Array, bit_width: int, shape: tuple[int, ...]
+        ) -> jax.Array:
             uint_dtypes = {8: jnp.uint8, 16: jnp.uint16, 32: jnp.uint32, 64: jnp.uint64}
             if not (key.shape == (4,) and key.dtype == jnp.dtype("uint32")):
                 raise TypeError("_xla_philox_random_bits got invalid prng key.")
@@ -75,14 +79,14 @@ def _register_philox_prng() -> None:
                 dtype=uint_dtypes[bit_width],
                 algorithm=lax.RandomAlgorithm.RNG_PHILOX,
             )
-            return bits
+            return cast(jax.Array, bits)
 
         spec = jext_rnd.define_prng_impl(
             key_shape=(4,),
             seed=_xla_philox_seed,
             split=_xla_philox_split,
             random_bits=_xla_philox_random_bits,
-            fold_in=_xla_philox_fold_in,
+            fold_in=cast(Any, _xla_philox_fold_in),
             name="philox4x32",
             tag="phx",
         )
