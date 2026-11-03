@@ -25,6 +25,10 @@ echo "=========================================================="
 source ~/.bashrc
 conda activate post_sub
 
+# Prevent JAX greedy preallocation / OOM on shared GPU cluster
+export XLA_PYTHON_CLIENT_PREALLOCATE=false
+export XLA_PYTHON_CLIENT_MEM_FRACTION=0.50
+
 # Verify environment and GPU connectivity
 python -c "import jax; print('JAX version:', jax.__version__, '| Default backend:', jax.default_backend(), '| Devices:', jax.devices())"
 nvidia-smi

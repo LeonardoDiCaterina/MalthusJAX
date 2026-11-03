@@ -1,4 +1,5 @@
 .PHONY: help install-dev install-bench test test-fast test-unit test-failing test-fixes test-bench test-bench-snapshot \
+	test-core test-operators test-engine test-composer test-stats test-benchmarking test-layers test-vram \
 	test-nohup test-fast-nohup test-unit-nohup test-bench-nohup test-bench-snapshot-nohup \
 	run-toml-nohup run-benchmark-nohup parity-toml-nohup suite-parity-nohup benchmark-run-nohup benchmark-run-smoke-nohup \
 	lint format format-check type-check check-all docs docs-clean docs-open \
@@ -40,7 +41,10 @@ help:
 	@echo "  make test           Run full pytest suite with coverage (min 80%)"
 	@echo "  make test-fast      Run full suite, skip coverage (faster iteration)"
 	@echo "  make test-unit      Run fast unit tests only (skips slow tests)"
-	@echo "  make test-failing       Re-run only the subset known to fail on multi-GPU hosts"
+	@echo "  make test-layers    Run all 6 architectural layers sequentially (core -> operators -> engine -> composer -> stats -> benchmarking)"
+	@echo "  make test-<layer>   Run specific layer: test-core, test-operators, test-engine, test-composer, test-stats, test-benchmarking"
+	@echo "  make test-vram      Run GPU VRAM stress test under maximum suite bounds"
+	@echo "  make test-failing   Re-run only the subset known to fail on multi-GPU hosts"
 	@echo "  make test-fixes         Re-run the two most-recently fixed tests (cli + bfloat16)"
 	@echo "  make test-bench         Run functional tests in tests/benchmarks/ (no timing)"
 	@echo "  make test-bench-snapshot  Run pytest-benchmark snapshot suite"
@@ -231,6 +235,37 @@ test-fixes:
 	@echo "--- Running recently fixed tests ---"
 	python -m pytest --no-cov -v \
 	  tests/operators/mutation/test_real_mutation.py::TestRealMutationHarness::test_jit_reproducibility
+
+test-core:
+	@echo "--- [Layer 1/6] Running Core Tests (Genome, Population, Fitness, PRNG) ---"
+	python -m pytest tests/core --no-cov -q
+
+test-operators:
+	@echo "--- [Layer 2/6] Running Operators Tests (Mutation, Crossover, Selection, Emitters) ---"
+	python -m pytest tests/operators --no-cov -q
+
+test-engine:
+	@echo "--- [Layer 3/6] Running Engine Tests (GeneticEngine, Scheduling, Ask-Tell, Island) ---"
+	python -m pytest tests/engine --no-cov -q
+
+test-composer:
+	@echo "--- [Layer 4/6] Running Composer Tests (Pipelines, Adapters, EngineFactory) ---"
+	python -m pytest tests/composer --no-cov -q
+
+test-stats:
+	@echo "--- [Layer 5/6] Running Statistics Tests (TOST, OLS, Mann-Whitney, Power) ---"
+	python -m pytest tests/stats --no-cov -q
+
+test-benchmarking:
+	@echo "--- [Layer 6/6] Running Benchmarking Tests (LHS/Grid, Runner, Analyzers) ---"
+	python -m pytest tests/benchmarking --no-cov -q
+
+test-layers: test-core test-operators test-engine test-composer test-stats test-benchmarking
+	@echo "=== ALL 6 ARCHITECTURAL LAYERS PASSED SUCCESSFULLY ==="
+
+test-vram:
+	@echo "--- Running VRAM Stress & Leak Verification ---"
+	python scripts/test_vram.py
 
 lint:
 	@echo "--- Checking code quality with Ruff ---"
