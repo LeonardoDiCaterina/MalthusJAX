@@ -31,4 +31,5 @@ def test_composable_evosax_adapter_dimension_extraction():
 
     assert hasattr(result, "runs")
     assert len(result.runs) > 0
+    assert result.runs[0].status == "success", f"Run failed with error: {result.runs[0].error}"
     assert "best_fitness" in result.runs[0].metrics
