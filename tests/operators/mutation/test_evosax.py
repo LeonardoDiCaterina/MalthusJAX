@@ -12,6 +12,7 @@ from malthusjax.core.genome.real_genome import RealGenomeConfig, RealPopulation
 from malthusjax.operators.mutation.evosax_mutation import (
     EvosaxGaussianWrapper,
     InjectionGaussianMutation,
+    _safe_evosax_mutation,
 )
 
 
@@ -121,7 +122,7 @@ class TestEvosaxAblationIntegrity:
             subkeys = jr.split(base_key, len(pop))
         else:
             subkeys = all_keys.reshape((-1, all_keys.shape[-1]))
-        expected_values = jax.vmap(lambda k, g: evosax_func(k, g, strength))(
+        expected_values = jax.vmap(lambda k, g: _safe_evosax_mutation(k, g, strength))(
             subkeys, pop.genes.values
         )
 
