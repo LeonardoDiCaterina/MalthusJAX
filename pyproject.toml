@@ -45,6 +45,7 @@ qdax = ["qdax"]
 rl = ["gymnax", "brax", "jumanji"]
 bbobax = ["bbobax>=0.2.2"]
 kozax = ["kozax"]
+tensorneat = ["tensorneat @ git+https://github.com/EMI-Group/tensorneat.git"]
 stats = [
     "scikit-learn>=1.0.0",
     "statsmodels>=0.14.0",
@@ -80,7 +81,7 @@ examples = [
 benchmarks = [
     "malthusjax[stats]",
 ]
-all-integrations = ["malthusjax[evosax,qdax,rl,bbobax,kozax,stats]"]
+all-integrations = ["malthusjax[evosax,qdax,rl,bbobax,kozax,stats,tensorneat]"]
 all = ["malthusjax[dev,docs,examples,benchmarks,all-integrations]"]
 
 [project.urls]
