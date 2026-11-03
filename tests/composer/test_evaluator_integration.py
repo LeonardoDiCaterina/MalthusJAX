@@ -16,6 +16,7 @@ except ImportError:
 
 def test_gymnax_integration(tmp_path):
     """Test full pipeline execution for Gymnax with an MLP predictor."""
+    pytest.importorskip("gymnax")
     toml_content = """
     [experiment]
     name = "integration_test"

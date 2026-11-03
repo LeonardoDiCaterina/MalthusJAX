@@ -225,6 +225,7 @@ def test_build_tensorneat_engine_errors():
 
 
 def test_build_map_elites_engine_validation():
+    pytest.importorskip("qdax")
     strat_no_emitter = MapElitesStrategy(emitter=None)
     with pytest.raises(ValueError, match="MapElitesStrategy requires an explicit emitter"):
         build_map_elites_engine(

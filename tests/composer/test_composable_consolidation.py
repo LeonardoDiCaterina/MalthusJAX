@@ -9,6 +9,8 @@ from malthusjax.composer.backend_registry import get_backends
 
 def test_composable_evosax_flag():
     """provider.build_engine(composable=True) produces a composable evosax adapter."""
+    import pytest
+    pytest.importorskip("evosax")
     provider = get_backends()["evosax"][0]
     strategy = provider.default_strategy(evosax_strategy="SimpleGA")
     evaluator = provider.resolve_evaluator("sphere:dim=2")
@@ -32,6 +34,8 @@ def test_composable_evosax_flag():
 
 def test_composable_tensorneat_flag():
     """provider.build_engine(composable=True) produces a composable tensorneat adapter."""
+    import pytest
+    pytest.importorskip("tensorneat")
     provider = get_backends()["tensorneat"][0]
     strategy = provider.default_strategy()
     evaluator = provider.resolve_evaluator("xor", composable=True)

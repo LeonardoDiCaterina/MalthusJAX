@@ -1,3 +1,8 @@
+import pytest
+
+pytest.importorskip("gymnax")
+pytest.importorskip("evosax")
+
 from malthusjax.composer.composer import Composer
 from malthusjax.core.fitness.composable.base import ScalarOutput
 from malthusjax.core.fitness.composable.environments import GymnaxEnv
