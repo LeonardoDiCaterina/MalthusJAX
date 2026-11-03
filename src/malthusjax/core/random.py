@@ -22,8 +22,15 @@ def _register_philox_prng() -> None:
     try:
         try:
             import jax._src.prng as _prng
-        except ImportError:
-            from jax._src import prng as _prng
+        except (ImportError, ModuleNotFoundError):
+            try:
+                import jax._src.random as _prng
+            except (ImportError, ModuleNotFoundError):
+                _prng = None
+
+        if _prng is None or not hasattr(_prng, "prngs"):
+            return
+
         import jax.extend.random as jext_rnd
 
         if "philox4x32" in _prng.prngs:
