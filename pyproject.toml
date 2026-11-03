@@ -90,6 +90,9 @@ Documentation = "https://malthusjax.readthedocs.io"
 Repository = "https://github.com/LeonardoDiCaterina/MalthusJAX"
 Issues = "https://github.com/LeonardoDiCaterina/MalthusJAX/issues"
 
+[tool.hatch.metadata]
+allow-direct-references = true
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/malthusjax"]
 
