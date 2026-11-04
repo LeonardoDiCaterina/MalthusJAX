@@ -158,6 +158,8 @@ def showcase_evosax_on_brax():
     class MockConfig2:
         genome_config = RealGenomeConfig(shape=(interpreter.num_params,))
     object.__setattr__(evaluator, "config", MockConfig2())
+    original_eval2 = evaluator.evaluate_population
+    object.__setattr__(evaluator, "evaluate_population", lambda pop: original_eval2(pop, rng=jax.random.PRNGKey(42)))
 
     # 5. Execute with EvoSAX
     from malthusjax.composer.evosax_adapter import build_evosax_engine

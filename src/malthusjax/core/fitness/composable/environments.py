@@ -373,9 +373,27 @@ class GymnaxEnv(BaseRLEnvironment):
         self, state: Any, action: chex.Array, key: chex.PRNGKey
     ) -> tuple[chex.Array, Any, chex.Numeric, chex.Array, Any]:
         """Take one step: (obs, state, reward, done, info)."""
-        next_obs, next_state, reward, done, info = self.env.step(
-            key, state, action, self.env_params
-        )
+        step_result = self.env.step(key, state, action, self.env_params)
+        if len(step_result) == 6:
+            next_obs, next_state, reward, term, trunc, info = step_result
+            done = jnp.logical_or(term, trunc)
+        elif len(step_result) == 5:
+            next_obs, next_state, reward, done, info = step_result
+        elif len(step_result) == 4:
+            next_obs, next_state, reward, done = step_result
+            info = {}
+        elif len(step_result) > 6:
+            next_obs = step_result[0]
+            next_state = step_result[1]
+            reward = step_result[2]
+            term = step_result[3]
+            trunc = step_result[4]
+            done = jnp.logical_or(term, trunc)
+            info = step_result[5]
+        else:
+            raise ValueError(
+                f"Gymnax environment step returned unexpected number of values: {len(step_result)}"
+            )
         return next_obs, next_state, reward, done, info
 
     def preprocess_obs(self, obs: chex.Array) -> chex.Array:
