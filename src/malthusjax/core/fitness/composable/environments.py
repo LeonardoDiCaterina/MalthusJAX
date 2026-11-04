@@ -366,7 +366,13 @@ class GymnaxEnv(BaseRLEnvironment):
 
     def reset(self, key: chex.PRNGKey) -> tuple[chex.Array, Any]:
         """Reset the environment and return initial (obs, state)."""
-        obs, state = self.env.reset(key, self.env_params)
+        reset_result = self.env.reset(key, self.env_params)
+        if isinstance(reset_result, (tuple, list)):
+            obs = reset_result[0]
+            state = reset_result[1]
+        else:
+            obs = reset_result
+            state = None
         return obs, state
 
     def step(
@@ -415,13 +421,16 @@ class GymnaxEnv(BaseRLEnvironment):
         """Flattened observation dimensionality."""
         import numpy as np
 
-        shape = self.env.observation_space(self.env_params).shape
+        space_fn = getattr(self.env, "observation_space", None)
+        obs_space = space_fn(self.env_params) if callable(space_fn) else space_fn
+        shape = obs_space.shape
         return int(np.prod(shape))
 
     @property
     def action_dim(self) -> int:
         """Action dimensionality (num logits required)."""
-        space = self.env.action_space(self.env_params)
+        space_fn = getattr(self.env, "action_space", None)
+        space = space_fn(self.env_params) if callable(space_fn) else space_fn
         if hasattr(space, "n"):
             return space.n
         else:

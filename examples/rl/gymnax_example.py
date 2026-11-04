@@ -1,26 +1,23 @@
-"""Example of using the GymnaxEvaluator in MalthusJAX."""
+"""Example of using the composable Gymnax environment adapter in MalthusJAX."""
 
 import jax
 import jax.numpy as jnp
 
-from malthusjax.core.base import BasePopulation
-from malthusjax.core.fitness.rl.gymnax_evaluator import GymnaxEvaluator, GymnaxEvaluatorConfig
-from malthusjax.core.genome.real_genome import RealGenome
+from malthusjax.core.fitness.composable.base import ScalarOutput
+from malthusjax.core.fitness.composable.environments import GymnaxEnv
+from malthusjax.core.fitness.composable.evaluators import RLEvaluator
+from malthusjax.core.fitness.composable.interpreters import MLPInterpreter
+from malthusjax.core.genome.real_genome import RealGenome, RealPopulation, RealGenomeConfig
 
 
 def run_gymnax_eval():
-    print("Initializing Gymnax CartPole evaluator...")
-    config = GymnaxEvaluatorConfig(env_name="CartPole-v1", max_steps=200, num_eval_envs=1)
-    evaluator = GymnaxEvaluator.create(config)
+    print("Initializing Gymnax CartPole composable evaluator...")
+    env = GymnaxEnv.create(env_name="CartPole-v1")
+    interpreter = MLPInterpreter(input_dim=env.obs_dim, output_dim=env.action_dim, hidden=(32,))
+    output = ScalarOutput(maximize=True)
+    evaluator = RLEvaluator(env=env, interpreter=interpreter, output=output, max_steps=200, num_eval_envs=1)
 
-    # Infer genome size from dummy params
-    flat_params, _ = jax.tree_util.tree_flatten(
-        evaluator.policy.init(
-            jax.random.PRNGKey(0),
-            jnp.zeros((1,) + evaluator.env.observation_space(evaluator.env_params).shape),
-        )
-    )
-    genome_size = sum(p.size for p in flat_params)
+    genome_size = interpreter.num_params
     print(f"Required genome size: {genome_size}")
 
     # Create a random population of 10 genomes
@@ -28,14 +25,12 @@ def run_gymnax_eval():
     rng = jax.random.PRNGKey(42)
     genes_values = jax.random.normal(rng, (pop_size, genome_size))
     genomes = RealGenome(values=genes_values)
-    population = BasePopulation(genes=genomes, fitness=jnp.zeros(pop_size), config=None)
+    config = RealGenomeConfig(shape=(genome_size,))
+    population = RealPopulation(genes=genomes, fitness=jnp.zeros(pop_size), config=config)
 
     print("Evaluating population...")
-    # JIT compile the population evaluation
-    jit_eval_pop = jax.jit(evaluator.evaluate_population)
-
-    # Run evaluation
-    evaluated_pop = jit_eval_pop(population)
+    # Evaluate population
+    evaluated_pop = evaluator.evaluate_population(population, rng=jax.random.PRNGKey(123))
 
     print("Evaluation complete!")
     print(f"Fitness scores: {evaluated_pop.fitness}")
