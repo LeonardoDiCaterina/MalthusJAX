@@ -20,13 +20,28 @@ from __future__ import annotations
 import argparse
 import os
 import sys
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence
+
+# 1. Clamp C/Fortran math thread pools BEFORE any numeric library (numpy, jax, scipy, mujoco) is loaded.
+# Large HPC cluster nodes (e.g. 128-256 threads) otherwise cause OpenBLAS thread metadata exhaustion & segfaults.
+for _var in (
+    "OPENBLAS_NUM_THREADS",
+    "MKL_NUM_THREADS",
+    "OMP_NUM_THREADS",
+    "NUMEXPR_NUM_THREADS",
+    "VECLIB_MAXIMUM_THREADS",
+):
+    os.environ.setdefault(_var, "1")
+
+# Prevent JAX from locking 90% of GPU memory upfront
+os.environ.setdefault("XLA_PYTHON_CLIENT_PREALLOCATE", "false")
 
 # Set default single-GPU placement on multi-GPU nodes before JAX initialization
 # unless already configured by Slurm or user
 if "CUDA_VISIBLE_DEVICES" not in os.environ and "SLURM_STEP_GPUS" not in os.environ:
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Sequence
 
 try:
     import imageio
@@ -39,10 +54,15 @@ import matplotlib.pyplot as plt
 import mujoco
 import numpy as np
 
+from malthusjax import install_crash_handler, stabilize_runtime_environment
 from malthusjax.composer import Composer
 from malthusjax.core.fitness.composable.environments import MuJoCoMJXEnv
 from malthusjax.core.fitness.composable.interpreters import MLPInterpreter
 from malthusjax.core.genome.real_genome import RealGenome
+
+# Stabilize runtime and install crash diagnostics
+stabilize_runtime_environment()
+install_crash_handler()
 
 
 def get_task_config(task_name: str) -> Dict[str, Any]:

@@ -31,6 +31,14 @@ echo "======================================================================"
 # Ensure output directory exists
 mkdir -p results/logs
 
+# Clamp BLAS/OpenMP CPU threads to avoid OpenBLAS thread allocation crash on high-core nodes (>64 threads)
+export OPENBLAS_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export OMP_NUM_THREADS=1
+export NUMEXPR_NUM_THREADS=1
+export VECLIB_MAXIMUM_THREADS=1
+export XLA_PYTHON_CLIENT_PREALLOCATE=false
+
 # Enable headless MuJoCo rendering on cluster
 # On GPU clusters, EGL delivers hardware-accelerated offscreen rendering
 export MUJOCO_GL="egl"
