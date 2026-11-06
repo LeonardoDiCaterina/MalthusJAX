@@ -36,7 +36,9 @@ def resolve_qdax_evaluator(
                 pop = RealPopulation(
                     genes=genes, fitness=jnp.zeros(genotypes.shape[0]), config=None
                 )
-                updated_pop = self._evaluator.evaluate_population(pop)
+                from malthusjax.core.fitness.base import dispatch_evaluate_population
+
+                updated_pop = dispatch_evaluate_population(self._evaluator, pop, random_key)
                 fitnesses = updated_pop.fitness
                 if not maximize:
                     fitnesses = -fitnesses

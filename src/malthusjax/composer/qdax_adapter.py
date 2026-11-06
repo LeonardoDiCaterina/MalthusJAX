@@ -81,8 +81,13 @@ def _qdax_malthusjax_eval(
         )
 
         # Evaluate QD
-        updated_pop = evaluator.evaluate_population(pop)
-        descriptors = updated_pop.descriptors
+        from malthusjax.core.fitness.base import dispatch_evaluate_population
+
+        updated_pop = dispatch_evaluate_population(evaluator, pop, random_key)
+        if hasattr(updated_pop, "descriptors") and updated_pop.descriptors is not None:
+            descriptors = updated_pop.descriptors
+        else:
+            descriptors = genotypes[:, :2]
 
         # extra_scores can be empty dict
         extra_scores: dict[str, Any] = {}

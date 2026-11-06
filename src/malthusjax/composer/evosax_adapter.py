@@ -80,7 +80,9 @@ def _evosax_mjx_eval(evaluator, pop, state, key):
     )
 
     # 3. Evaluate using the standard MalthusJAX batched evaluator
-    population = evaluator.evaluate_population(population)
+    from malthusjax.core.fitness.base import dispatch_evaluate_population
+
+    population = dispatch_evaluate_population(evaluator, population, key)
 
     return population.fitness
 
