@@ -42,8 +42,8 @@ cpu = ["jax[cpu]>=0.4.0"]
 # Modular Integrations
 evosax = ["evosax"]
 qdax = ["qdax"]
-mujoco = ["mujoco>=3.0.0"]
-rl = ["gymnax", "brax", "jumanji", "mujoco>=3.0.0"]
+mujoco = ["mujoco>=3.0.0", "imageio>=2.30.0"]
+rl = ["gymnax", "brax", "jumanji", "mujoco>=3.0.0", "imageio>=2.30.0"]
 bbobax = ["bbobax>=0.2.2"]
 kozax = ["kozax"]
 tensorneat = ["tensorneat @ git+https://github.com/EMI-Group/tensorneat.git"]
@@ -78,6 +78,7 @@ examples = [
     "matplotlib>=3.6.0",
     "seaborn>=0.12.0",
     "jupyter>=1.0.0",
+    "imageio>=2.30.0",
 ]
 benchmarks = [
     "malthusjax[stats]",
