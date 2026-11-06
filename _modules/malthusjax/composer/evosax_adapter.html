@@ -428,7 +428,9 @@
     <span class="p">)</span>
 
     <span class="c1"># 3. Evaluate using the standard MalthusJAX batched evaluator</span>
-    <span class="n">population</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate_population</span><span class="p">(</span><span class="n">population</span><span class="p">)</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">dispatch_evaluate_population</span>
+
+    <span class="n">population</span> <span class="o">=</span> <span class="n">dispatch_evaluate_population</span><span class="p">(</span><span class="n">evaluator</span><span class="p">,</span> <span class="n">population</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">population</span><span class="o">.</span><span class="n">fitness</span>
 

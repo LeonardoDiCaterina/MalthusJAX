@@ -458,7 +458,8 @@
 ReinforcementTask environments:
 ├── GymnaxEnv(env_name="CartPole-v1")            # JAX-native RL (gymnax)
 ├── JumanjiEnv(env_name="RubiksCube-v0")         # JAX-native combinatorial RL (jumanji)
-└── BraxEnv(env_name="ant")                      # physics-based RL (brax)
+├── BraxEnv(env_name="ant")                      # physics-based RL (brax)
+└── MuJoCoMJXEnv(env_name="cartpole")            # physics-based RL (DeepMind MuJoCo MJX)
 
 OptimizationTask environments:
 ├── BBOBEnv(fn_name="sphere", num_dims=10)       # analytic black-box (no data needed)

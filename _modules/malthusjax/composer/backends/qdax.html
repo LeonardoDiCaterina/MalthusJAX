@@ -383,7 +383,9 @@
                 <span class="n">pop</span> <span class="o">=</span> <span class="n">RealPopulation</span><span class="p">(</span>
                     <span class="n">genes</span><span class="o">=</span><span class="n">genes</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">genotypes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span>
                 <span class="p">)</span>
-                <span class="n">updated_pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluator</span><span class="o">.</span><span class="n">evaluate_population</span><span class="p">(</span><span class="n">pop</span><span class="p">)</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">dispatch_evaluate_population</span>
+
+                <span class="n">updated_pop</span> <span class="o">=</span> <span class="n">dispatch_evaluate_population</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_evaluator</span><span class="p">,</span> <span class="n">pop</span><span class="p">,</span> <span class="n">random_key</span><span class="p">)</span>
                 <span class="n">fitnesses</span> <span class="o">=</span> <span class="n">updated_pop</span><span class="o">.</span><span class="n">fitness</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">maximize</span><span class="p">:</span>
                     <span class="n">fitnesses</span> <span class="o">=</span> <span class="o">-</span><span class="n">fitnesses</span>

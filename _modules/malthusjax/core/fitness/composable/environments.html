@@ -785,7 +785,7 @@
 <div class="viewcode-block" id="GymnaxEnv.step">
 <a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.GymnaxEnv.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Take one step: (obs, state, reward, done, info)."""</span>
         <span class="n">step_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_params</span><span class="p">)</span>
@@ -980,7 +980,7 @@
 <div class="viewcode-block" id="BraxEnv.step">
 <a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.BraxEnv.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="n">next_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">next_state</span><span class="o">.</span><span class="n">obs</span><span class="p">,</span> <span class="n">next_state</span><span class="p">,</span> <span class="n">next_state</span><span class="o">.</span><span class="n">reward</span><span class="p">,</span> <span class="n">next_state</span><span class="o">.</span><span class="n">done</span><span class="p">,</span> <span class="p">{}</span></div>
@@ -1006,6 +1006,294 @@
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">action_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">action_size</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># DeepMind MuJoCo MJX Environment Adapter</span>
+<span class="c1"># =============================================================================</span>
+
+<span class="n">CARTPOLE_MJCF</span> <span class="o">=</span> <span class="s2">"""</span>
+<span class="s2">&lt;mujoco model="cartpole"&gt;</span>
+<span class="s2">  &lt;compiler inertiafromgeom="true"/&gt;</span>
+<span class="s2">  &lt;default&gt;</span>
+<span class="s2">    &lt;joint damping="0.05"/&gt;</span>
+<span class="s2">    &lt;geom contype="0" friction="1 0.1 0.1" rgba="0.7 0.7 0 1"/&gt;</span>
+<span class="s2">  &lt;/default&gt;</span>
+<span class="s2">  &lt;worldbody&gt;</span>
+<span class="s2">    &lt;light pos="0 0 3" dir="0 0 -1"/&gt;</span>
+<span class="s2">    &lt;geom name="floor" type="plane" size="5 5 0.1" rgba="0.9 0.9 0.9 1"/&gt;</span>
+<span class="s2">    &lt;body name="cart" pos="0 0 1"&gt;</span>
+<span class="s2">      &lt;joint name="slider" type="slide" axis="1 0 0" range="-2.5 2.5"/&gt;</span>
+<span class="s2">      &lt;geom name="cart_geom" type="box" size="0.2 0.1 0.1" mass="1.0" rgba="0.2 0.6 0.8 1"/&gt;</span>
+<span class="s2">      &lt;body name="pole" pos="0 0 0"&gt;</span>
+<span class="s2">        &lt;joint name="hinge" type="hinge" axis="0 1 0" range="-1.57 1.57"/&gt;</span>
+<span class="s2">        &lt;geom name="pole_geom" type="cylinder" size="0.04 0.4" mass="0.1" pos="0 0 0.4" rgba="0.8 0.3 0.3 1"/&gt;</span>
+<span class="s2">      &lt;/body&gt;</span>
+<span class="s2">    &lt;/body&gt;</span>
+<span class="s2">  &lt;/worldbody&gt;</span>
+<span class="s2">  &lt;actuator&gt;</span>
+<span class="s2">    &lt;motor name="slide_motor" joint="slider" ctrlrange="-10 10" ctrllimited="true"/&gt;</span>
+<span class="s2">  &lt;/actuator&gt;</span>
+<span class="s2">&lt;/mujoco&gt;</span>
+<span class="s2">"""</span>
+
+
+<div class="viewcode-block" id="MuJoCoMJXState">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.MuJoCoMJXState">[docs]</a>
+<span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MuJoCoMJXState</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""JAX PyTree state encapsulating a DeepMind MuJoCo MJX physics step."""</span>
+
+    <span class="n">data</span><span class="p">:</span> <span class="n">Any</span>  <span class="c1"># mujoco_mjx.Data</span>
+    <span class="n">step_count</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span>
+    <span class="n">cum_reward</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span>
+    <span class="n">done</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span>
+    <span class="n">info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MuJoCoMJXEnv">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.MuJoCoMJXEnv">[docs]</a>
+<span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MuJoCoMJXEnv</span><span class="p">(</span><span class="n">BaseRLEnvironment</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""DeepMind MuJoCo MJX reinforcement learning environment adapter.</span>
+
+<span class="sd">    Conforms to MalthusJAX's 4-axis Composable Evaluator design. Supports</span>
+<span class="sd">    custom MJCF XML strings/files as well as DeepMind locomotion benchmarks</span>
+<span class="sd">    (e.g., 'ant', 'half_cheetah', 'hopper', 'cartpole') executed natively</span>
+<span class="sd">    on GPU/TPU accelerators under ``jax.lax.scan``.</span>
+
+<span class="sd">    DISAMBIGUATION COMPLIANCE:</span>
+<span class="sd">    - MuJoCo in JAX is imported strictly as ``from mujoco import mjx as mujoco_mjx``.</span>
+<span class="sd">    - Entities are explicitly prefixed (``MuJoCoMJXEnv``, ``mujoco_model``).</span>
+<span class="sd">    """</span>
+
+    <span class="n">mujoco_model</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">raw_model</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">env_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">"mujoco_mjx"</span><span class="p">)</span>
+    <span class="n">max_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+    <span class="n">reset_noise_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+    <span class="n">action_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">backend_pipeline</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MuJoCoMJXEnv.create">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.MuJoCoMJXEnv.create">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">env_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">xml_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">xml_string</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+        <span class="n">reset_noise_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span>
+        <span class="n">action_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MuJoCoMJXEnv</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Create a DeepMind MuJoCo MJX environment.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            env_name: Benchmark environment name (e.g., 'cartpole', 'ant', 'half_cheetah').</span>
+<span class="sd">            xml_path: Filepath to an MJCF XML model file.</span>
+<span class="sd">            xml_string: Raw MJCF XML model string.</span>
+<span class="sd">            max_steps: Maximum episode step horizon.</span>
+<span class="sd">            reset_noise_scale: Standard deviation of perturbation on initial qpos/qvel.</span>
+<span class="sd">            action_scale: Multiplier applied to tanh-bounded action logits.</span>
+<span class="sd">            **kwargs: Extra parameters passed to the underlying loader.</span>
+<span class="sd">        """</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">mujoco</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">mujoco</span><span class="w"> </span><span class="kn">import</span> <span class="n">mjx</span> <span class="k">as</span> <span class="n">mujoco_mjx</span>
+        <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+                <span class="s2">"DeepMind MuJoCo MJX is required to use MuJoCoMJXEnv. "</span>
+                <span class="s2">"Please install via: pip install 'malthusjax[mujoco]'"</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+
+        <span class="c1"># 1. Custom XML string</span>
+        <span class="k">if</span> <span class="n">xml_string</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">raw_model</span> <span class="o">=</span> <span class="n">mujoco</span><span class="o">.</span><span class="n">MjModel</span><span class="o">.</span><span class="n">from_xml_string</span><span class="p">(</span><span class="n">xml_string</span><span class="p">)</span>
+            <span class="n">mujoco_model</span> <span class="o">=</span> <span class="n">mujoco_mjx</span><span class="o">.</span><span class="n">put_model</span><span class="p">(</span><span class="n">raw_model</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+                <span class="n">mujoco_model</span><span class="o">=</span><span class="n">mujoco_model</span><span class="p">,</span>
+                <span class="n">raw_model</span><span class="o">=</span><span class="n">raw_model</span><span class="p">,</span>
+                <span class="n">env_name</span><span class="o">=</span><span class="n">env_name</span> <span class="ow">or</span> <span class="s2">"custom_xml"</span><span class="p">,</span>
+                <span class="n">max_steps</span><span class="o">=</span><span class="n">max_steps</span><span class="p">,</span>
+                <span class="n">reset_noise_scale</span><span class="o">=</span><span class="n">reset_noise_scale</span><span class="p">,</span>
+                <span class="n">action_scale</span><span class="o">=</span><span class="n">action_scale</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># 2. Custom XML file path</span>
+        <span class="k">if</span> <span class="n">xml_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">raw_model</span> <span class="o">=</span> <span class="n">mujoco</span><span class="o">.</span><span class="n">MjModel</span><span class="o">.</span><span class="n">from_xml_path</span><span class="p">(</span><span class="n">xml_path</span><span class="p">)</span>
+            <span class="n">mujoco_model</span> <span class="o">=</span> <span class="n">mujoco_mjx</span><span class="o">.</span><span class="n">put_model</span><span class="p">(</span><span class="n">raw_model</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+                <span class="n">mujoco_model</span><span class="o">=</span><span class="n">mujoco_model</span><span class="p">,</span>
+                <span class="n">raw_model</span><span class="o">=</span><span class="n">raw_model</span><span class="p">,</span>
+                <span class="n">env_name</span><span class="o">=</span><span class="n">env_name</span> <span class="ow">or</span> <span class="n">xml_path</span><span class="p">,</span>
+                <span class="n">max_steps</span><span class="o">=</span><span class="n">max_steps</span><span class="p">,</span>
+                <span class="n">reset_noise_scale</span><span class="o">=</span><span class="n">reset_noise_scale</span><span class="p">,</span>
+                <span class="n">action_scale</span><span class="o">=</span><span class="n">action_scale</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># 3. Canonical Built-in Benchmarks</span>
+        <span class="n">normalized_name</span> <span class="o">=</span> <span class="p">(</span><span class="n">env_name</span> <span class="ow">or</span> <span class="s2">"cartpole"</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"-"</span><span class="p">,</span> <span class="s2">"_"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">normalized_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"cartpole"</span><span class="p">,</span> <span class="s2">"inverted_pendulum"</span><span class="p">):</span>
+            <span class="n">raw_model</span> <span class="o">=</span> <span class="n">mujoco</span><span class="o">.</span><span class="n">MjModel</span><span class="o">.</span><span class="n">from_xml_string</span><span class="p">(</span><span class="n">CARTPOLE_MJCF</span><span class="p">)</span>
+            <span class="n">mujoco_model</span> <span class="o">=</span> <span class="n">mujoco_mjx</span><span class="o">.</span><span class="n">put_model</span><span class="p">(</span><span class="n">raw_model</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+                <span class="n">mujoco_model</span><span class="o">=</span><span class="n">mujoco_model</span><span class="p">,</span>
+                <span class="n">raw_model</span><span class="o">=</span><span class="n">raw_model</span><span class="p">,</span>
+                <span class="n">env_name</span><span class="o">=</span><span class="n">normalized_name</span><span class="p">,</span>
+                <span class="n">max_steps</span><span class="o">=</span><span class="n">max_steps</span><span class="p">,</span>
+                <span class="n">reset_noise_scale</span><span class="o">=</span><span class="n">reset_noise_scale</span><span class="p">,</span>
+                <span class="n">action_scale</span><span class="o">=</span><span class="n">action_scale</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># 4. Standard locomotion environments via DeepMind Brax MJX backend</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">brax</span><span class="w"> </span><span class="kn">import</span> <span class="n">envs</span> <span class="k">as</span> <span class="n">brax_envs</span>
+
+            <span class="n">pipeline_env</span> <span class="o">=</span> <span class="n">brax_envs</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+                <span class="n">env_name</span><span class="o">=</span><span class="n">normalized_name</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">"mjx"</span><span class="p">,</span> <span class="n">auto_reset</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+            <span class="p">)</span>
+            <span class="n">raw_sys</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">pipeline_env</span><span class="p">,</span> <span class="s2">"sys"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+                <span class="n">mujoco_model</span><span class="o">=</span><span class="n">raw_sys</span><span class="p">,</span>
+                <span class="n">raw_model</span><span class="o">=</span><span class="n">raw_sys</span><span class="p">,</span>
+                <span class="n">env_name</span><span class="o">=</span><span class="n">normalized_name</span><span class="p">,</span>
+                <span class="n">max_steps</span><span class="o">=</span><span class="n">max_steps</span><span class="p">,</span>
+                <span class="n">reset_noise_scale</span><span class="o">=</span><span class="n">reset_noise_scale</span><span class="p">,</span>
+                <span class="n">action_scale</span><span class="o">=</span><span class="n">action_scale</span><span class="p">,</span>
+                <span class="n">backend_pipeline</span><span class="o">=</span><span class="n">pipeline_env</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="c1"># Fallback to built-in cartpole if specific locomotion name is not found</span>
+            <span class="n">raw_model</span> <span class="o">=</span> <span class="n">mujoco</span><span class="o">.</span><span class="n">MjModel</span><span class="o">.</span><span class="n">from_xml_string</span><span class="p">(</span><span class="n">CARTPOLE_MJCF</span><span class="p">)</span>
+            <span class="n">mujoco_model</span> <span class="o">=</span> <span class="n">mujoco_mjx</span><span class="o">.</span><span class="n">put_model</span><span class="p">(</span><span class="n">raw_model</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+                <span class="n">mujoco_model</span><span class="o">=</span><span class="n">mujoco_model</span><span class="p">,</span>
+                <span class="n">raw_model</span><span class="o">=</span><span class="n">raw_model</span><span class="p">,</span>
+                <span class="n">env_name</span><span class="o">=</span><span class="n">normalized_name</span><span class="p">,</span>
+                <span class="n">max_steps</span><span class="o">=</span><span class="n">max_steps</span><span class="p">,</span>
+                <span class="n">reset_noise_scale</span><span class="o">=</span><span class="n">reset_noise_scale</span><span class="p">,</span>
+                <span class="n">action_scale</span><span class="o">=</span><span class="n">action_scale</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MuJoCoMJXEnv.reset">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.MuJoCoMJXEnv.reset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Reset environment to initial state."""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend_pipeline</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend_pipeline</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">state</span><span class="o">.</span><span class="n">obs</span><span class="p">,</span> <span class="n">state</span>
+
+        <span class="kn">from</span><span class="w"> </span><span class="nn">mujoco</span><span class="w"> </span><span class="kn">import</span> <span class="n">mjx</span> <span class="k">as</span> <span class="n">mujoco_mjx</span>
+
+        <span class="n">k_pos</span><span class="p">,</span> <span class="n">k_vel</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">mujoco_mjx</span><span class="o">.</span><span class="n">make_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mujoco_model</span><span class="p">)</span>
+
+        <span class="n">qpos_noise</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span>
+            <span class="n">k_pos</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mujoco_model</span><span class="o">.</span><span class="n">nq</span><span class="p">,),</span>
+            <span class="n">minval</span><span class="o">=-</span><span class="bp">self</span><span class="o">.</span><span class="n">reset_noise_scale</span><span class="p">,</span>
+            <span class="n">maxval</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">reset_noise_scale</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">qvel_noise</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">k_vel</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mujoco_model</span><span class="o">.</span><span class="n">nv</span><span class="p">,))</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">reset_noise_scale</span>
+        <span class="p">)</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+            <span class="n">qpos</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">qpos</span> <span class="o">+</span> <span class="n">qpos_noise</span><span class="p">,</span>
+            <span class="n">qvel</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">qvel</span> <span class="o">+</span> <span class="n">qvel_noise</span><span class="p">,</span>
+            <span class="n">ctrl</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mujoco_model</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">mujoco_mjx</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mujoco_model</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+        <span class="n">obs</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">data</span><span class="o">.</span><span class="n">qpos</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">qvel</span><span class="p">])</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">MuJoCoMJXState</span><span class="p">(</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+            <span class="n">step_count</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>
+            <span class="n">cum_reward</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+            <span class="n">done</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">bool_</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">obs</span><span class="p">,</span> <span class="n">state</span></div>
+
+
+<div class="viewcode-block" id="MuJoCoMJXEnv.step">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.MuJoCoMJXEnv.step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Numeric</span><span class="p">,</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Step physics simulation forward by one control timestep."""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend_pipeline</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">next_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend_pipeline</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">next_state</span><span class="o">.</span><span class="n">obs</span><span class="p">,</span> <span class="n">next_state</span><span class="p">,</span> <span class="n">next_state</span><span class="o">.</span><span class="n">reward</span><span class="p">,</span> <span class="n">next_state</span><span class="o">.</span><span class="n">done</span><span class="p">,</span> <span class="p">{}</span>
+
+        <span class="kn">from</span><span class="w"> </span><span class="nn">mujoco</span><span class="w"> </span><span class="kn">import</span> <span class="n">mjx</span> <span class="k">as</span> <span class="n">mujoco_mjx</span>
+
+        <span class="n">clamped_action</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">ctrl_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mujoco_model</span><span class="o">.</span><span class="n">actuator_ctrlrange</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">ctrl_max</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mujoco_model</span><span class="o">.</span><span class="n">actuator_ctrlrange</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">scaled_ctrl</span> <span class="o">=</span> <span class="n">ctrl_min</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">clamped_action</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">ctrl_max</span> <span class="o">-</span> <span class="n">ctrl_min</span><span class="p">)</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">ctrl</span><span class="o">=</span><span class="n">scaled_ctrl</span><span class="p">)</span>
+        <span class="n">next_data</span> <span class="o">=</span> <span class="n">mujoco_mjx</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mujoco_model</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+        <span class="n">next_obs</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">next_data</span><span class="o">.</span><span class="n">qpos</span><span class="p">,</span> <span class="n">next_data</span><span class="o">.</span><span class="n">qvel</span><span class="p">])</span>
+
+        <span class="c1"># Cartpole Task Reward: upright pole + alive bonus - cart center penalty - control penalty</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">next_data</span><span class="o">.</span><span class="n">qpos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">next_data</span><span class="o">.</span><span class="n">qpos</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">alive_reward</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="n">upright_reward</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+        <span class="n">cart_penalty</span> <span class="o">=</span> <span class="mf">0.01</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">ctrl_cost</span> <span class="o">=</span> <span class="mf">0.001</span> <span class="o">*</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">clamped_action</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">reward</span> <span class="o">=</span> <span class="n">alive_reward</span> <span class="o">+</span> <span class="n">upright_reward</span> <span class="o">-</span> <span class="n">cart_penalty</span> <span class="o">-</span> <span class="n">ctrl_cost</span>
+
+        <span class="c1"># Termination: fallen or off-rail or horizon exceeded</span>
+        <span class="n">fell</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.5</span>
+        <span class="n">off_rail</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">2.0</span>
+        <span class="n">time_limit</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">step_count</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_steps</span>
+        <span class="n">done</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">fell</span><span class="p">,</span> <span class="n">off_rail</span><span class="p">),</span> <span class="n">time_limit</span><span class="p">)</span>
+
+        <span class="n">next_state</span> <span class="o">=</span> <span class="n">MuJoCoMJXState</span><span class="p">(</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">next_data</span><span class="p">,</span>
+            <span class="n">step_count</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">step_count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">cum_reward</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">cum_reward</span> <span class="o">+</span> <span class="n">reward</span><span class="p">,</span>
+            <span class="n">done</span><span class="o">=</span><span class="n">done</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">next_obs</span><span class="p">,</span> <span class="n">next_state</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="p">{}</span></div>
+
+
+<div class="viewcode-block" id="MuJoCoMJXEnv.preprocess_obs">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.MuJoCoMJXEnv.preprocess_obs">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">preprocess_obs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Flatten observation tensor to 1D vector."""</span>
+        <span class="k">return</span> <span class="n">obs</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="MuJoCoMJXEnv.postprocess_action">
+<a class="viewcode-back" href="../../../../../api/malthusjax.core.fitness.html#malthusjax.core.fitness.MuJoCoMJXEnv.postprocess_action">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">postprocess_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">raw_obs</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Apply bounded tanh activation scaled to action range."""</span>
+        <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_scale</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">obs_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Flattened observation dimensionality."""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend_pipeline</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">backend_pipeline</span><span class="o">.</span><span class="n">observation_size</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mujoco_model</span><span class="o">.</span><span class="n">nq</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">mujoco_model</span><span class="o">.</span><span class="n">nv</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">action_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Action dimensionality."""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend_pipeline</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">backend_pipeline</span><span class="o">.</span><span class="n">action_size</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mujoco_model</span><span class="o">.</span><span class="n">nu</span><span class="p">)</span></div>
 
 
 

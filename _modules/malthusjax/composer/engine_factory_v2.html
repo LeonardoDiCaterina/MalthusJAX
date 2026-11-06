@@ -447,16 +447,17 @@
 
         <span class="c1"># Infer dimensions from fitness spec if still default and available</span>
         <span class="n">genome_length</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">population</span><span class="o">.</span><span class="n">genome_length</span>
-        <span class="k">if</span> <span class="n">genome_length</span> <span class="o">==</span> <span class="mi">10</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness_raw</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">.catalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorCatalog</span>
+        <span class="k">if</span> <span class="n">genome_length</span> <span class="o">==</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">infer_genome_length</span>
 
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">_</span><span class="p">,</span> <span class="n">parsed_params</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span><span class="o">.</span><span class="n">parse_spec</span><span class="p">(</span><span class="n">fitness_raw</span><span class="p">)</span>
-                <span class="n">dim_val</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"dim"</span><span class="p">,</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"num_dims"</span><span class="p">))</span>
-                <span class="k">if</span> <span class="n">dim_val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">genome_length</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">dim_val</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                <span class="k">pass</span>
+            <span class="n">inferred</span> <span class="o">=</span> <span class="n">infer_genome_length</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">"fitness"</span><span class="p">:</span> <span class="n">fitness_obj</span> <span class="k">if</span> <span class="n">fitness_obj</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">fitness_raw</span><span class="p">,</span>
+                    <span class="s2">"data_config"</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="s2">"data_config"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">inferred</span> <span class="o">!=</span> <span class="mi">10</span><span class="p">:</span>
+                <span class="n">genome_length</span> <span class="o">=</span> <span class="n">inferred</span>
 
         <span class="c1"># Build strategy kwargs</span>
         <span class="n">strategy_kwargs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">provider_defaults</span><span class="p">}</span>

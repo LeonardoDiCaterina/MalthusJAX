@@ -629,17 +629,11 @@
                 <span class="n">shape_val</span> <span class="o">=</span> <span class="n">g_params</span><span class="p">[</span><span class="s2">"shape"</span><span class="p">]</span>
                 <span class="n">genome_length</span> <span class="o">=</span> <span class="n">shape_val</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">shape_val</span><span class="p">,</span> <span class="s2">"__len__"</span><span class="p">)</span> <span class="k">else</span> <span class="n">shape_val</span>
 
-        <span class="c1"># If genome length is still unset, infer from fitness spec (e.g. "sphere:dim=5").</span>
-        <span class="k">if</span> <span class="n">genome_length</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">.catalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorCatalog</span>
+        <span class="c1"># If genome length is still unset, infer from config / fitness spec / data registry.</span>
+        <span class="k">if</span> <span class="n">genome_length</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">infer_genome_length</span>
 
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">_</span><span class="p">,</span> <span class="n">parsed_params</span> <span class="o">=</span> <span class="n">OperatorCatalog</span><span class="p">()</span><span class="o">.</span><span class="n">parse_spec</span><span class="p">(</span><span class="n">fitness</span><span class="p">)</span>
-                <span class="n">dim_val</span> <span class="o">=</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"dim"</span><span class="p">,</span> <span class="n">parsed_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"num_dims"</span><span class="p">))</span>
-                <span class="k">if</span> <span class="n">dim_val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">genome_length</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">dim_val</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                <span class="k">pass</span>
+            <span class="n">genome_length</span> <span class="o">=</span> <span class="n">infer_genome_length</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">genome_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">genome_type</span> <span class="o">=</span> <span class="s2">"real"</span>

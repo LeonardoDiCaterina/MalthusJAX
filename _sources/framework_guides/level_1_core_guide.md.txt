@@ -29,7 +29,7 @@ The new core paradigm for defining fitness. Instead of subclassing a single mono
 
 | Axis | Role | Examples |
 |---|---|---|
-| **Environment** | The problem definition | `SphereEnv`, `TSPEnv`, `SklearnEnv`, `BraxEnv` |
+| **Environment** | The problem definition | `SphereEnv`, `TSPEnv`, `SklearnEnv`, `BraxEnv`, `MuJoCoMJXEnv` |
 | **Transform** | Genotype → phenotype mapping | `IdentityTransform`, `TensorNeatTransform` |
 | **Interpreter** | How the genome produces outputs | `IdentityInterpreter`, `MLPInterpreter` |
 | **Output** | Fitness aggregation & sign convention | `ScalarOutput`, `QDOutput`, `MOOutput` |
