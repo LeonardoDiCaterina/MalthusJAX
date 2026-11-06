@@ -35,6 +35,12 @@ def generate_initial_population(
         genome_length = int(config.population.genome_length)
         bounds = tuple(config.population.bounds)
         fitness_spec = getattr(config.backend, "fitness", None)
+        if fitness_spec is None and hasattr(config.backend, "extra_kwargs"):
+            fitness_spec = config.backend.extra_kwargs.get("fitness")
+        if genome_length == 10 and fitness_spec is not None:
+            inferred = infer_genome_length({"fitness": fitness_spec})
+            if inferred != 10:
+                genome_length = inferred
     elif isinstance(config, dict):
         pop_size = int(config.get("pop_size", 50))
         genome_length = int(infer_genome_length(config))

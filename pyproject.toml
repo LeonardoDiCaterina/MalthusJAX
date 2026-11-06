@@ -42,7 +42,8 @@ cpu = ["jax[cpu]>=0.4.0"]
 # Modular Integrations
 evosax = ["evosax"]
 qdax = ["qdax"]
-rl = ["gymnax", "brax", "jumanji"]
+mujoco = ["mujoco>=3.0.0"]
+rl = ["gymnax", "brax", "jumanji", "mujoco>=3.0.0"]
 bbobax = ["bbobax>=0.2.2"]
 kozax = ["kozax"]
 tensorneat = ["tensorneat @ git+https://github.com/EMI-Group/tensorneat.git"]
@@ -81,7 +82,7 @@ examples = [
 benchmarks = [
     "malthusjax[stats]",
 ]
-all-integrations = ["malthusjax[evosax,qdax,rl,bbobax,kozax,stats,tensorneat]"]
+all-integrations = ["malthusjax[evosax,qdax,rl,bbobax,kozax,stats,tensorneat,mujoco]"]
 all = ["malthusjax[dev,docs,examples,benchmarks,all-integrations]"]
 
 [project.urls]
@@ -203,6 +204,7 @@ module = [
     "brax.*",
     "jumanji.*",
     "bbobax.*",
+    "mujoco.*",
     "toml.*",
 ]
 ignore_missing_imports = true

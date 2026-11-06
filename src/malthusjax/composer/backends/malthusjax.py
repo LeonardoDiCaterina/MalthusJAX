@@ -140,6 +140,20 @@ class MalthusJAXProvider:
             ):
                 engine_kwargs.pop(k, None)
 
+            inferred_len = infer_genome_length(
+                {
+                    **kwargs,
+                    "fitness": getattr(strategy, "fitness", evaluator),
+                    "data_config": kwargs.get("data_config"),
+                }
+            )
+            passed_shape = kwargs.get("genome_length", kwargs.get("genome_shape"))
+            final_shape = (
+                inferred_len
+                if (passed_shape is None or passed_shape == 10) and inferred_len != 10
+                else (passed_shape if passed_shape is not None else inferred_len)
+            )
+
             return build_real_engine(
                 strategy=strategy,
                 genome=kwargs.get("genome"),
@@ -148,19 +162,7 @@ class MalthusJAXProvider:
                 genome_type=kwargs.get("genome_type", "real"),
                 pop_size=pop_size,
                 generations=generations,
-                genome_shape=kwargs.get(
-                    "genome_length",
-                    kwargs.get(
-                        "genome_shape",
-                        infer_genome_length(
-                            {
-                                **kwargs,
-                                "fitness": getattr(strategy, "fitness", evaluator),
-                                "data_config": kwargs.get("data_config"),
-                            }
-                        ),
-                    ),
-                ),
+                genome_shape=final_shape,
                 bounds=bounds,
                 elitism=kwargs.get("elitism", True),
                 maximize=maximize,

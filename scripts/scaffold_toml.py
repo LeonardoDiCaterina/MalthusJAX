@@ -207,6 +207,38 @@ type = "ScalarOutput"
 maximize = true
 """)
 
+MUJOCO_MJX_RL_TEMPLATE = Template("""[experiment]
+name = "${name}"
+output_dir = "results/${name}"
+description = "Hardware-Accelerated Continuous Control with DeepMind MuJoCo MJX"
+seeds = ${seeds}
+
+${logging_block}
+
+[pipelines.mujoco_cartpole_ga]
+backend = "malthusjax"
+pop_size = ${pop_size}
+generations = ${generations}
+maximize = true
+
+[pipelines.mujoco_cartpole_ga.fitness]
+type = "RLEvaluator"
+max_steps = 500
+
+[pipelines.mujoco_cartpole_ga.fitness.env]
+type = "MuJoCoMJXEnv"
+env_name = "cartpole"
+
+[pipelines.mujoco_cartpole_ga.fitness.interpreter]
+type = "MLPInterpreter"
+hidden = [32, 32]
+activation = "tanh"
+
+[pipelines.mujoco_cartpole_ga.fitness.output]
+type = "ScalarOutput"
+maximize = true
+""")
+
 DATA_REGISTRY_TEMPLATE = Template("""[experiment]
 name = "${name}"
 output_dir = "results/${name}"
@@ -340,6 +372,11 @@ RECIPES: Dict[str, Dict[str, Any]] = {
         "template": COMPOSABLE_RL_TEMPLATE,
         "type": "composer",
         "description": "Composable Reinforcement Learning pipeline (Brax + MLP)",
+    },
+    "mujoco_mjx_rl": {
+        "template": MUJOCO_MJX_RL_TEMPLATE,
+        "type": "composer",
+        "description": "DeepMind MuJoCo MJX continuous control (Cartpole / Locomotion + MLP)",
     },
     "data_registry": {
         "template": DATA_REGISTRY_TEMPLATE,

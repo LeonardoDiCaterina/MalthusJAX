@@ -1,0 +1,35 @@
+[experiment]
+name = "mujoco_mjx_cartpole"
+output_dir = "results/mujoco_mjx_cartpole"
+description = "Hardware-Accelerated Continuous Control with DeepMind MuJoCo MJX"
+seeds = [1, 2, 3]
+
+[logging]
+level = "INFO"
+format_type = "color"
+show_timestamps = false
+log_interval = 10
+log_nan_watchdog = true
+
+[pipelines.mujoco_cartpole_ga]
+backend = "malthusjax"
+pop_size = 32
+generations = 50
+maximize = true
+
+[pipelines.mujoco_cartpole_ga.fitness]
+type = "RLEvaluator"
+max_steps = 500
+
+[pipelines.mujoco_cartpole_ga.fitness.env]
+type = "MuJoCoMJXEnv"
+env_name = "cartpole"
+
+[pipelines.mujoco_cartpole_ga.fitness.interpreter]
+type = "MLPInterpreter"
+hidden = [32, 32]
+activation = "tanh"
+
+[pipelines.mujoco_cartpole_ga.fitness.output]
+type = "ScalarOutput"
+maximize = true

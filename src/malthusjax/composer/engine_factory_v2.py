@@ -95,16 +95,17 @@ class EngineFactory:
 
         # Infer dimensions from fitness spec if still default and available
         genome_length = config.population.genome_length
-        if genome_length == 10 and isinstance(fitness_raw, str):
-            from .catalog import OperatorCatalog
+        if genome_length == 10:
+            from .config import infer_genome_length
 
-            try:
-                _, parsed_params = OperatorCatalog().parse_spec(fitness_raw)
-                dim_val = parsed_params.get("dim", parsed_params.get("num_dims"))
-                if dim_val is not None:
-                    genome_length = int(dim_val)
-            except Exception:
-                pass
+            inferred = infer_genome_length(
+                {
+                    "fitness": fitness_obj if fitness_obj is not None else fitness_raw,
+                    "data_config": getattr(config.backend, "data_config", None),
+                }
+            )
+            if inferred != 10:
+                genome_length = inferred
 
         # Build strategy kwargs
         strategy_kwargs: Dict[str, Any] = {**provider_defaults}

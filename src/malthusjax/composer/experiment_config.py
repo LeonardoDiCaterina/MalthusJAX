@@ -241,17 +241,11 @@ class ExperimentConfig:
                 shape_val = g_params["shape"]
                 genome_length = shape_val[0] if hasattr(shape_val, "__len__") else shape_val
 
-        # If genome length is still unset, infer from fitness spec (e.g. "sphere:dim=5").
-        if genome_length is None and isinstance(fitness, str):
-            from .catalog import OperatorCatalog
+        # If genome length is still unset, infer from config / fitness spec / data registry.
+        if genome_length is None:
+            from .config import infer_genome_length
 
-            try:
-                _, parsed_params = OperatorCatalog().parse_spec(fitness)
-                dim_val = parsed_params.get("dim", parsed_params.get("num_dims"))
-                if dim_val is not None:
-                    genome_length = int(dim_val)
-            except Exception:
-                pass
+            genome_length = infer_genome_length(kwargs)
 
         if genome_type is None:
             genome_type = "real"

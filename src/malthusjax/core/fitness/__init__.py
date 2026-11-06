@@ -32,6 +32,8 @@ from malthusjax.core.fitness.composable.environments import (
     GymnaxEnv,
     JumanjiEnv,
     KnapsackEnv,
+    MuJoCoMJXEnv,
+    MuJoCoMJXState,
     SklearnEnv,
     SphereEnv,
     TSPEnv,
@@ -85,6 +87,8 @@ __all__ = [
     "GymnaxEnv",
     "JumanjiEnv",
     "BraxEnv",
+    "MuJoCoMJXEnv",
+    "MuJoCoMJXState",
 ]
 
 # ---------------------------------------------------------------------------

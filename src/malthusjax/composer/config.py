@@ -194,7 +194,14 @@ def infer_genome_length(cfg: Dict[str, Any]) -> int:
                         return int(len_val)
     elif isinstance(fitness_spec, dict):
         if "interpreter" in fitness_spec and isinstance(fitness_spec["interpreter"], dict):
-            pass
+            try:
+                from malthusjax.composer.evaluator_parser import parse_evaluator
+
+                ev = parse_evaluator(fitness_spec)
+                if hasattr(ev, "interpreter") and hasattr(ev.interpreter, "num_params"):
+                    return int(ev.interpreter.num_params)
+            except Exception:
+                pass
         if "env" in fitness_spec and isinstance(fitness_spec["env"], dict):
             env_spec = fitness_spec["env"]
             if "num_dims" in env_spec:
@@ -205,4 +212,15 @@ def infer_genome_length(cfg: Dict[str, Any]) -> int:
                 return int(env_spec["num_items"])
             if "num_cities" in env_spec:
                 return int(env_spec["num_cities"])
+    elif fitness_spec is not None:
+        if hasattr(fitness_spec, "interpreter") and hasattr(fitness_spec.interpreter, "num_params"):
+            return int(fitness_spec.interpreter.num_params)
+        if hasattr(fitness_spec, "env") and fitness_spec.env is not None:
+            env = fitness_spec.env
+            if hasattr(env, "num_dims") and env.num_dims is not None:
+                return int(env.num_dims)
+            if hasattr(env, "weights") and env.weights is not None:
+                return int(env.weights.shape[-1])
+            if hasattr(env, "distance_matrix") and env.distance_matrix is not None:
+                return int(env.distance_matrix.shape[0])
     return 10
