@@ -376,7 +376,7 @@ class GymnaxEnv(BaseRLEnvironment):
         return obs, state
 
     def step(
-        self, state: Any, action: chex.Array, key: chex.PRNGKey
+        self, state: Any, action: chex.Array, key: chex.PRNGKey | None = None
     ) -> tuple[chex.Array, Any, chex.Numeric, chex.Array, Any]:
         """Take one step: (obs, state, reward, done, info)."""
         step_result = self.env.step(key, state, action, self.env_params)
@@ -535,7 +535,7 @@ class BraxEnv(BaseRLEnvironment):
         return state.obs, state
 
     def step(
-        self, state: Any, action: chex.Array, key: chex.PRNGKey
+        self, state: Any, action: chex.Array, key: chex.PRNGKey | None = None
     ) -> tuple[chex.Array, Any, chex.Numeric, chex.Array, Any]:
         next_state = self.env.step(state, action)
         return next_state.obs, next_state, next_state.reward, next_state.done, {}
@@ -758,7 +758,7 @@ class MuJoCoMJXEnv(BaseRLEnvironment):
         return obs, state
 
     def step(
-        self, state: Any, action: chex.Array, key: chex.PRNGKey
+        self, state: Any, action: chex.Array, key: chex.PRNGKey | None = None
     ) -> tuple[chex.Array, Any, chex.Numeric, chex.Array, Any]:
         """Step physics simulation forward by one control timestep."""
         if self.backend_pipeline is not None:

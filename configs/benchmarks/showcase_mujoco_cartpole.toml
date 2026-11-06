@@ -1,0 +1,70 @@
+[experiment]
+name = "showcase_mujoco_cartpole"
+output_dir = "results/showcase_mujoco_cartpole"
+description = "Showcase: MalthusJAX GA vs EvoSAX Open_ES vs QDax MAP-Elites on DeepMind MuJoCo MJX Cartpole"
+seeds = [42, 43, 44]
+
+[logging]
+level = "INFO"
+format_type = "color"
+show_timestamps = false
+log_interval = 10
+log_nan_watchdog = true
+
+# =============================================================================
+# Shared Physical Environment & Policy Architecture
+# =============================================================================
+
+[experiment.shared.fitness]
+type = "RLEvaluator"
+max_steps = 500
+
+[experiment.shared.fitness.env]
+type = "MuJoCoMJXEnv"
+env_name = "cartpole"
+
+[experiment.shared.fitness.interpreter]
+type = "MLPInterpreter"
+hidden = [32, 32]
+activation = "tanh"
+
+[experiment.shared.fitness.output]
+type = "ScalarOutput"
+maximize = true
+
+# =============================================================================
+# Pipeline 1: Native MalthusJAX Genetic Algorithm
+# =============================================================================
+
+[pipelines.malthusjax_ga]
+backend = "malthusjax"
+pop_size = 32
+generations = 50
+maximize = true
+selection = "tournament:num_selections=16,tournament_size=3"
+crossover = "blend:alpha=0.5"
+mutation = "gaussian:mutation_rate=0.2,mutation_strength=0.1"
+
+# =============================================================================
+# Pipeline 2: EvoSAX Evolution Strategies (Open_ES)
+# =============================================================================
+
+[pipelines.evosax_open_es]
+backend = "evosax"
+evosax_strategy = "Open_ES"
+pop_size = 32
+generations = 50
+maximize = true
+
+# =============================================================================
+# Pipeline 3: QDax Quality Diversity (MAP-Elites)
+# =============================================================================
+
+[pipelines.qdax_map_elites]
+backend = "qdax"
+qdax_strategy = "MAPElites"
+qdax_num_descriptors = 2
+qdax_num_centroids = 100
+pop_size = 32
+generations = 50
+maximize = true
