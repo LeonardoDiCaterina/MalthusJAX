@@ -40,6 +40,17 @@ os.environ.setdefault("XLA_PYTHON_CLIENT_PREALLOCATE", "false")
 if "CUDA_VISIBLE_DEVICES" not in os.environ and "SLURM_STEP_GPUS" not in os.environ:
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
+# Headless offscreen OpenGL context for cluster nodes:
+# MuJoCo binds the GL backend at import time via MUJOCO_GL.
+# On Linux clusters, default to 'egl' for headless GPU rendering (or 'osmesa' for software).
+if "MUJOCO_GL" not in os.environ:
+    if sys.platform.startswith("linux"):
+        os.environ["MUJOCO_GL"] = "egl"
+    elif sys.platform == "darwin":
+        os.environ["MUJOCO_GL"] = "cgl"
+
+import json
+
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
@@ -265,7 +276,26 @@ def run_showcase(
     plt.close()
     print(f"\n• Saved convergence plot: {plot_path}")
 
-    # 5. Render Animated GIFs (Initial vs Final Best Policies)
+    # 5. Persist benchmark results & policy checkpoints to JSON
+    results_json_path = out_dir / "results.json"
+    results_to_save: Dict[str, Any] = {
+        "task": task_name,
+        "pop_size": pop_size,
+        "generations": generations,
+        "seeds": list(seeds),
+        "summary": summary,
+        "best_solutions": {},
+    }
+    for pipe_name in pipelines.keys():
+        exp_result = comparison.pipelines[pipe_name]
+        first_run = exp_result.runs[0]
+        results_to_save["best_solutions"][pipe_name] = first_run.metrics.get("best_solution")
+
+    with open(results_json_path, "w") as f:
+        json.dump(results_to_save, f, indent=2)
+    print(f"• Saved benchmark data & policy checkpoints: {results_json_path}")
+
+    # 6. Render Animated GIFs (Initial vs Final Best Policies)
     if render_gifs:
         print(f"\n{'='*70}")
         print("  RENDERING INITIAL VS FINAL POLICY GIFS")
@@ -288,35 +318,40 @@ def run_showcase(
             rng_init = np.random.default_rng(int(seeds[0]))
             initial_weights = rng_init.normal(0.0, 0.1, size=interpreter.num_params)
 
-            # Render Initial GIF
-            init_gif_path = gif_dir / f"{pipe_name}_initial.gif"
-            print(f"  -> Rendering {pipe_name} [INITIAL (Gen 0)]...")
-            init_frames = render_policy_rollout(
-                env=env,
-                interpreter=interpreter,
-                genome_weights=initial_weights,
-                max_steps=min(cfg["max_steps"], 250),
-                height=cfg["render_height"],
-                width=cfg["render_width"],
-                seed=int(seeds[0]),
-            )
-            imageio.mimsave(str(init_gif_path), init_frames, fps=cfg["fps"])
-            print(f"     Saved: {init_gif_path} ({len(init_frames)} frames)")
+            try:
+                # Render Initial GIF
+                init_gif_path = gif_dir / f"{pipe_name}_initial.gif"
+                print(f"  -> Rendering {pipe_name} [INITIAL (Gen 0)]...")
+                init_frames = render_policy_rollout(
+                    env=env,
+                    interpreter=interpreter,
+                    genome_weights=initial_weights,
+                    max_steps=min(cfg["max_steps"], 250),
+                    height=cfg["render_height"],
+                    width=cfg["render_width"],
+                    seed=int(seeds[0]),
+                )
+                imageio.mimsave(str(init_gif_path), init_frames, fps=cfg["fps"])
+                print(f"     Saved: {init_gif_path} ({len(init_frames)} frames)")
 
-            # Render Final GIF
-            final_gif_path = gif_dir / f"{pipe_name}_final.gif"
-            print(f"  -> Rendering {pipe_name} [FINAL CONVERGED]...")
-            final_frames = render_policy_rollout(
-                env=env,
-                interpreter=interpreter,
-                genome_weights=final_weights,
-                max_steps=min(cfg["max_steps"], 250),
-                height=cfg["render_height"],
-                width=cfg["render_width"],
-                seed=int(seeds[0]),
-            )
-            imageio.mimsave(str(final_gif_path), final_frames, fps=cfg["fps"])
-            print(f"     Saved: {final_gif_path} ({len(final_frames)} frames)")
+                # Render Final GIF
+                final_gif_path = gif_dir / f"{pipe_name}_final.gif"
+                print(f"  -> Rendering {pipe_name} [FINAL CONVERGED]...")
+                final_frames = render_policy_rollout(
+                    env=env,
+                    interpreter=interpreter,
+                    genome_weights=final_weights,
+                    max_steps=min(cfg["max_steps"], 250),
+                    height=cfg["render_height"],
+                    width=cfg["render_width"],
+                    seed=int(seeds[0]),
+                )
+                imageio.mimsave(str(final_gif_path), final_frames, fps=cfg["fps"])
+                print(f"     Saved: {final_gif_path} ({len(final_frames)} frames)")
+            except Exception as e:
+                print(f"  ⚠️ Warning: Failed to render GIFs for '{pipe_name}': {e}")
+                print("     Note: To enable hardware-accelerated headless rendering on Linux,")
+                print("           run with: export MUJOCO_GL=egl (or export MUJOCO_GL=osmesa for software).")
 
     print(f"\n[DONE] Showcase for '{task_name}' completed successfully! Artifacts written to {out_dir}\n")
 
@@ -371,12 +406,6 @@ def main() -> None:
     )
 
     args = parser.parse_args()
-
-    # Headless rendering support for cluster environments
-    if "MUJOCO_GL" not in os.environ:
-        # Default to egl on Linux clusters if available, else osmesa / software
-        if os.name != "nt" and os.uname().sysname == "Linux":
-            os.environ["MUJOCO_GL"] = "egl"
 
     tasks = ["cartpole", "ant"] if args.task == "both" else [args.task]
     for t in tasks:
