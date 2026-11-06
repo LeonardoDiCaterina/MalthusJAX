@@ -170,6 +170,7 @@ class GeneticEngineParams(AbstractEngineParams):
     initial_strength: float = 0.1
     final_strength: float = 0.0
     debug_tracing: bool = _field(pytree_node=False, default=False)
+    enable_multi_device: bool = _field(pytree_node=False, default=False)
     # When True, engine will split single-origin operator keys into per-pair
     # / per-offspring subkeys and forward them to operators that accept
     # pre-split caller-supplied keys (useful for evosax parity).
@@ -1077,7 +1078,11 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             params.key_derivation,
         )
 
-        sharding_mgr = ShardingManager(axis_name="batch")
+        if getattr(params, "enable_multi_device", False):
+            devices = list(jax.devices())
+        else:
+            devices = [jax.devices()[0]]
+        sharding_mgr = ShardingManager(axis_name="batch", devices=devices)
         active_sel = (
             cast(Any, self.selection)
             .replace(num_selections=rmap.selection.output_count)
@@ -1109,7 +1114,11 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
 
         target_dtype = self.genome_config.dtype
         num_devices = len(sharding_mgr.devices)
-        _pop_shardable = self.engine_params.pop_size % num_devices == 0
+        _pop_shardable = (
+            num_devices > 1
+            and getattr(params, "enable_multi_device", False)
+            and (self.engine_params.pop_size % num_devices == 0)
+        )
 
         def _enforce_layout(leaf: chex.Array) -> chex.Array:
             if hasattr(leaf, "dtype") and jnp.issubdtype(leaf.dtype, jnp.floating):

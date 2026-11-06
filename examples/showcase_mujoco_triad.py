@@ -19,10 +19,20 @@ from __future__ import annotations
 
 import argparse
 import os
+import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
-import imageio
+# Set default single-GPU placement on multi-GPU nodes before JAX initialization
+# unless already configured by Slurm or user
+if "CUDA_VISIBLE_DEVICES" not in os.environ and "SLURM_STEP_GPUS" not in os.environ:
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
+try:
+    import imageio
+except ImportError:
+    imageio = None
+
 import jax
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
@@ -154,7 +164,12 @@ def run_showcase(
     out_dir.mkdir(parents=True, exist_ok=True)
     gif_dir = out_dir / "gifs"
     if render_gifs:
-        gif_dir.mkdir(parents=True, exist_ok=True)
+        if imageio is None:
+            print("⚠️  Warning: 'imageio' is not installed. Animated policy GIFs will be skipped.")
+            print("    To enable GIFs: pip install imageio")
+            render_gifs = False
+        else:
+            gif_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"\n{'='*70}")
     print(f"  DEEPMIND MUJOCO MJX SHOWCASE: {task_name.upper()}")
