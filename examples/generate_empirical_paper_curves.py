@@ -26,9 +26,19 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-# Paper repository destination paths
-PAPER_DATA_PATH = Path("/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper/figures/data/empirical_curves.json")
-PAPER_TABLES_PATH = Path("/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper/tables")
+# Repository destination paths
+def resolve_paper_paths() -> tuple[Path | None, Path | None]:
+    """Finds the paper repository if accessible on the current filesystem."""
+    candidates = [
+        Path(__file__).resolve().parent.parent.parent / "MalthusJAX_Paper",
+        Path("/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper"),
+    ]
+    for cand in candidates:
+        if cand.is_dir():
+            return cand / "figures/data/empirical_curves.json", cand / "tables"
+    return None, None
+
+PAPER_DATA_PATH, PAPER_TABLES_PATH = resolve_paper_paths()
 LOCAL_DATA_PATH = Path("results/empirical_curves.json")
 LOCAL_TABLES_PATH = Path("results/tables")
 
@@ -273,11 +283,15 @@ def generate_dataset_5a_parity_and_speedup(smoke: bool = False) -> Dict[str, Any
 
 
 def export_latex_appendix_tables(
-    payload: Dict[str, Any], paper_tables_dir: Path, local_tables_dir: Path
+    payload: Dict[str, Any], paper_tables_dir: Path | None, local_tables_dir: Path
 ) -> None:
     """Exports LaTeX appendix tables quantifying all four empirical showcases."""
-    paper_tables_dir.mkdir(parents=True, exist_ok=True)
     local_tables_dir.mkdir(parents=True, exist_ok=True)
+    if paper_tables_dir is not None:
+        try:
+            paper_tables_dir.mkdir(parents=True, exist_ok=True)
+        except OSError:
+            paper_tables_dir = None
 
     d1 = payload["dataset_1a"]
     d2 = payload["dataset_2a"]
@@ -403,28 +417,31 @@ In-Scan PRNG Allocations / Splits         & 1 key split/gen    & $\mathbf{{0\tex
     }
 
     for name, content in tables.items():
-        if paper_tables_dir.exists():
-            p_path = paper_tables_dir / name
-            with open(p_path, "w") as f:
-                f.write(content)
         l_path = local_tables_dir / name
         with open(l_path, "w") as f:
             f.write(content)
+        if paper_tables_dir is not None and paper_tables_dir.is_dir():
+            try:
+                p_path = paper_tables_dir / name
+                with open(p_path, "w") as f:
+                    f.write(content)
+            except OSError:
+                pass
         print(f"  [Table Exporter] Wrote: {name}")
 
 
 def main():
     parser = argparse.ArgumentParser(description="Generate empirical run curves for MalthusJAX paper.")
     parser.add_argument("--smoke", action="store_true", help="Run lightweight smoke version for quick local validation.")
-    parser.add_argument("--out", type=str, default=str(PAPER_DATA_PATH), help="Target output JSON path.")
+    parser.add_argument("--out", type=str, default=str(LOCAL_DATA_PATH), help="Target output JSON path.")
     args = parser.parse_args()
 
-    out_path = Path(args.out)
-    out_path.parent.mkdir(parents=True, exist_ok=True)
+    local_out_path = Path(args.out)
+    local_out_path.parent.mkdir(parents=True, exist_ok=True)
 
     print("=" * 75)
     print(f"  MALTHUSJAX EMPIRICAL PAPER CURVES GENERATOR (Smoke Mode: {args.smoke})")
-    print(f"  Destination: {out_path}")
+    print(f"  Destination: {local_out_path}")
     print("=" * 75)
 
     t0 = time.time()
@@ -442,13 +459,19 @@ def main():
         "dataset_5a": generate_dataset_5a_parity_and_speedup(smoke=args.smoke),
     }
 
-    with open(out_path, "w") as f:
+    # Save to target local output
+    with open(local_out_path, "w") as f:
         json.dump(payload, f, indent=2)
 
-    # Also save locally in results
-    LOCAL_DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with open(LOCAL_DATA_PATH, "w") as f:
-        json.dump(payload, f, indent=2)
+    # If paper repo is detected and differs from local_out_path, sync to it as well
+    if PAPER_DATA_PATH is not None and PAPER_DATA_PATH != local_out_path:
+        try:
+            PAPER_DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
+            with open(PAPER_DATA_PATH, "w") as f:
+                json.dump(payload, f, indent=2)
+            print(f"  [Paper Sync] Synchronized curve data to: {PAPER_DATA_PATH}")
+        except OSError:
+            pass
 
     # Export LaTeX appendix tables
     export_latex_appendix_tables(payload, PAPER_TABLES_PATH, LOCAL_TABLES_PATH)
@@ -456,9 +479,10 @@ def main():
     elapsed = time.time() - t0
     print("\n" + "=" * 75)
     print(f"  SUCCESS! All 5 empirical datasets and 4 LaTeX tables exported in {elapsed:.2f}s.")
-    print(f"  Wrote Data:   {out_path} ({out_path.stat().st_size:,} bytes)")
-    print(f"  Wrote Local:  {LOCAL_DATA_PATH} ({LOCAL_DATA_PATH.stat().st_size:,} bytes)")
-    print(f"  Wrote Tables: {PAPER_TABLES_PATH}")
+    print(f"  Wrote Data:   {local_out_path} ({local_out_path.stat().st_size:,} bytes)")
+    if PAPER_DATA_PATH is not None and PAPER_DATA_PATH != local_out_path:
+        print(f"  Synced Paper: {PAPER_DATA_PATH}")
+    print(f"  Wrote Tables: {LOCAL_TABLES_PATH}")
     print("=" * 75)
 
 
