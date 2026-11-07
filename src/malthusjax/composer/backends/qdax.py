@@ -42,12 +42,12 @@ def resolve_qdax_evaluator(
                 fitnesses = updated_pop.fitness
                 if not maximize:
                     fitnesses = -fitnesses
-                if hasattr(updated_pop, "descriptors"):
+                if getattr(updated_pop, "descriptors", None) is not None:
                     descriptors = updated_pop.descriptors
                 else:
                     desc_dims = genotypes[:, : self._num_descriptors]
                     lo, hi = float(bounds[0]), float(bounds[1])
-                    descriptors = (desc_dims - lo) / (hi - lo)
+                    descriptors = (desc_dims - lo) / max(hi - lo, 1e-6)
             else:
                 fitnesses = jax.vmap(self._fitness_fn)(genotypes)
                 desc_dims = genotypes[:, : self._num_descriptors]
