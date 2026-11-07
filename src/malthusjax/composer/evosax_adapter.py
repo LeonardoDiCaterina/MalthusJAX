@@ -65,8 +65,14 @@ def _evosax_mjx_eval(evaluator, pop, state, key):
         and hasattr(evaluator.env.config, "genome_config")
     ):
         config = evaluator.env.config.genome_config
-    elif hasattr(evaluator, "env") and hasattr(evaluator.env, "genome_config"):
-        config = evaluator.env.genome_config
+    elif (
+        hasattr(evaluator, "interpreter")
+        and getattr(evaluator.interpreter, "num_params", None) is not None
+        and getattr(evaluator.interpreter, "num_params") > 0
+    ):
+        from malthusjax.core.genome.real_genome import RealGenomeConfig
+
+        config = RealGenomeConfig(shape=(evaluator.interpreter.num_params,), dtype=pop.dtype)
     else:
         # Fallback if the evaluator uses a different config pattern
         from malthusjax.core.genome.real_genome import RealGenomeConfig
@@ -256,40 +262,41 @@ def build_evosax_engine(
     else:
         problem = None
         problem_state = None
-        # Infer dimensions from the MalthusJAX evaluator's interpreter or genome config
-        if hasattr(evaluator, "interpreter") and getattr(evaluator.interpreter, "num_params", None) is not None:
-            num_dims = evaluator.interpreter.num_params
-        elif hasattr(evaluator, "config"):
-            evaluator_config = evaluator.config
-        elif hasattr(evaluator, "env") and hasattr(evaluator.env, "config"):
-            evaluator_config = evaluator.env.config
-        elif hasattr(evaluator, "env"):
-            evaluator_config = evaluator.env
-        else:
-            evaluator_config = None
-
-        if hasattr(evaluator, "interpreter") and getattr(evaluator.interpreter, "num_params", None) is not None:
-            pass
-        elif evaluator_config is not None:
-            if hasattr(evaluator_config, "genome_config") and hasattr(
-                evaluator_config.genome_config, "shape"
-            ):
-                num_dims = evaluator_config.genome_config.shape[0]
-            elif hasattr(evaluator_config, "dim"):
-                num_dims = getattr(evaluator_config, "dim")
-                RealGenomeConfig(shape=(num_dims,))
-            elif hasattr(evaluator_config, "num_dims"):
-                num_dims = getattr(evaluator_config, "num_dims")
-            elif "num_dims" in kwargs or "genome_length" in kwargs:
-                num_dims = int(kwargs.get("num_dims", kwargs.get("genome_length")) or 0)
-            else:
-                raise ValueError(
-                    f"Evaluator {evaluator} does not provide a valid genome_config shape."
-                )
-        elif "num_dims" in kwargs or "genome_length" in kwargs:
+        # Infer dimensions from kwargs, interpreter (> 0), or evaluator configuration
+        if "num_dims" in kwargs or "genome_length" in kwargs:
             num_dims = int(kwargs.get("num_dims", kwargs.get("genome_length")) or 0)
+        elif (
+            hasattr(evaluator, "interpreter")
+            and getattr(evaluator.interpreter, "num_params", None) is not None
+            and getattr(evaluator.interpreter, "num_params") > 0
+        ):
+            num_dims = evaluator.interpreter.num_params
         else:
-            raise ValueError(f"Evaluator {evaluator} does not provide a valid genome_config shape.")
+            if hasattr(evaluator, "config"):
+                evaluator_config = evaluator.config
+            elif hasattr(evaluator, "env") and hasattr(evaluator.env, "config"):
+                evaluator_config = evaluator.env.config
+            elif hasattr(evaluator, "env"):
+                evaluator_config = evaluator.env
+            else:
+                evaluator_config = None
+
+            if evaluator_config is not None:
+                if hasattr(evaluator_config, "genome_config") and hasattr(
+                    evaluator_config.genome_config, "shape"
+                ):
+                    num_dims = evaluator_config.genome_config.shape[0]
+                elif hasattr(evaluator_config, "dim"):
+                    num_dims = getattr(evaluator_config, "dim")
+                    RealGenomeConfig(shape=(num_dims,))
+                elif hasattr(evaluator_config, "num_dims"):
+                    num_dims = getattr(evaluator_config, "num_dims")
+                else:
+                    raise ValueError(
+                        f"Evaluator {evaluator} does not provide a valid genome_config shape."
+                    )
+            else:
+                raise ValueError(f"Evaluator {evaluator} does not provide a valid genome_config shape.")
         eval_mode = EvalMode.MALTHUSJAX
 
     if fitness_spec is not None:

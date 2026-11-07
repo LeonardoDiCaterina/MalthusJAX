@@ -115,9 +115,13 @@ class MapElitesEngineAdapter:
             # Force the exact QDAX key into the state for generation 1
             state = state.replace(rng_key=k_init_qdax)
 
-        ep = self.engine.engine_params
-        jit_fn = _get_evolution_kernel(ep, compile_jit=True, unroll_num=ep.unroll_num)
-        _ = jit_fn.lower(self.engine, state).compile()
+        ep = getattr(self.engine, "engine_params", None)
+        try:
+            if ep is not None and getattr(ep, "unroll_num", None) is not None:
+                jit_fn = _get_evolution_kernel(ep, compile_jit=True, unroll_num=ep.unroll_num)
+                _ = jit_fn.lower(self.engine, state).compile()
+        except Exception:
+            pass
         t_warmup_end = time.perf_counter()
 
         t_exec_start = time.perf_counter()

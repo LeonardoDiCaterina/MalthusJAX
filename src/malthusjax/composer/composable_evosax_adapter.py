@@ -255,8 +255,14 @@ def build_composable_evosax_engine(
     else:
         problem = None
         problem_state = None
-        # Infer dimensions from the MalthusJAX evaluator's genome config or interpreter
-        if hasattr(evaluator, "interpreter") and getattr(evaluator.interpreter, "num_params", None):
+        # Infer dimensions from kwargs, interpreter (> 0), or evaluator configuration
+        if "num_dims" in kwargs or "genome_length" in kwargs:
+            num_dims = int(kwargs.get("num_dims", kwargs.get("genome_length")) or 0)
+        elif (
+            hasattr(evaluator, "interpreter")
+            and getattr(evaluator.interpreter, "num_params", None) is not None
+            and getattr(evaluator.interpreter, "num_params") > 0
+        ):
             num_dims = evaluator.interpreter.num_params
         elif hasattr(evaluator, "config"):
             if hasattr(evaluator.config, "genome_config") and hasattr(

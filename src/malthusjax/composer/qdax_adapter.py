@@ -210,7 +210,13 @@ def build_qdax_engine(
         eval_cfg = getattr(evaluator, "config", None)
         genome_config = getattr(eval_cfg, "genome_config", None) if eval_cfg is not None else None
         if genome_config is None:
-            if hasattr(evaluator, "interpreter") and getattr(evaluator.interpreter, "num_params", None) is not None:
+            if "genome_length" in kwargs or "num_dims" in kwargs:
+                shape = (int(kwargs.get("genome_length", kwargs.get("num_dims")) or 1),)
+            elif (
+                hasattr(evaluator, "interpreter")
+                and getattr(evaluator.interpreter, "num_params", None) is not None
+                and getattr(evaluator.interpreter, "num_params") > 0
+            ):
                 shape = (evaluator.interpreter.num_params,)
             elif init_variables is not None:
                 shape = init_variables.shape[1:]
