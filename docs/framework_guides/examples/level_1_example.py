@@ -12,7 +12,7 @@ The composable evaluator is fully JIT-compatible and works without the Engine.
 """
 
 import time
-from typing import Tuple
+from typing import Any, Tuple
 
 import chex
 import jax
@@ -20,6 +20,7 @@ import jax.numpy as jnp
 from flax import struct
 
 from malthusjax.core.base import BaseGenome, BasePopulation
+from malthusjax.core.random import create_key
 
 # -- Composable evaluator stack (the new Level 1 paradigm) --------------------
 from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
@@ -49,6 +50,28 @@ class ContinuousGenomeConfig:
 class ContinuousGenome(BaseGenome):
     """A pure JAX PyTree representing a continuous real-valued genome."""
     values: chex.Array  # Shape: (dim,)
+
+    @property
+    def size(self) -> int:
+        return self.values.size
+
+    @property
+    def shape(self) -> tuple[int, ...]:
+        return self.values.shape
+
+    @classmethod
+    def from_tensor(cls, arr: chex.Array, config: Any = None) -> "ContinuousGenome":
+        return cls(values=arr)
+
+    @classmethod
+    def random_init(cls, key: chex.PRNGKey, config: Any) -> "ContinuousGenome":
+        return cls(values=jax.random.uniform(key, shape=config.shape, minval=-5.12, maxval=5.12))
+
+    def autocorrect(self, config: Any) -> "ContinuousGenome":
+        return self
+
+    def distance(self, other: BaseGenome, metric: str = "euclidean") -> chex.Numeric:
+        return jnp.linalg.norm(self.values - getattr(other, "values", 0.0))
 
 
 @struct.dataclass
@@ -112,7 +135,7 @@ def run_level_1_evolution():
     config = ContinuousGenomeConfig(shape=(10,))
 
     # --- Initialization ---
-    master_key = jax.random.PRNGKey(42)
+    master_key = create_key(42)
     k_init, master_key = jax.random.split(master_key)
 
     population = config.init_population(k_init, POP_SIZE)

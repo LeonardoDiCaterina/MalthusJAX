@@ -65,12 +65,9 @@ def _evosax_mjx_eval(evaluator, pop, state, key):
     )
 
     # 3. Evaluate using the standard MalthusJAX batched evaluator
-    import inspect
+    from malthusjax.core.fitness.base import dispatch_evaluate_population
 
-    if "rng" in inspect.signature(evaluator.evaluate_population).parameters:
-        population = evaluator.evaluate_population(population, rng=key)
-    else:
-        population = evaluator.evaluate_population(population)
+    population = dispatch_evaluate_population(evaluator, population, key)
 
     return population.fitness
 
@@ -244,7 +241,9 @@ def build_composable_evosax_engine(
     if strategy_name not in EVOSAX_STRATEGIES:
         raise KeyError(f"Unknown evosax strategy '{strategy_name}'. Available: {list_strategies()}")
 
-    rng = jr.PRNGKey(seed)
+    from malthusjax.core.random import PRNGImpl, create_key, resolve_prng_impl
+
+    rng = create_key(seed, resolve_prng_impl(prng_impl) if prng_impl else PRNGImpl.THREEFRY)
 
     if isinstance(evaluator, OptimizationEvaluator) and hasattr(evaluator.env, "_problem"):
         problem = getattr(evaluator.env, "_problem")

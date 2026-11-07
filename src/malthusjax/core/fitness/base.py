@@ -75,12 +75,15 @@ class BaseEvaluator(Generic[G, C, D]):
         """
         raise NotImplementedError
 
-    def evaluate_population(self, population: BasePopulation[G]) -> BasePopulation[G]:
+    def evaluate_population(
+        self, population: BasePopulation[G], rng: chex.PRNGKey | None = None, **kwargs: Any
+    ) -> BasePopulation[G]:
         """Vectorized population evaluation via :func:`jax.vmap`.
 
         Each member of *population.genes* is passed through ``evaluate``; the
         resulting fitness array replaces the old values in a new population
-        object.
+        object. Optional ``rng`` and ``kwargs`` are accepted for uniform interface
+        compatibility with stochastic evaluators, but ignored by deterministic evaluators.
         """
         fitness_scores = jax.vmap(self.evaluate)(population.genes)
         return cast(BasePopulation[G], cast(Any, population).replace(fitness=fitness_scores))
@@ -144,9 +147,10 @@ class StochasticEvaluator(BaseEvaluator[G, C, D]):
 
 
 def dispatch_evaluate_population(
-    evaluator: BaseEvaluator[G, C, D],
+    evaluator: BaseEvaluator[G, C, D] | Any,
     population: BasePopulation[G],
     key: chex.PRNGKey | None = None,
+    **kwargs: Any,
 ) -> BasePopulation[G]:
     """Dynamically dispatch population evaluation based on evaluator type."""
     if isinstance(evaluator, StochasticEvaluator):
@@ -155,15 +159,15 @@ def dispatch_evaluate_population(
                 f"Evaluator {evaluator.__class__.__name__} is stochastic, but no key was provided "
                 "to dispatch_evaluate_population."
             )
-        return evaluator.evaluate_population(population, key)
-    elif hasattr(evaluator, "transform"):  # It's a Composable Evaluator
-        return evaluator.evaluate_population(population, rng=key)  # type: ignore[call-arg]
+        return evaluator.evaluate_population(population, key, **kwargs)
+    elif hasattr(evaluator, "transform") or hasattr(evaluator, "requires_rng"):
+        return evaluator.evaluate_population(population, rng=key, **kwargs)
     elif key is not None:
         try:
-            return evaluator.evaluate_population(population, key=key)
+            return evaluator.evaluate_population(population, rng=key, **kwargs)
         except TypeError:
             try:
-                return evaluator.evaluate_population(population, rng=key)
+                return evaluator.evaluate_population(population, key=key, **kwargs)
             except TypeError:
                 pass
-    return evaluator.evaluate_population(population)
+    return evaluator.evaluate_population(population, **kwargs)

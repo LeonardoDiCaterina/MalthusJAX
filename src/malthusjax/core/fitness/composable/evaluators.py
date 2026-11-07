@@ -54,6 +54,7 @@ class BaseComposableEvaluator(Generic[E, T, I, O]):
     output: O = struct.field(
         pytree_node=False, default_factory=lambda: ScalarOutput(maximize=False)
     )
+    requires_rng: bool = struct.field(pytree_node=False, default=False)
 
     def get_gap_to_optimum(self, fitness: jax.Array) -> float:
         """Returns the gap to optimum, delegating to the environment if possible."""
@@ -92,15 +93,19 @@ class BaseComposableEvaluator(Generic[E, T, I, O]):
         compiled_pop = self.transform.transform_population(population.genes, state=state)
 
         # 2. Evaluate
-        if rng is None:
-            import inspect
+        if self.requires_rng:
+            if rng is None:
+                fixed_seed = getattr(self, "fixed_eval_seed", None)
+                if fixed_seed is not None:
+                    from malthusjax.core.random import create_key
 
-            sig = inspect.signature(self.evaluate)
-            if "rng" in sig.parameters:
-                seed_val = getattr(self, "seed", 42)
-                rng = jax.random.PRNGKey(seed_val)
-
-        if rng is not None:
+                    rng = create_key(fixed_seed)
+                else:
+                    raise ValueError(
+                        f"{self.__class__.__name__} is stochastic and requires an explicit "
+                        "`rng` key in `evaluate_population(population, rng=...)`, or "
+                        "`fixed_eval_seed=<int>` for deterministic Common Random Numbers."
+                    )
             rngs = jax.random.split(rng, population.fitness.shape[0])
             fitness_scores, infos = jax.vmap(self.evaluate)(
                 population.genes, compiled_pop, rngs, **kwargs
@@ -171,6 +176,8 @@ class RLEvaluator(
 
     num_eval_envs: int = struct.field(pytree_node=False, default=1)
     max_steps: int = struct.field(pytree_node=False, default=500)
+    requires_rng: bool = struct.field(pytree_node=False, default=True)
+    fixed_eval_seed: int | None = struct.field(pytree_node=False, default=None)
 
     def evaluate(
         self, raw_genome: Any, compiled_genome: Any, rng: chex.PRNGKey, **kwargs: Any
@@ -195,16 +202,35 @@ class RLEvaluator(
                     env_state, action, rng_action
                 )
 
+                obs_leaves = jax.tree_util.tree_leaves(next_obs)
+                float_leaves = [
+                    leaf
+                    for leaf in obs_leaves
+                    if hasattr(leaf, "dtype") and jnp.issubdtype(leaf.dtype, jnp.floating)
+                ]
+                obs_has_nan = (
+                    jnp.any(jnp.stack([jnp.any(jnp.isnan(l)) for l in float_leaves]))
+                    if float_leaves
+                    else jnp.array(False, dtype=bool)
+                )
+
                 is_invalid = jnp.logical_or(
                     jnp.isnan(reward),
-                    jnp.logical_or(jnp.isinf(reward), jnp.any(jnp.isnan(next_obs))),
+                    jnp.logical_or(jnp.isinf(reward), obs_has_nan),
                 )
                 safe_reward = jnp.where(
                     jnp.logical_or(done, is_invalid),
                     0.0,
                     jnp.nan_to_num(reward, nan=0.0, posinf=0.0, neginf=0.0),
                 )
-                safe_next_obs = jnp.nan_to_num(next_obs, nan=0.0, posinf=0.0, neginf=0.0)
+                safe_next_obs = jax.tree_util.tree_map(
+                    lambda x: (
+                        jnp.nan_to_num(x, nan=0.0, posinf=0.0, neginf=0.0)
+                        if hasattr(x, "dtype") and jnp.issubdtype(x.dtype, jnp.floating)
+                        else x
+                    ),
+                    next_obs,
+                )
                 new_cum_reward = cum_reward + safe_reward
                 new_done = jnp.logical_or(done, jnp.logical_or(next_done, is_invalid))
 
@@ -271,7 +297,9 @@ class TensorNeatEvaluator(
         **kwargs,
     ) -> BasePopulation:
         # 1. Initialize a localized TensorNEAT State to manage PRNG for this generation
-        key = jax.random.PRNGKey(self.seed) if rng is None else rng
+        from malthusjax.core.random import create_key
+
+        key = create_key(self.seed) if rng is None else rng
         generation = getattr(state, "generation", 0) if state is not None else 0
         tn_state = TNState(randkey=key, generation=jnp.float32(generation))
 

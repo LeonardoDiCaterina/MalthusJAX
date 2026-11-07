@@ -204,12 +204,15 @@ def build_qdax_engine(
     scoring_fn: Any
     if eval_mode == EvalMode.MALTHUSJAX:
         # We need the genome config to know how to build Populations.
-        # In QDax continuous domains, we infer from init_variables shape.
+        # In QDax continuous domains, we infer from init_variables shape or interpreter.
         from malthusjax.core.genome.real_genome import RealGenomeConfig
 
-        genome_config = getattr(evaluator.config, "genome_config", None)
+        eval_cfg = getattr(evaluator, "config", None)
+        genome_config = getattr(eval_cfg, "genome_config", None) if eval_cfg is not None else None
         if genome_config is None:
-            if init_variables is not None:
+            if hasattr(evaluator, "interpreter") and getattr(evaluator.interpreter, "num_params", None) is not None:
+                shape = (evaluator.interpreter.num_params,)
+            elif init_variables is not None:
                 shape = init_variables.shape[1:]
             else:
                 shape = (kwargs.get("genome_length", 1),)

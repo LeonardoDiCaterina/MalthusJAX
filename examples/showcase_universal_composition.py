@@ -13,10 +13,8 @@ import jax
 import jax.numpy as jnp
 from flax import struct
 from typing import Any
+from malthusjax.core.random import create_key
 from malthusjax.core.genome.real_genome import RealPopulation
-
-# Monkey patch RealPopulation to support old adapter
-RealPopulation.descriptors = property(lambda self: self.info["descriptors"])
 from malthusjax.composer.evosax_adapter import build_evosax_engine
 from malthusjax.composer.strategies.core import MapElitesStrategy
 
@@ -68,14 +66,6 @@ def showcase_qd_on_brax():
         output=output,
         max_steps=100,
     )
-    # Mock config for adapter
-    class MockConfig:
-        genome_config = RealGenomeConfig(shape=(interpreter.num_params,))
-    object.__setattr__(evaluator, "config", MockConfig())
-    
-    # Inject rng into evaluator calls from QDAX adapter
-    original_eval = evaluator.evaluate_population
-    object.__setattr__(evaluator, "evaluate_population", lambda pop: original_eval(pop, rng=jax.random.PRNGKey(42)))
 
     from qdax.core.emitters.mutation_operators import isoline_variation
     from qdax.core.emitters.standard_emitters import MixingEmitter
@@ -99,14 +89,14 @@ def showcase_qd_on_brax():
         emitter=emitter,
         metrics_function=partial(default_qd_metrics, qd_offset=0.0),
         centroids=centroids,
-        init_variables=jax.random.uniform(jax.random.PRNGKey(0), (32, interpreter.num_params), minval=-1.0, maxval=1.0),
+        init_variables=jax.random.uniform(create_key(0), (32, interpreter.num_params), minval=-1.0, maxval=1.0),
         evaluator=evaluator,
         pop_size=32,
         generations=2,
         maximize=True,
     )
 
-    key = jax.random.PRNGKey(42)
+    key = create_key(42)
     results = engine.run_once(key, compile=True)
     print(f"MapElites Step 1 - Best Fitness: {results['summary']['best_fitness']:.4f}")
     print("Success! We mapped diverse Deep RL policies.")
@@ -152,14 +142,6 @@ def showcase_evosax_on_brax():
         output=output,
         max_steps=100,
     )
-    
-    # Mock config for adapter
-    from malthusjax.core.genome.real_genome import RealGenomeConfig
-    class MockConfig2:
-        genome_config = RealGenomeConfig(shape=(interpreter.num_params,))
-    object.__setattr__(evaluator, "config", MockConfig2())
-    original_eval2 = evaluator.evaluate_population
-    object.__setattr__(evaluator, "evaluate_population", lambda pop: original_eval2(pop, rng=jax.random.PRNGKey(42)))
 
     # 5. Execute with EvoSAX
     from malthusjax.composer.evosax_adapter import build_evosax_engine
@@ -172,7 +154,7 @@ def showcase_evosax_on_brax():
     )
 
     # 6. Execute the loop
-    key = jax.random.PRNGKey(123)
+    key = create_key(123)
     results = engine.run_once(key, compile=True)
     
     print(f"EvoSAX Step 10 - Best Fitness: {results['summary']['best_fitness']:.4f}")

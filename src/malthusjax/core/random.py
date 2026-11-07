@@ -17,8 +17,14 @@ import jax.lax as lax
 import jax.numpy as jnp
 
 
+_PHILOX_REGISTERED = False
+
+
 def _register_philox_prng() -> None:
     """Register the native XLA Philox-4x32-10 PRNG implementation with JAX if not present."""
+    global _PHILOX_REGISTERED
+    if _PHILOX_REGISTERED:
+        return
     try:
         try:
             import jax._src.prng as _prng
@@ -91,11 +97,9 @@ def _register_philox_prng() -> None:
             tag="phx",
         )
         _prng.register_prng(getattr(spec, "_impl", spec))
+        _PHILOX_REGISTERED = True
     except Exception as e:
         warnings.warn(f"Failed to register native XLA Philox PRNG: {e}", RuntimeWarning)
-
-
-_register_philox_prng()
 
 
 class PRNGImpl(str, Enum):
@@ -156,6 +160,8 @@ def create_key(seed: int, impl: Optional[PRNGImpl] = None) -> jax.Array:
     to propagate the implementation information.
     """
     impl = impl or DEFAULT_IMPL
+    if impl == PRNGImpl.PHILOX:
+        _register_philox_prng()
 
     key_ctor = getattr(jax.random, "key", None)
     if callable(key_ctor):

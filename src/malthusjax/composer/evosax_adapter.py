@@ -228,7 +228,9 @@ def build_evosax_engine(
     if evaluator is None:
         raise ValueError("build_evosax_engine requires an evaluator argument")
 
-    rng = jr.PRNGKey(seed)
+    from malthusjax.core.random import PRNGImpl, create_key, resolve_prng_impl
+
+    rng = create_key(seed, resolve_prng_impl(prng_impl) if prng_impl else PRNGImpl.THREEFRY)
 
     if strategy_name not in EVOSAX_STRATEGIES:
         raise KeyError(f"Unknown evosax strategy '{strategy_name}'. Available: {list_strategies()}")
@@ -254,8 +256,10 @@ def build_evosax_engine(
     else:
         problem = None
         problem_state = None
-        # Infer dimensions from the MalthusJAX evaluator's genome config
-        if hasattr(evaluator, "config"):
+        # Infer dimensions from the MalthusJAX evaluator's interpreter or genome config
+        if hasattr(evaluator, "interpreter") and getattr(evaluator.interpreter, "num_params", None) is not None:
+            num_dims = evaluator.interpreter.num_params
+        elif hasattr(evaluator, "config"):
             evaluator_config = evaluator.config
         elif hasattr(evaluator, "env") and hasattr(evaluator.env, "config"):
             evaluator_config = evaluator.env.config
@@ -264,7 +268,9 @@ def build_evosax_engine(
         else:
             evaluator_config = None
 
-        if evaluator_config is not None:
+        if hasattr(evaluator, "interpreter") and getattr(evaluator.interpreter, "num_params", None) is not None:
+            pass
+        elif evaluator_config is not None:
             if hasattr(evaluator_config, "genome_config") and hasattr(
                 evaluator_config.genome_config, "shape"
             ):

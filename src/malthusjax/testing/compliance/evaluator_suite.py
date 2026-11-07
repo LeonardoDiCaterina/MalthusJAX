@@ -38,7 +38,8 @@ class EvaluatorComplianceSuite:
 
     def test_jit_compilation(self, component, mock_population) -> None:
         """Verify the evaluator executes purely inside jax.jit."""
-        rng = jax.random.PRNGKey(0)
+        from malthusjax.core.random import create_key
+        rng = create_key(0)
 
         if isinstance(component, StochasticEvaluator):
             jitted_call = jax.jit(component.evaluate_population)
@@ -57,7 +58,8 @@ class EvaluatorComplianceSuite:
 
     def test_fitness_mutation(self, component, mock_population) -> None:
         """Verify that evaluate_population correctly updates the fitness field."""
-        rng = jax.random.PRNGKey(0)
+        from malthusjax.core.random import create_key
+        rng = create_key(0)
 
         if isinstance(component, StochasticEvaluator):
             evaluated_pop = component.evaluate_population(mock_population, rng)
@@ -96,7 +98,12 @@ class ComposableEvaluatorComplianceSuite:
 
     def test_evaluate_population_updates_fitness(self, component, mock_population) -> None:
         """Verify that evaluate_population correctly updates the fitness field."""
-        evaluated_pop = component.evaluate_population(mock_population)
+        if getattr(component, "requires_rng", False):
+            from malthusjax.core.random import create_key
+
+            evaluated_pop = component.evaluate_population(mock_population, rng=create_key(0))
+        else:
+            evaluated_pop = component.evaluate_population(mock_population)
         assert evaluated_pop.fitness.shape == mock_population.fitness.shape, (
             "Evaluated population fitness shape does not match original."
         )
@@ -105,7 +112,12 @@ class ComposableEvaluatorComplianceSuite:
         """Verify that evaluate_population is jittable."""
         jitted_call = jax.jit(component.evaluate_population)
         try:
-            evaluated_pop = jitted_call(mock_population)
+            if getattr(component, "requires_rng", False):
+                from malthusjax.core.random import create_key
+
+                evaluated_pop = jitted_call(mock_population, rng=create_key(0))
+            else:
+                evaluated_pop = jitted_call(mock_population)
             assert evaluated_pop is not None
         except jax.errors.ConcretizationTypeError as e:
             pytest.fail(f"JIT compilation failed due to a tracer leak.\nDetails: {e}")

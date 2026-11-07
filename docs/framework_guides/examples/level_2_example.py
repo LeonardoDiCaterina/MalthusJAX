@@ -21,6 +21,7 @@ from flax import struct
 
 # Level 1 Core
 from malthusjax.core.base import BaseGenome, BasePopulation
+from malthusjax.core.random import create_key
 
 # Composable evaluator stack (Level 1 new paradigm)
 from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
@@ -47,6 +48,28 @@ class ContinuousGenomeConfig:
 @struct.dataclass
 class ContinuousGenome(BaseGenome):
     values: chex.Array
+
+    @property
+    def size(self) -> int:
+        return self.values.size
+
+    @property
+    def shape(self) -> tuple[int, ...]:
+        return self.values.shape
+
+    @classmethod
+    def from_tensor(cls, arr: chex.Array, config: Any = None) -> "ContinuousGenome":
+        return cls(values=arr)
+
+    @classmethod
+    def random_init(cls, key: chex.PRNGKey, config: Any) -> "ContinuousGenome":
+        return cls(values=jax.random.uniform(key, shape=config.shape, minval=-5.12, maxval=5.12))
+
+    def autocorrect(self, config: Any) -> "ContinuousGenome":
+        return self
+
+    def distance(self, other: BaseGenome, metric: str = "euclidean") -> chex.Numeric:
+        return jnp.linalg.norm(self.values - getattr(other, "values", 0.0))
 
 
 @struct.dataclass
@@ -144,7 +167,7 @@ def run_level_2_evolution():
     mutator = ContinuousGaussianMutation(mutation_rate=0.1)
 
     # Initialize population and evaluate using the composable evaluator
-    master_key = jax.random.PRNGKey(42)
+    master_key = create_key(42)
     k_init, master_key = jax.random.split(master_key)
     population = config.init_population(k_init, POP_SIZE)
     population = evaluator.evaluate_population(population)
