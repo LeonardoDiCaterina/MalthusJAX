@@ -15,7 +15,7 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --gres=gpu:1
 #SBATCH --mem=64G
-#SBATCH --time=04:00:00
+#SBATCH --time=08:00:00
 #SBATCH --output=logs/%x_%j.out
 #SBATCH --error=logs/%x_%j.err
 
@@ -66,11 +66,15 @@ MODE_FLAG=""
 if [[ "${1:-}" == "--smoke" ]]; then
     MODE_FLAG="--smoke"
     echo ">>> Running in --smoke mode for quick validation..."
+elif [[ "${1:-}" == "--publication" ]]; then
+    MODE_FLAG="--publication"
+    echo ">>> Running in --publication mode for maximum scientific rigor..."
 elif [[ "${1:-}" == "--heavy" ]]; then
-    MODE_FLAG="--heavy"
-    echo ">>> Running in --heavy mode for maximum H100 stress benchmark..."
+    MODE_FLAG="--publication"
+    echo ">>> Running in --heavy (publication) mode for maximum H100 stress benchmark..."
 else
-    echo ">>> Running standard publication multi-seed empirical benchmark..."
+    MODE_FLAG="${*:-}"
+    echo ">>> Running empirical benchmark with arguments: ${MODE_FLAG:-standard}..."
 fi
 
 python examples/generate_empirical_paper_curves.py ${MODE_FLAG}
