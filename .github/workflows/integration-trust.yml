@@ -1,0 +1,83 @@
+name: Integration Trust & Differential Oracles
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core-and-compliance:
+    name: 1. Core Invariants & Compliance (CPU)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,stats]"
+
+      - name: Run Core, Operators, Engine, and Compliance Test Suites
+        run: |
+          pytest tests/core tests/operators tests/engine tests/compliance --no-cov -v
+
+  integration-oracles:
+    name: 2. Differential Oracles & Adapters (Strict Integrations)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies with all integrations
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,all-integrations]"
+
+      - name: Run Differential Oracles under Strict Gating
+        env:
+          MALTHUS_STRICT_INTEGRATIONS: "1"
+        run: |
+          pytest tests/composer tests/stats --no-cov -v
+
+  multidevice-sharding:
+    name: 3. Multi-Device GSPMD Sharding Verification (4 Virtual CPUs)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run Sharding Invariant Tests across 4 Devices
+        env:
+          XLA_FLAGS: "--xla_force_host_platform_device_count=4"
+        run: |
+          pytest tests/engine/test_sharding.py --no-cov -v
