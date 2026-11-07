@@ -10,9 +10,12 @@ import jax.numpy as jnp
 import numpy as np
 import pytest
 
-from malthusjax.core.genome.real_genome import RealGenomeConfig, RealGenome, RealPopulation
 from malthusjax.composer.composer import Composer
-from malthusjax.operators.mutation.evosax_mutation import EvosaxGaussianWrapper, BatchedEvosaxGaussianWrapper
+from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
+from malthusjax.operators.mutation.evosax_mutation import (
+    BatchedEvosaxGaussianWrapper,
+    EvosaxGaussianWrapper,
+)
 
 
 @pytest.mark.parametrize("target_dtype", [jnp.float32, jnp.bfloat16, jnp.float16])

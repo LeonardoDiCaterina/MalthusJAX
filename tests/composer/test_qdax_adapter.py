@@ -61,12 +61,13 @@ class TestQDaxAdapter(BaseAdapterTestSuite, QDAdapterTestSuiteMixin):
             key=jax.random.PRNGKey(0),
         )
 
-        # Mutation operator
+        # Mutation & Crossover operators
         def dummy_mutation(x, random_key):
             return x + jax.random.normal(random_key, x.shape) * 0.1
 
         def dummy_crossover(x1, x2, random_key):
-            return x1
+            mask = jax.random.bernoulli(random_key, 0.5, shape=x1.shape)
+            return jnp.where(mask, x1, x2)
 
         emitter = MixingEmitter(
             mutation_fn=dummy_mutation,

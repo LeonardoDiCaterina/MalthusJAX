@@ -169,3 +169,71 @@ class TestResourceMapper:
         assert "Total RNG Budget" in summary
         assert "[1. SELECTION]" in summary
         assert "[3. MUTATION]" in summary
+
+
+def test_multidevice_gspmd_sharding_allocation_and_equivalence():
+    """Multi-device GSPMD sharding allocation, sharding equivalence, and numerical parity."""
+    import subprocess
+    import sys
+
+    sub_script = """
+import os
+os.environ['XLA_FLAGS'] = '--xla_force_host_platform_device_count=4'
+import jax
+import jax.numpy as jnp
+import numpy as np
+from jax.sharding import Mesh, PartitionSpec as P, NamedSharding
+from malthusjax.composer.factory import build_real_engine
+from malthusjax.composer.strategies import GeneticStrategy
+from malthusjax.engine.resource_mapper import ShardingManager
+
+devices = jax.devices()
+assert len(devices) == 4, f'Expected 4 devices, got {len(devices)}'
+
+# 1. Sharding layout allocation
+manager = ShardingManager(axis_name='batch')
+pop = manager.alloc_population((32, 10))
+expected_sharding = NamedSharding(manager.mesh, P('batch', None))
+assert pop.sharding.is_equivalent_to(expected_sharding, ndim=2), 'Population sharding mismatch'
+
+# 2. Numerical equivalence: 4 devices vs 1 device
+strategy = GeneticStrategy(
+    selection='tournament:num_selections=32',
+    crossover='blend:alpha=0.2',
+    mutation='gaussian:mutation_rate=0.05',
+)
+adapter = build_real_engine(strategy, fitness='sphere:dim=10', pop_size=32, generations=5)
+engine = adapter.genetic_engine
+
+key = jax.random.PRNGKey(42)
+state1 = adapter.init_state(key)
+
+def shard_leaf(x):
+    if hasattr(x, 'shape') and len(x.shape) == 2 and x.shape[0] == 32:
+        return jax.device_put(x, manager.pop_sharding)
+    elif hasattr(x, 'shape') and len(x.shape) == 1 and x.shape[0] == 32:
+        return jax.device_put(x, manager.vector_sharding)
+    elif hasattr(x, 'shape'):
+        return jax.device_put(x, manager.replicated_sharding)
+    return x
+
+sharded_state = jax.tree_util.tree_map(shard_leaf, state1)
+final_s_4dev, _, _ = engine.run(sharded_state)
+
+state2 = adapter.init_state(key)
+unsharded_final, _, _ = engine.run(state2)
+
+genes_4dev = np.array(final_s_4dev.population.genes.values)
+genes_1dev = np.array(unsharded_final.population.genes.values)
+diff = np.max(np.abs(genes_4dev - genes_1dev))
+assert np.allclose(genes_4dev, genes_1dev, atol=1e-6), f'Gene diff between 4-dev and 1-dev: {diff}'
+
+# 3. Indivisible pop_size graceful handling
+adapter_odd = build_real_engine(strategy, fitness='sphere:dim=10', pop_size=30, generations=3)
+state_odd = adapter_odd.init_state(key)
+final_odd, _, _ = adapter_odd.genetic_engine.run(state_odd)
+assert jnp.isfinite(final_odd.best_fitness)
+"""
+
+    res = subprocess.run([sys.executable, "-c", sub_script], capture_output=True, text=True)
+    assert res.returncode == 0, f"Subprocess failed with stderr:\n{res.stderr}"

@@ -2,8 +2,6 @@
 
 import tempfile
 
-import pytest
-
 from malthusjax.benchmarking import StubEngine
 from malthusjax.composer import Composer
 
@@ -116,11 +114,8 @@ class TestComposerRealEngines:
         # Should work with binary genomes - check for successful run
         assert len(result.runs) == 1
         run = result.runs[0]
-        # If there's an error, the run will have error status
-        if run.status == "error":
-            pytest.skip(f"Binary genome compatibility issue: {run.error}")
-        else:
-            assert len(run.history) == 2
+        assert run.status == "success"
+        assert len(run.history) == 2
 
     def test_backward_compatibility(self):
         """Test that existing Composer usage still works unchanged."""

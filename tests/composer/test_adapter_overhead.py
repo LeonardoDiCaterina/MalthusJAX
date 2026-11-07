@@ -179,3 +179,9 @@ def test_adapter_overhead_parity(mock_strategy, mock_evaluator):
     assert t_std < 0.5, (
         f"Timing standard deviation too high: {t_std:.5f}s (Threshold: 0.5s). Timings: {timings}"
     )
+
+    # Warm execution sanity bound: no adapter should exceed 3x the baseline/mean execution time
+    for name, t in timings.items():
+        assert t < 3.0 * float(t_mean) + 0.1, (
+            f"Execution time for {name} ({t:.5f}s) exceeded 3x mean ({3.0 * float(t_mean):.5f}s)"
+        )

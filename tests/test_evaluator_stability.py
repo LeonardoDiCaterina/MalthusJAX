@@ -6,12 +6,10 @@ Guarantees that:
 2. Genuine float16 limits are confirmed (e.g. Schwefel D=100 optimum 183,900 overflows to inf in float16).
 """
 
-import jax
 import jax.numpy as jnp
 import numpy as np
 import pytest
 
-from malthusjax.core.genome.real_genome import RealGenomeConfig, RealPopulation
 from malthusjax.composer.composer import Composer
 
 
@@ -19,7 +17,7 @@ from malthusjax.composer.composer import Composer
 def test_mixed_precision_evaluator_safety(fn_name):
     """Tests that low-precision genomes produce finite, valid float32 fitness arrays without NaNs."""
     composer = Composer.create_default()
-    
+
     res = composer.quick_run(
         fitness=fn_name,
         genome_length=10,
@@ -29,7 +27,7 @@ def test_mixed_precision_evaluator_safety(fn_name):
         dtype="float16",
         seeds=(42,),
     )
-    
+
     fitness = res.runs[0].metrics["best_fitness"]
     assert np.isfinite(fitness), f"Non-finite fitness {fitness} in {fn_name} under float16!"
 
@@ -47,4 +45,3 @@ def test_physical_float16_schwefel_overflow():
 
     assert jnp.isfinite(val_f32), "float32 must remain finite at 183,900"
     assert jnp.isinf(val_f16), "float16 must overflow to infinity at 183,900 (max is 65,504)"
-

@@ -10,7 +10,8 @@ from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, Rea
 from malthusjax.operators.crossover.evosax_crossover import EvosaxUniformCrossoverWrapper
 
 
-def test_matches_evosax_direct():
+@pytest.mark.parametrize("inj", [True, False])
+def test_matches_evosax_direct(inj: bool):
     key = jar.PRNGKey(777)
     config = RealGenomeConfig(shape=(6,), bounds=(-1.0, 1.0))
     pop_size = 4
@@ -20,30 +21,28 @@ def test_matches_evosax_direct():
     p2_genes = RealGenome(values=jnp.full((pop_size, config.shape[0]), 1.0))
     parents_2 = parents_1.spawn_offspring(p2_genes)
 
-    # run the same verification in both injection modes
-    for inj in (True, False):
-        wrapper = EvosaxUniformCrossoverWrapper(
-            num_offspring=2, crossover_rate=0.7, injection_mode=inj
-        ).set_input_length(pop_size)
-        n_keys = wrapper.num_keys(input_shape=(pop_size,))
-        if wrapper.injection_mode:
-            expected_n = 1
-        else:
-            expected_n = pop_size * wrapper.num_offspring * wrapper.num_keys_per_atomic_operation
-        assert n_keys == expected_n
+    wrapper = EvosaxUniformCrossoverWrapper(
+        num_offspring=2, crossover_rate=0.7, injection_mode=inj
+    ).set_input_length(pop_size)
+    n_keys = wrapper.num_keys(input_shape=(pop_size,))
+    if wrapper.injection_mode:
+        expected_n = 1
+    else:
+        expected_n = pop_size * wrapper.num_offspring * wrapper.num_keys_per_atomic_operation
+    assert n_keys == expected_n
 
-        k_op, _ = jar.split(key)
-        keys = jar.split(k_op, n_keys)
+    k_op, _ = jar.split(key)
+    keys = jar.split(k_op, n_keys)
 
-        offspring_wrapper = jax.jit(wrapper)(keys, parents_1, parents_2, config)
+    offspring_wrapper = jax.jit(wrapper)(keys, parents_1, parents_2, config)
 
-        # Build expected offspring by calling evosax.crossover per pair & offspring
-        if wrapper.injection_mode:
-            base_key = keys[0]
-            subkeys = jar.split(base_key, pop_size * wrapper.num_offspring)
-        else:
-            flat = keys.reshape((-1, keys.shape[-1]))
-            subkeys = flat  # keys are already per-offspring
+    # Build expected offspring by calling evosax.crossover per pair & offspring
+    if wrapper.injection_mode:
+        base_key = keys[0]
+        subkeys = jar.split(base_key, pop_size * wrapper.num_offspring)
+    else:
+        flat = keys.reshape((-1, keys.shape[-1]))
+        subkeys = flat  # keys are already per-offspring
 
     children = []
     for i in range(pop_size):

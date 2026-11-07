@@ -270,3 +270,155 @@ def test_base_island_model_migrate_abstract(base_engine):
     )
     with pytest.raises(NotImplementedError):
         island.migrate(jax.random.PRNGKey(0), None)
+
+
+# =============================================================================
+# Real Engine Lifting & Metamorphic Topology Equivalence
+# =============================================================================
+
+
+def test_single_island_matches_base_genetic_engine():
+    """Single island without migration must produce bit-identical results to standalone GeneticEngine."""
+    from malthusjax.composer.factory import build_real_engine
+    from malthusjax.composer.strategies import GeneticStrategy
+
+    strategy = GeneticStrategy(
+        selection="tournament:num_selections=16",
+        crossover="blend:alpha=0.2",
+        mutation="gaussian:mutation_rate=0.05",
+    )
+    adapter = build_real_engine(strategy, fitness="sphere:dim=10", pop_size=16, generations=4)
+    base_engine = adapter.genetic_engine
+
+    key = jax.random.PRNGKey(42)
+    keys = jax.random.split(key, 1)
+
+    island_model = RingTopologyIsland(
+        engine=base_engine,
+        num_islands=1,
+        migration_interval=3,
+        num_migrants=0,
+    )
+    multi_state = island_model.init_state(key)
+    standalone_state = base_engine.init_state(keys[0])
+
+    # Assert initialization equivalence
+    assert jnp.array_equal(
+        multi_state.population.genes.values[0], standalone_state.population.genes.values
+    )
+
+    # Step inner loop for 3 steps
+    island_final, _ = island_model._island_loop(standalone_state)
+
+    def loop_step(s, _):
+        return base_engine.step(s)
+
+    standalone_final, _ = jax.lax.scan(loop_step, standalone_state, None, length=3)
+
+    diff_genes = jnp.max(
+        jnp.abs(island_final.population.genes.values - standalone_final.population.genes.values)
+    )
+    diff_fit = jnp.max(
+        jnp.abs(island_final.population.fitness - standalone_final.population.fitness)
+    )
+
+    assert diff_genes == 0.0, f"Single island gene divergence: {diff_genes}"
+    assert diff_fit == 0.0, f"Single island fitness divergence: {diff_fit}"
+
+
+def test_no_migration_matches_independent_vmap_engines():
+    """Multi-island without migration must match jax.vmap(engine.run) across island states."""
+    from malthusjax.composer.factory import build_real_engine
+    from malthusjax.composer.strategies import GeneticStrategy
+
+    strategy = GeneticStrategy(
+        selection="tournament:num_selections=16",
+        crossover="blend:alpha=0.2",
+        mutation="gaussian:mutation_rate=0.05",
+    )
+    adapter = build_real_engine(strategy, fitness="sphere:dim=10", pop_size=16, generations=4)
+    base_engine = adapter.genetic_engine
+
+    key = jax.random.PRNGKey(77)
+    num_islands = 4
+    island_model = RingTopologyIsland(
+        engine=base_engine,
+        num_islands=num_islands,
+        migration_interval=5,
+        num_migrants=0,
+    )
+    multi_state = island_model.init_state(key)
+
+    evolved_islands, _ = jax.vmap(island_model._island_loop)(multi_state)
+
+    def run_single(s):
+        def scan_fn(cur, _):
+            return base_engine.step(cur)
+
+        final_s, _ = jax.lax.scan(scan_fn, s, None, length=5)
+        return final_s
+
+    vmapped_base = jax.vmap(run_single)(multi_state)
+
+    diff_genes = jnp.max(
+        jnp.abs(evolved_islands.population.genes.values - vmapped_base.population.genes.values)
+    )
+    diff_fit = jnp.max(
+        jnp.abs(evolved_islands.population.fitness - vmapped_base.population.fitness)
+    )
+
+    assert diff_genes == 0.0, f"Multi-island vmap gene divergence: {diff_genes}"
+    assert diff_fit == 0.0, f"Multi-island vmap fitness divergence: {diff_fit}"
+
+
+def test_island_map_elites_adapter_cross_island_archive_injection():
+    """Test IslandMapElitesAdapter cross-island archive migration and repertoire updates."""
+    pytest.importorskip("qdax")
+    from malthusjax.core.genome.real_genome import RealGenomeConfig
+    from malthusjax.engine.qd.adapter import IslandMapElitesAdapter
+    from malthusjax.engine.qd.map_elites import MapElitesEngine, MapElitesEngineParams
+    from malthusjax.operators.crossover.real import UniformCrossover
+    from malthusjax.operators.emitters.genetic import (
+        GeneticCrossoverEmitter,
+        GeneticMutationEmitter,
+    )
+    from malthusjax.operators.emitters.mixing import MixingEmitter
+    from malthusjax.operators.mutation.real import GaussianMutation
+    from tests.engine.qd.test_map_elites import DummyRealEvaluator
+
+    genome_config = RealGenomeConfig(shape=(10,), bounds=(-5.12, 5.12))
+    mutation = GaussianMutation(mutation_strength=1.0, mutation_rate=0.5)
+    crossover = UniformCrossover(crossover_rate=1.0)
+    mut_emitter = GeneticMutationEmitter(
+        _batch_size=8, mutation=mutation, genome_config=genome_config
+    )
+    cx_emitter = GeneticCrossoverEmitter(
+        _batch_size=8, crossover=crossover, genome_config=genome_config
+    )
+    emitter = MixingEmitter(emitter_a=mut_emitter, emitter_b=cx_emitter)
+    evaluator = DummyRealEvaluator(config=None, data=None)
+
+    engine_params = MapElitesEngineParams(
+        pop_size=16, num_generations=5, key_derivation="split", maximize=True
+    )
+    engine = MapElitesEngine(emitter=emitter, evaluator=evaluator, engine_params=engine_params)
+
+    num_centroids = 10
+    island_adapter = IslandMapElitesAdapter(
+        engine=engine,
+        genome_config=genome_config,
+        num_islands=2,
+        migration_interval=2,
+        num_migrants=1,
+        num_centroids=num_centroids,
+        centroids_key=42,
+    )
+
+    key = jax.random.PRNGKey(123)
+    multi_state = island_adapter.init_state(key)
+    assert multi_state.repertoire.fitnesses.shape == (2, num_centroids, 1)
+
+    next_state, history = island_adapter.step(multi_state)
+    assert next_state.repertoire.fitnesses.shape == (2, num_centroids, 1)
+    # Check that repertoires have non-empty cells
+    assert jnp.any(next_state.repertoire.fitnesses > -jnp.inf)

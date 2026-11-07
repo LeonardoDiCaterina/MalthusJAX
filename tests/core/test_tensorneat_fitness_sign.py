@@ -1,108 +1,125 @@
-import jax
+"""Tests for TensorNEAT fitness direction, sign conventions, and NaN sentinel handling.
+
+Validates that TensorNeatEvaluator strictly enforces the canonical lower-is-better invariant:
+- When maximize=False, raw losses are preserved (lower is better).
+- When maximize=True, raw scores are negated (-1.0 * score) so higher raw score yields lower fitness.
+- NaN or invalid evaluations are mapped to +inf (worst possible value under minimization).
+"""
+
+from typing import Any, Tuple
+
 import jax.numpy as jnp
 
-try:
-    from tensorneat.common import State
-except ImportError:
-
-    class State:
-        def __init__(self, randkey=None, **kwargs):
-            self.randkey = randkey
-
-# The bug exists in the objective_fn wrapper created inside `_build_map_elites_engine`.
-# Since `_build_map_elites_engine` dynamically creates `obj_fn` inside `composer.py`,
-# we will write a functional test that recreates the `obj_fn` logic to ensure
-# the fix applies the correct mathematical inversion.
+from malthusjax.core.base import BasePopulation
+from malthusjax.core.fitness.composable.base import ScalarOutput
+from malthusjax.core.fitness.composable.evaluators import TensorNeatEvaluator
+from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+from malthusjax.core.genome.real_genome import RealGenome
 
 
-def create_mock_obj_fn(maximize: bool):
-    """
-    Simulates the `obj_fn` created inside `malthusjax/composer/composer.py`
-    around line 1750, containing the fix for the double sign-flip bug.
-    """
+class DummyTNProblem:
+    """Problem returning specified raw fitnesses and empty descriptors."""
 
-    # 1. Mock the genome object
-    class MockGenome:
-        def setup(self, state):
-            return state
+    def __init__(self, raw_scores: jnp.ndarray):
+        self.raw_scores = raw_scores
 
-        def transform(self, state, nodes, conns):
-            return nodes  # dummy transform
+    def evaluate(
+        self, state: Any, key: Any, forward_fn: Any, pop_member: Any
+    ) -> Tuple[jnp.ndarray, jnp.ndarray]:
+        idx = jnp.squeeze(pop_member).astype(jnp.int32)
+        score = self.raw_scores[idx]
+        return score, jnp.zeros(2)
 
-        def forward(self, state, nodes, inputs):
-            return jnp.zeros(1)
 
-    genome_obj = MockGenome()
+class DummyTNTransform:
+    def transform_population(self, genes: Any, state: Any = None) -> Any:
+        # Return indices corresponding to each population member
+        return getattr(genes, "values", genes)[0]
 
-    # 2. Mock the problem object
-    # In TensorNEAT, problem.evaluate returns `-loss`
-    class MockProblem:
-        def evaluate(self, state, key, forward_fn, transformed_pop):
-            # Simulate an MSE loss of 100.0, returning -100.0 natively
-            return -100.0
 
-    problem = MockProblem()
+def test_tensorneat_evaluator_minimization():
+    """When maximize=False, raw problem losses are preserved directly without negation."""
+    raw_losses = jnp.array([10.0, 50.0, 5.0, 100.0])
+    problem = DummyTNProblem(raw_losses)
 
-    # 3. Create the objective function (simulating composer.py)
-    def obj_fn(nodes, conns):
-        # Ensure batch dimension
-        if nodes.ndim == 2:
-            nodes = jnp.expand_dims(nodes, 0)
-            conns = jnp.expand_dims(conns, 0)
+    evaluator = TensorNeatEvaluator(
+        env=problem,
+        transform=DummyTNTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(),
+        forward_fn=lambda x: x,
+        maximize=False,
+    )
 
-        batch_size = nodes.shape[0]
-        state = State(randkey=jax.random.PRNGKey(0))
-        state = genome_obj.setup(state)
+    indices = jnp.arange(4)[:, None]
+    pop = BasePopulation(
+        genes=RealGenome(values=(indices, indices)),
+        fitness=jnp.zeros(4),
+    )
 
-        transformed_pop = jax.vmap(genome_obj.transform, in_axes=(None, 0, 0))(state, nodes, conns)
+    evaluated = evaluator.evaluate_population(pop)
 
-        keys = jax.random.split(jax.random.PRNGKey(0), batch_size)
-        fitness = jax.vmap(problem.evaluate, in_axes=(None, 0, None, 0))(
-            state, keys, genome_obj.forward, transformed_pop
+    # In lower-is-better, raw loss 5.0 must be lowest (best)
+    assert jnp.allclose(evaluated.fitness, raw_losses)
+    best_idx = jnp.argmin(evaluated.fitness)
+    assert best_idx == 2  # loss 5.0 is best
+
+
+def test_tensorneat_evaluator_maximization():
+    """When maximize=True, raw problem scores are negated (-score) to minimize."""
+    raw_scores = jnp.array([10.0, 50.0, 5.0, 100.0])
+    problem = DummyTNProblem(raw_scores)
+
+    evaluator = TensorNeatEvaluator(
+        env=problem,
+        transform=DummyTNTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(),
+        forward_fn=lambda x: x,
+        maximize=True,
+    )
+
+    indices = jnp.arange(4)[:, None]
+    pop = BasePopulation(
+        genes=RealGenome(values=(indices, indices)),
+        fitness=jnp.zeros(4),
+    )
+
+    evaluated = evaluator.evaluate_population(pop)
+
+    # Raw score 100.0 becomes -100.0, which is lowest (best) under minimization
+    assert jnp.allclose(evaluated.fitness, -raw_scores)
+    best_idx = jnp.argmin(evaluated.fitness)
+    assert best_idx == 3  # score 100.0 is best
+
+
+def test_tensorneat_evaluator_nan_sentinel_handling():
+    """NaN or failed evaluations map to +inf, which is strictly worse than any finite fitness."""
+    raw_scores = jnp.array([10.0, jnp.nan, -5.0])
+    problem = DummyTNProblem(raw_scores)
+
+    for maximize in (True, False):
+        evaluator = TensorNeatEvaluator(
+            env=problem,
+            transform=DummyTNTransform(),
+            interpreter=IdentityInterpreter(),
+            output=ScalarOutput(),
+            forward_fn=lambda x: x,
+            maximize=maximize,
         )
 
-        # --- THE FIX BOUNDARY ---
-        # If MalthusJAX is minimizing, it expects positive loss,
-        # so we invert the natively negated fitness.
-        if not maximize:
-            fitness = -fitness
+        indices = jnp.arange(3)[:, None]
+        pop = BasePopulation(
+            genes=RealGenome(values=(indices, indices)),
+            fitness=jnp.zeros(3),
+        )
 
-        descriptors = jnp.zeros((batch_size, 2))
-        return fitness, descriptors
+        evaluated = evaluator.evaluate_population(pop)
 
-    return obj_fn
-
-
-def test_tensorneat_obj_fn_minimization():
-    """
-    Test that when minimize=True (maximize=False), the negative loss returned
-    by TensorNEAT is successfully inverted into positive loss for MalthusJAX.
-    """
-    obj_fn = create_mock_obj_fn(maximize=False)
-
-    # Dummy batched nodes and conns
-    nodes = jnp.zeros((5, 10, 5))
-    conns = jnp.zeros((5, 20, 5))
-
-    fitness, descriptors = obj_fn(nodes, conns)
-
-    # Problem evaluates to -100.0 natively. Since maximize=False, it should invert to 100.0.
-    assert jnp.allclose(fitness, 100.0)
-    assert fitness.shape == (5,)
-
-
-def test_tensorneat_obj_fn_maximization():
-    """
-    Test that when maximize=True, the native fitness returned by TensorNEAT
-    (which is already maximization-friendly) is preserved.
-    """
-    obj_fn = create_mock_obj_fn(maximize=True)
-
-    nodes = jnp.zeros((5, 10, 5))
-    conns = jnp.zeros((5, 20, 5))
-
-    fitness, descriptors = obj_fn(nodes, conns)
-
-    # Problem evaluates to -100.0. Since maximize=True, it should remain -100.0.
-    assert jnp.allclose(fitness, -100.0)
-    assert fitness.shape == (5,)
+        # The NaN member must be mapped to +inf
+        assert jnp.isposinf(evaluated.fitness[1])
+        assert jnp.isfinite(evaluated.fitness[0])
+        assert jnp.isfinite(evaluated.fitness[2])
+        # Under minimization, +inf is strictly worse than all valid members
+        assert evaluated.fitness[0] < evaluated.fitness[1]
+        assert evaluated.fitness[2] < evaluated.fitness[1]

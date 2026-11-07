@@ -483,13 +483,8 @@ def test_tensorneat_nan_sentinel_is_worst_value(maximize: bool):
 # =============================================================================
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="E7: TournamentSelection key shape mismatch with forward_presplit_keys=True handled in separate PR",
-)
 def test_forward_presplit_keys_regression():
     """Verify that forward_presplit_keys=True executes without crashing or silently
-
     swallowing exceptions.
     """
     engine = GeneticEngine(
@@ -512,10 +507,17 @@ def test_forward_presplit_keys_regression():
     )
 
     init_state = engine.init_state(jax.random.PRNGKey(42))
-    k_sel = jax.random.split(jax.random.PRNGKey(10), 1)
 
-    # In E7, this silently caught ValueError and returned un-presplit parent_idx
-    _, parent_idx = engine._selection_phase(
-        k_sel, init_state.population, init_state.operators, engine.engine_params
+    # Test pairwise presplit forwarding with 2 keys (matching Evosax pairwise draw pattern)
+    k_sel_2 = jax.random.split(jax.random.PRNGKey(10), 2)
+    _, parent_idx_2 = engine._selection_phase(
+        k_sel_2, init_state.population, init_state.operators, engine.engine_params
     )
-    assert parent_idx.shape == (20,)
+    assert parent_idx_2.shape == (20,)
+
+    # Test single-key selection fallback
+    k_sel_1 = jax.random.split(jax.random.PRNGKey(10), 1)
+    _, parent_idx_1 = engine._selection_phase(
+        k_sel_1, init_state.population, init_state.operators, engine.engine_params
+    )
+    assert parent_idx_1.shape == (10,)

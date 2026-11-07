@@ -7,13 +7,7 @@ Guarantees that:
 3. The benchmark analyzer prioritizes pure execution time over total time.
 """
 
-import jax
-import jax.numpy as jnp
-import numpy as np
-import pytest
-
 from malthusjax.composer.composer import Composer
-from malthusjax.composer.engine_factory import EngineFactory
 
 
 def test_timing_isolation_structure():
@@ -27,18 +21,18 @@ def test_timing_isolation_structure():
         bounds=(-5.0, 5.0),
         seeds=(42,),
     )
-    
+
     run_0 = res.runs[0]
     timings = run_0.timings
-    
+
     assert "warmup" in timings, "Missing 'warmup' in timings dictionary"
     assert "execution" in timings, "Missing 'execution' in timings dictionary"
     assert "total" in timings, "Missing 'total' in timings dictionary"
-    
+
     t_warmup = timings["warmup"]
     t_exec = timings["execution"]
     t_total = timings["total"]
-    
+
     assert t_warmup > 0, "Warmup time must be strictly positive"
     assert t_exec > 0, "Execution time must be strictly positive"
     assert t_total >= t_exec, "Total duration cannot be less than execution duration"
@@ -47,6 +41,7 @@ def test_timing_isolation_structure():
 def test_analyzer_prioritizes_execution_time(tmp_path):
     """Tests that the benchmark analyzer extracts 'execution' time rather than 'total' time."""
     import json
+
     from scripts.benchmark_analyzer import parse_global_data
 
     mock_run = {
@@ -62,11 +57,7 @@ def test_analyzer_prioritizes_execution_time(tmp_path):
     mock_data = {
         "experiment": "test_exp_D10_P50_G10",
         "config": {"D": 10, "P": 50, "G": 10, "fn_name": "lunacek"},
-        "pipelines": {
-            "mjx_test": {
-                "per_seed": [mock_run]
-            }
-        }
+        "pipelines": {"mjx_test": {"per_seed": [mock_run]}},
     }
 
     results_dir = tmp_path / "results"

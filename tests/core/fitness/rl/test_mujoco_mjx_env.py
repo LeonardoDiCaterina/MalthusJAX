@@ -165,7 +165,9 @@ class TestMuJoCoMJXComposableIntegration:
         # Polarity contract: maximize=True must invert positive reward into negative fitness
         assert fitness.shape == ()
         assert jnp.isfinite(fitness)
-        assert float(fitness) <= 0.0, "Polarity check failed: maximize=True must yield negative fitness!"
+        assert float(fitness) <= 0.0, (
+            "Polarity check failed: maximize=True must yield negative fitness!"
+        )
 
     def test_population_evaluation_vmap(self):
         env = MuJoCoMJXEnv.create("cartpole", max_steps=30)
@@ -200,3 +202,50 @@ class TestMuJoCoMJXComposableIntegration:
         assert evaluated_pop.fitness.shape == (pop_size,)
         assert jnp.all(jnp.isfinite(evaluated_pop.fitness))
         assert jnp.all(evaluated_pop.fitness <= 0.0)
+
+
+# =============================================================================
+# 4. CPU Differential Oracle Verification
+# =============================================================================
+
+
+class TestMuJoCoMJXDifferentialOracle:
+    def test_mjx_step_matches_cpu_mujoco(self):
+        """Verify that mjx.step matches CPU mujoco.mj_step within numerical tolerance over 100 steps."""
+        import mujoco
+        import numpy as np
+        from mujoco import mjx
+
+        m_cpu = mujoco.MjModel.from_xml_string(CUSTOM_PENDULUM_MJCF)
+        d_cpu = mujoco.MjData(m_cpu)
+
+        m_mjx = mjx.put_model(m_cpu)
+        d_mjx = mjx.put_data(m_cpu, d_cpu)
+
+        # Set initial perturb
+        d_cpu.qpos[0] = 0.5
+        d_cpu.qvel[0] = 0.1
+        mujoco.mj_forward(m_cpu, d_cpu)
+
+        d_mjx = mjx.put_data(m_cpu, d_cpu)
+        step_mjx = jax.jit(mjx.step)
+
+        max_qpos_diff = 0.0
+        max_qvel_diff = 0.0
+
+        for t in range(100):
+            ctrl = np.array([np.sin(t * 0.1)])
+            d_cpu.ctrl[:] = ctrl
+            mujoco.mj_step(m_cpu, d_cpu)
+
+            d_mjx = d_mjx.replace(ctrl=jnp.array(ctrl))
+            d_mjx = step_mjx(m_mjx, d_mjx)
+
+            qpos_diff = float(np.max(np.abs(np.array(d_mjx.qpos) - d_cpu.qpos)))
+            qvel_diff = float(np.max(np.abs(np.array(d_mjx.qvel) - d_cpu.qvel)))
+
+            max_qpos_diff = max(max_qpos_diff, qpos_diff)
+            max_qvel_diff = max(max_qvel_diff, qvel_diff)
+
+        assert max_qpos_diff <= 1e-3, f"qpos divergence {max_qpos_diff} > 1e-3"
+        assert max_qvel_diff <= 1e-2, f"qvel divergence {max_qvel_diff} > 1e-2"

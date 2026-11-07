@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import importlib.util
-import tomllib
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import tomllib
 
 from malthusjax.stats.regression_analyzer import OLSRegressionAnalyzer, RegressionSpec
 
@@ -40,14 +40,10 @@ def _make_synthetic_lhs_dataframe(seed: int = 42) -> pd.DataFrame:
             g = int(rng.choice(gens))
             for pipe in pipelines:
                 is_t = 0.0 if pipe == "ref_pipe" else (1.0 if pipe == "target_a" else 2.0)
-                exec_time = (
-                    0.01 * (d**0.5) * (p**0.3) * (1.0 + 0.1 * is_t * np.log(d))
-                    + rng.uniform(0.001, 0.005)
-                )
-                best_fit = (
-                    10.0 * d * (1.0 + 0.05 * is_t)
-                    + rng.normal(0.0, 1.0)
-                )
+                exec_time = 0.01 * (d**0.5) * (p**0.3) * (
+                    1.0 + 0.1 * is_t * np.log(d)
+                ) + rng.uniform(0.001, 0.005)
+                best_fit = 10.0 * d * (1.0 + 0.05 * is_t) + rng.normal(0.0, 1.0)
                 rows.append(
                     {
                         "pipeline": pipe,
@@ -171,4 +167,3 @@ def test_h2_ablation_config_crossover_rate_parity():
                 f"Pipeline '{pipe_name}' has crossover='{crossover_spec}' "
                 "without explicit crossover_rate=0.3"
             )
-

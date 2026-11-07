@@ -7,7 +7,12 @@ import jax.numpy as jnp
 import pytest
 
 pytest.importorskip("tensorneat")
+import tensorneat as tn
 from flax import struct
+
+from malthusjax.composer.tensorneat_adapter import build_tensorneat_engine
+
+from .base_adapter_suite import BaseAdapterTestSuite
 
 
 @struct.dataclass
@@ -23,10 +28,8 @@ class MockState:
         return self.register(**kwargs)
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def mock_tensorneat_modules(monkeypatch):
-    # Only mock if tensorneat is not actually installed,
-    # or just mock safely for this module
     mock_tensorneat = MagicMock()
     mock_state_module = MagicMock()
     mock_state_module.State = MockState
@@ -35,11 +38,6 @@ def mock_tensorneat_modules(monkeypatch):
     monkeypatch.setitem(sys.modules, "tensorneat", mock_tensorneat)
     monkeypatch.setitem(sys.modules, "tensorneat.common", mock_state_module)
     yield
-
-
-from malthusjax.composer.tensorneat_adapter import build_tensorneat_engine
-
-from .base_adapter_suite import BaseAdapterTestSuite
 
 
 class MockTensorNEATAlgorithm:
@@ -72,7 +70,8 @@ class MockProblem:
         return jnp.sum(transformed_pop)
 
 
-class TestTensorNEATAdapter(BaseAdapterTestSuite):
+@pytest.mark.usefixtures("mock_tensorneat_modules")
+class TestTensorNEATAdapterMocked(BaseAdapterTestSuite):
     def make_adapter(self, maximize: bool = True, eval_mode: str = "native", seed: int = 0):
         if eval_mode != "native":
             pytest.skip("TensorNEAT adapter does not support EvalMode.MALTHUSJAX yet.")
@@ -97,4 +96,29 @@ class TestTensorNEATAdapter(BaseAdapterTestSuite):
     def test_maximize_history_changes(self):
         pytest.skip(
             "Skipping because TensorNEAT native mode mock doesn't support generic maximization."
+        )
+
+
+class TestTensorNEATAdapterRealIntegration(BaseAdapterTestSuite):
+    def make_adapter(self, maximize: bool = False, eval_mode: str = "native", seed: int = 0):
+        if eval_mode != "native":
+            return None
+
+        algorithm = tn.algorithm.NEAT(
+            pop_size=10,
+            species_size=5,
+            genome=tn.genome.DefaultGenome(
+                num_inputs=2,
+                num_outputs=1,
+            ),
+        )
+        problem = tn.problem.XOR()
+
+        return build_tensorneat_engine(
+            algorithm=algorithm,
+            evaluator=problem,
+            generations=3,
+            pop_size=10,
+            maximize=maximize,
+            eval_mode=eval_mode,
         )

@@ -60,8 +60,17 @@ def _run_evosax_raw(
     init_fit_raw, _, _ = problem.eval(k_init, init_x, p_state)
     init_fit = -init_fit_raw if maximize else init_fit_raw
 
-    # _adapter_init passes key_init to strategy.init
-    state = strategy.init(k_init, init_x, init_fit, params)
+    # _adapter_init passes key_init to strategy.init (accounting for distribution-based algorithms)
+    from evosax.algorithms import distribution_based_algorithms
+
+    is_dist = bool(distribution_based_algorithms) and isinstance(
+        strategy, tuple(distribution_based_algorithms.values())
+    )
+    if is_dist:
+        mean_init = jnp.mean(init_x, axis=0)
+        state = strategy.init(k_init, mean_init, params)
+    else:
+        state = strategy.init(k_init, init_x, init_fit, params)
 
     # --- Evolution loop matching adapter's rng chain ---
     # adapter keeps rng in carry and splits each iteration
@@ -264,7 +273,19 @@ class TestEvosaxAdapterMatchesRaw:
                 f"gen {gen_idx}: raw={raw_h['best_fitness']}, adapted={adp_h['best_fitness']}"
             )
 
-    @pytest.mark.parametrize("strategy_name", ["SimpleGA", "DifferentialEvolution"])
+    @pytest.mark.parametrize(
+        "strategy_name",
+        [
+            "SimpleGA",
+            "DifferentialEvolution",
+            "CMA_ES",
+            "Sep_CMA_ES",
+            "SNES",
+            "DES",
+            "MR15_GA",
+            "PSO",
+        ],
+    )
     def test_multiple_strategies(self, strategy_name):
         """Adapter matches raw evosax for different strategies."""
         key = jr.PRNGKey(11)
@@ -341,7 +362,16 @@ def _run_evosax_raw_with_init_pop(
     # Evaluate initial population (evosax_adapter passes key_init to eval)
     init_fit_raw, _, _ = problem.eval(k_init, init_x, p_state)
 
-    state = strategy.init(k_init, init_x, init_fit_raw, params)
+    from evosax.algorithms import distribution_based_algorithms
+
+    is_dist = bool(distribution_based_algorithms) and isinstance(
+        strategy, tuple(distribution_based_algorithms.values())
+    )
+    if is_dist:
+        mean_init = jnp.mean(init_x, axis=0)
+        state = strategy.init(k_init, mean_init, params)
+    else:
+        state = strategy.init(k_init, init_x, init_fit_raw, params)
 
     def scan_step(carry, _):
         rng, state, p_state = carry

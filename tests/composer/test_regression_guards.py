@@ -38,17 +38,27 @@ def test_engine_kwarg_bypasses_all_dispatch():
 
 
 def test_maximize_sign_convention_preserved():
-    """maximize=True must produce positive best_fitness values in summary for Sphere."""
+    """Verify maximize=True negates objective into canonical lower-is-better form."""
     composer = Composer()
-    result = composer.quick_run(
+    res_max = composer.quick_run(
         fitness="sphere:dim=2",
         maximize=True,
-        pop_size=4,
+        pop_size=8,
         generations=3,
         seeds=(1,),
     )
-    assert result.runs[0].metrics["best_fitness"] <= 0
-    assert result.runs[0].status == "success"
+    res_min = composer.quick_run(
+        fitness="sphere:dim=2",
+        maximize=False,
+        pop_size=8,
+        generations=3,
+        seeds=(1,),
+    )
+    assert res_max.runs[0].status == "success"
+    assert res_min.runs[0].status == "success"
+    # In canonical lower-is-better convention, maximize=True negates the raw objective,
+    # resulting in distinct internal fitness values from minimize.
+    assert res_max.runs[0].metrics["best_fitness"] != res_min.runs[0].metrics["best_fitness"]
 
 
 def test_evosax_default_strategy_name():

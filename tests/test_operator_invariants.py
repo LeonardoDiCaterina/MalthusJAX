@@ -9,9 +9,8 @@ Guarantees that:
 
 import jax
 import jax.numpy as jnp
-import pytest
 
-from malthusjax.core.genome.real_genome import RealGenomeConfig, RealGenome, RealPopulation
+from malthusjax.core.genome.real_genome import RealGenomeConfig, RealPopulation
 from malthusjax.operators.mutation.real import GaussianMutation
 
 
@@ -42,5 +41,9 @@ def test_seed_determinism_and_divergence():
     pop_a2 = RealPopulation.init_random(jax.random.PRNGKey(1), config, 20)
     pop_b = RealPopulation.init_random(jax.random.PRNGKey(2), config, 20)
 
-    assert jnp.array_equal(pop_a1.genes.values, pop_a2.genes.values), "Non-deterministic initialisation!"
-    assert not jnp.array_equal(pop_a1.genes.values, pop_b.genes.values), "Identical populations from different seeds!"
+    assert jnp.array_equal(pop_a1.genes.values, pop_a2.genes.values), (
+        "Non-deterministic initialisation!"
+    )
+    assert not jnp.array_equal(pop_a1.genes.values, pop_b.genes.values), (
+        "Identical populations from different seeds!"
+    )

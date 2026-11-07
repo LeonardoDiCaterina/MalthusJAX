@@ -382,16 +382,14 @@ class TestStrategySmoke:
 
     @pytest.mark.parametrize("strategy_name", list_strategies())
     def test_strategy_runs_to_completion(self, strategy_name):
-        # Skip due to JAX version compatibility issue with evosax pickling
-        if strategy_name in {
-            "LGA",
-            "EvoTF_ES",
-            "LES",
-            "SV_CMA_ES",
-            "SV_Open_ES",
-        }:
-            pytest.skip(
-                f"{strategy_name} skipped due to evosax JAX compatibility or multi-population API"
+        # Expected failures due to evosax JAX pickled model incompatibility or multi-population API
+        if strategy_name in {"LGA", "EvoTF_ES", "LES"}:
+            pytest.xfail(
+                f"{strategy_name} fails due to upstream evosax JAX ShapedArray compatibility"
+            )
+        elif strategy_name in {"SV_CMA_ES", "SV_Open_ES"}:
+            pytest.xfail(
+                f"{strategy_name} fails due to upstream evosax multi-population API requirement (missing num_populations)"
             )
 
         evalr = make_bbob_evaluator(fn_name="sphere", num_dims=4)
@@ -410,16 +408,14 @@ class TestStrategySmoke:
     @pytest.mark.parametrize("strategy_name", list_strategies())
     def test_strategy_with_rastrigin(self, strategy_name):
         """Strategies should also work on non-trivial BBOB problems."""
-        # Skip due to JAX version compatibility issue with evosax pickling
-        if strategy_name in {
-            "LGA",
-            "EvoTF_ES",
-            "LES",
-            "SV_CMA_ES",
-            "SV_Open_ES",
-        }:
-            pytest.skip(
-                f"{strategy_name} skipped due to evosax JAX compatibility or multi-population API"
+        # Expected failures due to evosax JAX pickled model incompatibility or multi-population API
+        if strategy_name in {"LGA", "EvoTF_ES", "LES"}:
+            pytest.xfail(
+                f"{strategy_name} fails due to upstream evosax JAX ShapedArray compatibility"
+            )
+        elif strategy_name in {"SV_CMA_ES", "SV_Open_ES"}:
+            pytest.xfail(
+                f"{strategy_name} fails due to upstream evosax multi-population API requirement (missing num_populations)"
             )
 
         evalr = make_bbob_evaluator(fn_name="rastrigin", num_dims=5)
