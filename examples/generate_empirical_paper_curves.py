@@ -45,8 +45,32 @@ for _var in (
 
 os.environ.setdefault("XLA_PYTHON_CLIENT_PREALLOCATE", "false")
 
+
+def _get_best_available_gpu() -> str:
+    """Detects available NVIDIA GPUs and selects the device index with the most free VRAM."""
+    try:
+        import subprocess
+
+        out = subprocess.check_output(
+            ["nvidia-smi", "--query-gpu=index,memory.free", "--format=csv,noheader,nounits"],
+            stderr=subprocess.DEVNULL,
+            encoding="utf-8",
+        )
+        candidates = []
+        for line in out.strip().splitlines():
+            parts = [p.strip() for p in line.split(",")]
+            if len(parts) == 2:
+                candidates.append((parts[0], int(parts[1])))
+        if candidates:
+            candidates.sort(key=lambda x: x[1], reverse=True)
+            return candidates[0][0]
+    except Exception:
+        pass
+    return "0"
+
+
 if "CUDA_VISIBLE_DEVICES" not in os.environ and "SLURM_STEP_GPUS" not in os.environ:
-    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    os.environ["CUDA_VISIBLE_DEVICES"] = _get_best_available_gpu()
 
 if "MUJOCO_GL" not in os.environ:
     if sys.platform.startswith("linux"):

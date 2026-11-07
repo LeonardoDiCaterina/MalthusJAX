@@ -53,10 +53,21 @@ export XLA_PYTHON_CLIENT_MEM_FRACTION=0.60
 # Offscreen GPU accelerated rendering for MuJoCo
 export MUJOCO_GL="egl"
 
-# 3. GPU Sanity Check
+# 3. GPU Sanity Check & Clean Device Auto-Selection
 if command -v nvidia-smi &> /dev/null; then
     echo "--- GPU Hardware Detected ---"
-    nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader
+    nvidia-smi --query-gpu=index,name,memory.used,memory.total,utilization.gpu --format=csv,noheader
+    
+    # If CUDA_VISIBLE_DEVICES is not explicitly passed, auto-select the cleanest GPU by free VRAM
+    if [[ -z "${CUDA_VISIBLE_DEVICES:-}" ]]; then
+        CLEAN_GPU=$(nvidia-smi --query-gpu=index,memory.free --format=csv,noheader,nounits | sort -k2 -n -r | head -n1 | awk -F',' '{print $1}' | tr -d ' ')
+        if [[ -n "${CLEAN_GPU}" ]]; then
+            export CUDA_VISIBLE_DEVICES="${CLEAN_GPU}"
+            echo ">>> Auto-selected cleanest GPU: index ${CUDA_VISIBLE_DEVICES}"
+        fi
+    else
+        echo ">>> Using user-specified CUDA_VISIBLE_DEVICES: ${CUDA_VISIBLE_DEVICES}"
+    fi
 fi
 
 python -c "import jax; print('JAX Version:', jax.__version__, '| Default Backend:', jax.default_backend(), '| Devices:', jax.devices())"
