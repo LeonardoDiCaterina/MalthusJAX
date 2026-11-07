@@ -430,12 +430,15 @@
 
 <div class="viewcode-block" id="BaseEvaluator.evaluate_population">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.base.html#malthusjax.BaseEvaluator.evaluate_population">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">evaluate_population</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">population</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">evaluate_population</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">population</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">],</span> <span class="n">rng</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Vectorized population evaluation via :func:`jax.vmap`.</span>
 
 <span class="sd">        Each member of *population.genes* is passed through ``evaluate``; the</span>
 <span class="sd">        resulting fitness array replaces the old values in a new population</span>
-<span class="sd">        object.</span>
+<span class="sd">        object. Optional ``rng`` and ``kwargs`` are accepted for uniform interface</span>
+<span class="sd">        compatibility with stochastic evaluators, but ignored by deterministic evaluators.</span>
 <span class="sd">        """</span>
         <span class="n">fitness_scores</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">evaluate</span><span class="p">)(</span><span class="n">population</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">],</span> <span class="n">cast</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="n">population</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">fitness</span><span class="o">=</span><span class="n">fitness_scores</span><span class="p">))</span></div>
@@ -515,9 +518,10 @@
 <div class="viewcode-block" id="dispatch_evaluate_population">
 <a class="viewcode-back" href="../../../../api/malthusjax.core.fitness.base.html#malthusjax.dispatch_evaluate_population">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">dispatch_evaluate_population</span><span class="p">(</span>
-    <span class="n">evaluator</span><span class="p">:</span> <span class="n">BaseEvaluator</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">D</span><span class="p">],</span>
+    <span class="n">evaluator</span><span class="p">:</span> <span class="n">BaseEvaluator</span><span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">D</span><span class="p">]</span> <span class="o">|</span> <span class="n">Any</span><span class="p">,</span>
     <span class="n">population</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">],</span>
     <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">G</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Dynamically dispatch population evaluation based on evaluator type."""</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">evaluator</span><span class="p">,</span> <span class="n">StochasticEvaluator</span><span class="p">):</span>
@@ -526,18 +530,18 @@
                 <span class="sa">f</span><span class="s2">"Evaluator </span><span class="si">{</span><span class="n">evaluator</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> is stochastic, but no key was provided "</span>
                 <span class="s2">"to dispatch_evaluate_population."</span>
             <span class="p">)</span>
-        <span class="k">return</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate_population</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator</span><span class="p">,</span> <span class="s2">"transform"</span><span class="p">):</span>  <span class="c1"># It's a Composable Evaluator</span>
-        <span class="k">return</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate_population</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>  <span class="c1"># type: ignore[call-arg]</span>
+        <span class="k">return</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate_population</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator</span><span class="p">,</span> <span class="s2">"transform"</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator</span><span class="p">,</span> <span class="s2">"requires_rng"</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate_population</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate_population</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate_population</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate_population</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate_population</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
                 <span class="k">pass</span>
-    <span class="k">return</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate_population</span><span class="p">(</span><span class="n">population</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate_population</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 </pre></div>
         </article>

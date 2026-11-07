@@ -651,6 +651,12 @@ purely on PyTree manipulations.</p>
 <span class="sig-name descname"><span class="pre">info</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.BasePopulation.info" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.BasePopulation.descriptors">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">descriptors</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><span class="pre">number</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><a class="headerlink" href="#malthusjax.BasePopulation.descriptors" title="Link to this definition">¶</a></dt>
+<dd><p>Convenience property for Quality-Diversity descriptors stored in info.</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.BasePopulation.clone_buffers">
 <span class="sig-name descname"><span class="pre">clone_buffers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/base.html#BasePopulation.clone_buffers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.BasePopulation.clone_buffers" title="Link to this definition">¶</a></dt>
@@ -842,14 +848,19 @@ and <code class="docutils literal notranslate"><span class="pre">self.data</span
 
 <dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.BaseEvaluator.evaluate_population">
-<span class="sig-name descname"><span class="pre">evaluate_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">population</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/base.html#BaseEvaluator.evaluate_population"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.BaseEvaluator.evaluate_population" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">evaluate_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/base.html#BaseEvaluator.evaluate_population"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.BaseEvaluator.evaluate_population" title="Link to this definition">¶</a></dt>
 <dd><p>Vectorized population evaluation via <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.vmap.html#jax.vmap" title="(in JAX)"><code class="xref py py-func docutils literal notranslate"><span class="pre">jax.vmap()</span></code></a>.</p>
 <p>Each member of <em>population.genes</em> is passed through <code class="docutils literal notranslate"><span class="pre">evaluate</span></code>; the
 resulting fitness array replaces the old values in a new population
-object.</p>
+object. Optional <code class="docutils literal notranslate"><span class="pre">rng</span></code> and <code class="docutils literal notranslate"><span class="pre">kwargs</span></code> are accepted for uniform interface
+compatibility with stochastic evaluators, but ignored by deterministic evaluators.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>population</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><em>G</em><em>]</em>)</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>population</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><em>G</em><em>]</em>)</p></li>
+<li><p><strong>rng</strong> (<em>Array</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+</ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<em>G</em>]</p>
@@ -4426,6 +4437,7 @@ before invoking <a class="reference internal" href="#malthusjax.Composer.quick_r
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BasePopulation.fitness"><code class="docutils literal notranslate"><span class="pre">BasePopulation.fitness</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BasePopulation.config"><code class="docutils literal notranslate"><span class="pre">BasePopulation.config</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BasePopulation.info"><code class="docutils literal notranslate"><span class="pre">BasePopulation.info</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BasePopulation.descriptors"><code class="docutils literal notranslate"><span class="pre">BasePopulation.descriptors</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BasePopulation.clone_buffers"><code class="docutils literal notranslate"><span class="pre">BasePopulation.clone_buffers()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BasePopulation.copy"><code class="docutils literal notranslate"><span class="pre">BasePopulation.copy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.core.html#malthusjax.core.BasePopulation.from_array"><code class="docutils literal notranslate"><span class="pre">BasePopulation.from_array()</span></code></a></li>
@@ -5063,6 +5075,7 @@ before invoking <a class="reference internal" href="#malthusjax.Composer.quick_r
 <li><a class="reference internal" href="#malthusjax.BasePopulation.fitness"><code class="docutils literal notranslate"><span class="pre">BasePopulation.fitness</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.BasePopulation.config"><code class="docutils literal notranslate"><span class="pre">BasePopulation.config</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.BasePopulation.info"><code class="docutils literal notranslate"><span class="pre">BasePopulation.info</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.BasePopulation.descriptors"><code class="docutils literal notranslate"><span class="pre">BasePopulation.descriptors</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.BasePopulation.clone_buffers"><code class="docutils literal notranslate"><span class="pre">BasePopulation.clone_buffers()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.BasePopulation.copy"><code class="docutils literal notranslate"><span class="pre">BasePopulation.copy()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.BasePopulation.from_array"><code class="docutils literal notranslate"><span class="pre">BasePopulation.from_array()</span></code></a></li>

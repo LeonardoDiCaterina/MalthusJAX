@@ -413,8 +413,14 @@
         <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s2">"genome_config"</span><span class="p">)</span>
     <span class="p">):</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">genome_config</span>
-    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator</span><span class="p">,</span> <span class="s2">"env"</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator</span><span class="o">.</span><span class="n">env</span><span class="p">,</span> <span class="s2">"genome_config"</span><span class="p">):</span>
-        <span class="n">config</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">genome_config</span>
+    <span class="k">elif</span> <span class="p">(</span>
+        <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator</span><span class="p">,</span> <span class="s2">"interpreter"</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">evaluator</span><span class="o">.</span><span class="n">interpreter</span><span class="p">,</span> <span class="s2">"num_params"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">evaluator</span><span class="o">.</span><span class="n">interpreter</span><span class="p">,</span> <span class="s2">"num_params"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.genome.real_genome</span><span class="w"> </span><span class="kn">import</span> <span class="n">RealGenomeConfig</span>
+
+        <span class="n">config</span> <span class="o">=</span> <span class="n">RealGenomeConfig</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">evaluator</span><span class="o">.</span><span class="n">interpreter</span><span class="o">.</span><span class="n">num_params</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">pop</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># Fallback if the evaluator uses a different config pattern</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.genome.real_genome</span><span class="w"> </span><span class="kn">import</span> <span class="n">RealGenomeConfig</span>
@@ -578,7 +584,9 @@
     <span class="k">if</span> <span class="n">evaluator</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"build_evosax_engine requires an evaluator argument"</span><span class="p">)</span>
 
-    <span class="n">rng</span> <span class="o">=</span> <span class="n">jr</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.random</span><span class="w"> </span><span class="kn">import</span> <span class="n">PRNGImpl</span><span class="p">,</span> <span class="n">create_key</span><span class="p">,</span> <span class="n">resolve_prng_impl</span>
+
+    <span class="n">rng</span> <span class="o">=</span> <span class="n">create_key</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">resolve_prng_impl</span><span class="p">(</span><span class="n">prng_impl</span><span class="p">)</span> <span class="k">if</span> <span class="n">prng_impl</span> <span class="k">else</span> <span class="n">PRNGImpl</span><span class="o">.</span><span class="n">THREEFRY</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">strategy_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">EVOSAX_STRATEGIES</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown evosax strategy '</span><span class="si">{</span><span class="n">strategy_name</span><span class="si">}</span><span class="s2">'. Available: </span><span class="si">{</span><span class="n">list_strategies</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
@@ -604,36 +612,41 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">problem</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">problem_state</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="c1"># Infer dimensions from the MalthusJAX evaluator's genome config</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator</span><span class="p">,</span> <span class="s2">"config"</span><span class="p">):</span>
-            <span class="n">evaluator_config</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">config</span>
-        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator</span><span class="p">,</span> <span class="s2">"env"</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator</span><span class="o">.</span><span class="n">env</span><span class="p">,</span> <span class="s2">"config"</span><span class="p">):</span>
-            <span class="n">evaluator_config</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">config</span>
-        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator</span><span class="p">,</span> <span class="s2">"env"</span><span class="p">):</span>
-            <span class="n">evaluator_config</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">env</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">evaluator_config</span> <span class="o">=</span> <span class="kc">None</span>
-
-        <span class="k">if</span> <span class="n">evaluator_config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator_config</span><span class="p">,</span> <span class="s2">"genome_config"</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span>
-                <span class="n">evaluator_config</span><span class="o">.</span><span class="n">genome_config</span><span class="p">,</span> <span class="s2">"shape"</span>
-            <span class="p">):</span>
-                <span class="n">num_dims</span> <span class="o">=</span> <span class="n">evaluator_config</span><span class="o">.</span><span class="n">genome_config</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator_config</span><span class="p">,</span> <span class="s2">"dim"</span><span class="p">):</span>
-                <span class="n">num_dims</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">evaluator_config</span><span class="p">,</span> <span class="s2">"dim"</span><span class="p">)</span>
-                <span class="n">RealGenomeConfig</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">num_dims</span><span class="p">,))</span>
-            <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator_config</span><span class="p">,</span> <span class="s2">"num_dims"</span><span class="p">):</span>
-                <span class="n">num_dims</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">evaluator_config</span><span class="p">,</span> <span class="s2">"num_dims"</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="s2">"num_dims"</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="s2">"genome_length"</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-                <span class="n">num_dims</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"num_dims"</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"genome_length"</span><span class="p">))</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"Evaluator </span><span class="si">{</span><span class="n">evaluator</span><span class="si">}</span><span class="s2"> does not provide a valid genome_config shape."</span>
-                <span class="p">)</span>
-        <span class="k">elif</span> <span class="s2">"num_dims"</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="s2">"genome_length"</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="c1"># Infer dimensions from kwargs, interpreter (&gt; 0), or evaluator configuration</span>
+        <span class="k">if</span> <span class="s2">"num_dims"</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="s2">"genome_length"</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">num_dims</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"num_dims"</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"genome_length"</span><span class="p">))</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span>
+            <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator</span><span class="p">,</span> <span class="s2">"interpreter"</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">evaluator</span><span class="o">.</span><span class="n">interpreter</span><span class="p">,</span> <span class="s2">"num_params"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">evaluator</span><span class="o">.</span><span class="n">interpreter</span><span class="p">,</span> <span class="s2">"num_params"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="p">):</span>
+            <span class="n">num_dims</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">interpreter</span><span class="o">.</span><span class="n">num_params</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Evaluator </span><span class="si">{</span><span class="n">evaluator</span><span class="si">}</span><span class="s2"> does not provide a valid genome_config shape."</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator</span><span class="p">,</span> <span class="s2">"config"</span><span class="p">):</span>
+                <span class="n">evaluator_config</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">config</span>
+            <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator</span><span class="p">,</span> <span class="s2">"env"</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator</span><span class="o">.</span><span class="n">env</span><span class="p">,</span> <span class="s2">"config"</span><span class="p">):</span>
+                <span class="n">evaluator_config</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">config</span>
+            <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator</span><span class="p">,</span> <span class="s2">"env"</span><span class="p">):</span>
+                <span class="n">evaluator_config</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">env</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">evaluator_config</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="k">if</span> <span class="n">evaluator_config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator_config</span><span class="p">,</span> <span class="s2">"genome_config"</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span>
+                    <span class="n">evaluator_config</span><span class="o">.</span><span class="n">genome_config</span><span class="p">,</span> <span class="s2">"shape"</span>
+                <span class="p">):</span>
+                    <span class="n">num_dims</span> <span class="o">=</span> <span class="n">evaluator_config</span><span class="o">.</span><span class="n">genome_config</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator_config</span><span class="p">,</span> <span class="s2">"dim"</span><span class="p">):</span>
+                    <span class="n">num_dims</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">evaluator_config</span><span class="p">,</span> <span class="s2">"dim"</span><span class="p">)</span>
+                    <span class="n">RealGenomeConfig</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">num_dims</span><span class="p">,))</span>
+                <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator_config</span><span class="p">,</span> <span class="s2">"num_dims"</span><span class="p">):</span>
+                    <span class="n">num_dims</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">evaluator_config</span><span class="p">,</span> <span class="s2">"num_dims"</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"Evaluator </span><span class="si">{</span><span class="n">evaluator</span><span class="si">}</span><span class="s2"> does not provide a valid genome_config shape."</span>
+                    <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Evaluator </span><span class="si">{</span><span class="n">evaluator</span><span class="si">}</span><span class="s2"> does not provide a valid genome_config shape."</span><span class="p">)</span>
         <span class="n">eval_mode</span> <span class="o">=</span> <span class="n">EvalMode</span><span class="o">.</span><span class="n">MALTHUSJAX</span>
 
     <span class="k">if</span> <span class="n">fitness_spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>

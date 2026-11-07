@@ -362,8 +362,14 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
 
 
+<span class="n">_PHILOX_REGISTERED</span> <span class="o">=</span> <span class="kc">False</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_register_philox_prng</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Register the native XLA Philox-4x32-10 PRNG implementation with JAX if not present."""</span>
+    <span class="k">global</span> <span class="n">_PHILOX_REGISTERED</span>
+    <span class="k">if</span> <span class="n">_PHILOX_REGISTERED</span><span class="p">:</span>
+        <span class="k">return</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span><span class="w"> </span><span class="nn">jax._src.prng</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_prng</span>
@@ -436,11 +442,9 @@
             <span class="n">tag</span><span class="o">=</span><span class="s2">"phx"</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">_prng</span><span class="o">.</span><span class="n">register_prng</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="s2">"_impl"</span><span class="p">,</span> <span class="n">spec</span><span class="p">))</span>
+        <span class="n">_PHILOX_REGISTERED</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Failed to register native XLA Philox PRNG: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="ne">RuntimeWarning</span><span class="p">)</span>
-
-
-<span class="n">_register_philox_prng</span><span class="p">()</span>
 
 
 <div class="viewcode-block" id="PRNGImpl">
@@ -509,6 +513,8 @@
 <span class="sd">    to propagate the implementation information.</span>
 <span class="sd">    """</span>
     <span class="n">impl</span> <span class="o">=</span> <span class="n">impl</span> <span class="ow">or</span> <span class="n">DEFAULT_IMPL</span>
+    <span class="k">if</span> <span class="n">impl</span> <span class="o">==</span> <span class="n">PRNGImpl</span><span class="o">.</span><span class="n">PHILOX</span><span class="p">:</span>
+        <span class="n">_register_philox_prng</span><span class="p">()</span>
 
     <span class="n">key_ctor</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="p">,</span> <span class="s2">"key"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">key_ctor</span><span class="p">):</span>

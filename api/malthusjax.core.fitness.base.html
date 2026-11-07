@@ -464,14 +464,19 @@ and <code class="docutils literal notranslate"><span class="pre">self.data</span
 
 <dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.core.fitness.base.BaseEvaluator.evaluate_population">
-<span class="sig-name descname"><span class="pre">evaluate_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">population</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/base.html#BaseEvaluator.evaluate_population"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.base.BaseEvaluator.evaluate_population" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">evaluate_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/base.html#BaseEvaluator.evaluate_population"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.base.BaseEvaluator.evaluate_population" title="Link to this definition">¶</a></dt>
 <dd><p>Vectorized population evaluation via <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.vmap.html#jax.vmap" title="(in JAX)"><code class="xref py py-func docutils literal notranslate"><span class="pre">jax.vmap()</span></code></a>.</p>
 <p>Each member of <em>population.genes</em> is passed through <code class="docutils literal notranslate"><span class="pre">evaluate</span></code>; the
 resulting fitness array replaces the old values in a new population
-object.</p>
+object. Optional <code class="docutils literal notranslate"><span class="pre">rng</span></code> and <code class="docutils literal notranslate"><span class="pre">kwargs</span></code> are accepted for uniform interface
+compatibility with stochastic evaluators, but ignored by deterministic evaluators.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>population</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><em>G</em><em>]</em>)</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>population</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><em>G</em><em>]</em>)</p></li>
+<li><p><strong>rng</strong> (<em>Array</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+</ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a>[<em>G</em>]</p>
@@ -578,14 +583,15 @@ A gap of 0 means the value is optimal.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="malthusjax.core.fitness.base.dispatch_evaluate_population">
-<span class="sig-prename descclassname"><span class="pre">malthusjax.core.fitness.base.</span></span><span class="sig-name descname"><span class="pre">dispatch_evaluate_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evaluator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/base.html#dispatch_evaluate_population"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.base.dispatch_evaluate_population" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">malthusjax.core.fitness.base.</span></span><span class="sig-name descname"><span class="pre">dispatch_evaluate_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evaluator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/base.html#dispatch_evaluate_population"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.base.dispatch_evaluate_population" title="Link to this definition">¶</a></dt>
 <dd><p>Dynamically dispatch population evaluation based on evaluator type.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>evaluator</strong> (<a class="reference internal" href="#malthusjax.core.fitness.base.BaseEvaluator" title="malthusjax.core.fitness.base.BaseEvaluator"><em>BaseEvaluator</em></a><em>[</em><em>G</em><em>, </em><em>C</em><em>, </em><em>D</em><em>]</em>)</p></li>
+<li><p><strong>evaluator</strong> (<a class="reference internal" href="#malthusjax.core.fitness.base.BaseEvaluator" title="malthusjax.core.fitness.base.BaseEvaluator"><em>BaseEvaluator</em></a><em>[</em><em>G</em><em>, </em><em>C</em><em>, </em><em>D</em><em>] </em><em>| </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
 <li><p><strong>population</strong> (<a class="reference internal" href="malthusjax.core.base.html#malthusjax.core.base.BasePopulation" title="malthusjax.core.base.BasePopulation"><em>BasePopulation</em></a><em>[</em><em>G</em><em>]</em>)</p></li>
 <li><p><strong>key</strong> (<em>Array</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
