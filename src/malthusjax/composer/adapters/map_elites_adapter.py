@@ -17,6 +17,9 @@ class MapElitesEngineAdapter:
 
     def run_once(self, key):
         import jax
+        from malthusjax.engine.base import _get_evolution_kernel
+
+        t_warmup_start = time.perf_counter()
 
         # Check if we are running the exact QDAX replica for bit-parity
         is_qdax_replica = (
@@ -112,6 +115,11 @@ class MapElitesEngineAdapter:
             # Force the exact QDAX key into the state for generation 1
             state = state.replace(rng_key=k_init_qdax)
 
+        ep = self.engine.engine_params
+        jit_fn = _get_evolution_kernel(ep, compile_jit=True, unroll_num=ep.unroll_num)
+        _ = jit_fn.lower(self.engine, state).compile()
+        t_warmup_end = time.perf_counter()
+
         t_exec_start = time.perf_counter()
         final_state, scan_history, _ = self.engine.run(state, time_it=True, compile=True)
         t_exec_end = time.perf_counter()
@@ -153,5 +161,9 @@ class MapElitesEngineAdapter:
         return {
             "history": history,
             "summary": summary,
-            "timings": {"total": t_exec_end - t_exec_start},
+            "timings": {
+                "warmup": t_warmup_end - t_warmup_start,
+                "execution": t_exec_end - t_exec_start,
+                "total": t_exec_end - t_warmup_start,
+            },
         }

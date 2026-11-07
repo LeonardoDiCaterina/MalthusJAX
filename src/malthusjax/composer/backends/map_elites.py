@@ -124,8 +124,12 @@ def build_map_elites_engine(
             def evaluate_qd(self, genome):
                 raise NotImplementedError("Use evaluate_population directly")
 
-            def evaluate_population(self, population, key=None):
-                updated_pop = resolved_base_evaluator.evaluate_population(population)
+            def evaluate_population(self, population, key=None, **kwargs):
+                from malthusjax.core.fitness.base import dispatch_evaluate_population
+
+                updated_pop = dispatch_evaluate_population(
+                    resolved_base_evaluator, population, key=key, **kwargs
+                )
                 genotypes = getattr(population.genes, "values", population.genes)
                 desc_dims = genotypes[:, :num_desc]
                 lo, hi = float(bounds[0]), float(bounds[1])

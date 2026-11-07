@@ -172,10 +172,15 @@ class BaseMutation(Generic[G, C]):
         if self.num_offspring != 1:
             raise NotImplementedError("apply_fastpath only supports num_offspring=1.")
 
-        if self.typed_keys:
-            keys_flat = all_keys.reshape(self.input_length, n_keys)
+        is_legacy = (
+            all_keys.dtype == jnp.uint32 and all_keys.ndim >= 1 and all_keys.shape[-1] == 2
+        )
+        typed = (not is_legacy) and (self.typed_keys or is_new_style_key(all_keys))
+        in_len = self.input_length if self.input_length > 0 else flat_values.shape[0]
+        if typed:
+            keys_flat = all_keys.reshape(in_len, n_keys)
         else:
-            keys_flat = all_keys.reshape(self.input_length, n_keys, 2)
+            keys_flat = all_keys.reshape(in_len, n_keys, 2)
 
         def _mutate_flat(k: chex.Array, val: chex.Array) -> chex.Array:
             noise = self._generate_noise(k, config, generation)
@@ -201,10 +206,23 @@ class BaseMutation(Generic[G, C]):
             Fast path: flat single vmap — same structure as evosax mutation.
             Eliminates inner vmap, (N,1,d)→(N,d) reshape, and tree_map traversal
             """
-            if self.typed_keys:
-                keys_flat = all_keys.reshape(self.input_length, n_keys)
+            is_legacy = (
+                all_keys.dtype == jnp.uint32 and all_keys.ndim >= 1 and all_keys.shape[-1] == 2
+            )
+            typed = (not is_legacy) and (self.typed_keys or is_new_style_key(all_keys))
+            in_len = (
+                self.input_length
+                if self.input_length > 0
+                else (
+                    population.genes.values.shape[0]
+                    if hasattr(population.genes, "values")
+                    else len(population)
+                )
+            )
+            if typed:
+                keys_flat = all_keys.reshape(in_len, n_keys)
             else:
-                keys_flat = all_keys.reshape(self.input_length, n_keys, 2)
+                keys_flat = all_keys.reshape(in_len, n_keys, 2)
 
             def _mutate_flat(k: chex.Array, g: G) -> G:
                 return self._mutate_fused(k, g, config, generation)
@@ -217,10 +235,23 @@ class BaseMutation(Generic[G, C]):
         typed_keys=True (new-style): keys are 1D array of typed scalars → 3D reshape.
         typed_keys=False (legacy): keys are (N,2) uint32 arrays → 4D reshape.
         """
-        if self.typed_keys:
-            keys_reshaped = all_keys.reshape(self.input_length, self.num_offspring, n_keys)
+        is_legacy = (
+            all_keys.dtype == jnp.uint32 and all_keys.ndim >= 1 and all_keys.shape[-1] == 2
+        )
+        typed = (not is_legacy) and (self.typed_keys or is_new_style_key(all_keys))
+        in_len = (
+            self.input_length
+            if self.input_length > 0
+            else (
+                population.genes.values.shape[0]
+                if hasattr(population.genes, "values")
+                else len(population)
+            )
+        )
+        if typed:
+            keys_reshaped = all_keys.reshape(in_len, self.num_offspring, n_keys)
         else:
-            keys_reshaped = all_keys.reshape(self.input_length, self.num_offspring, n_keys, 2)
+            keys_reshaped = all_keys.reshape(in_len, self.num_offspring, n_keys, 2)
 
         def _mutate_single(keys_block: chex.Array, genome: G) -> G:
             return self._mutate_fused(keys_block, genome, config, generation)
@@ -392,10 +423,15 @@ class BaseCrossover(Generic[G, C]):
         if self.num_offspring != 1:
             raise NotImplementedError("apply_fastpath only supports num_offspring=1.")
 
-        if self.typed_keys:
-            keys_flat = all_keys.reshape(self.input_length, n_keys)
+        is_legacy = (
+            all_keys.dtype == jnp.uint32 and all_keys.ndim >= 1 and all_keys.shape[-1] == 2
+        )
+        typed = (not is_legacy) and (self.typed_keys or is_new_style_key(all_keys))
+        in_len = self.input_length if self.input_length > 0 else flat_values.shape[0]
+        if typed:
+            keys_flat = all_keys.reshape(in_len, n_keys)
         else:
-            keys_flat = all_keys.reshape(self.input_length, n_keys, 2)
+            keys_flat = all_keys.reshape(in_len, n_keys, 2)
 
         def _cross_flat(k: chex.Array, val1: chex.Array, val2: chex.Array) -> chex.Array:
             noise = self._generate_noise(k, config, generation)
@@ -412,7 +448,10 @@ class BaseCrossover(Generic[G, C]):
         fused crossover logic.
         """
         keys = jax.random.split(key, self.num_offspring * self.num_keys_per_atomic_operation)
-        typed = self.typed_keys or is_new_style_key(key)
+        is_legacy = (
+            keys.dtype == jnp.uint32 and keys.ndim >= 1 and keys.shape[-1] == 2
+        )
+        typed = (not is_legacy) and (self.typed_keys or is_new_style_key(keys))
         if typed:
             keys_reshaped = keys.reshape(self.num_offspring, self.num_keys_per_atomic_operation)
         else:
@@ -442,11 +481,25 @@ class BaseCrossover(Generic[G, C]):
         """
         n_keys = self.num_keys_per_atomic_operation
 
+        is_legacy = (
+            all_keys.dtype == jnp.uint32 and all_keys.ndim >= 1 and all_keys.shape[-1] == 2
+        )
+        typed = (not is_legacy) and (self.typed_keys or is_new_style_key(all_keys))
+        in_len = (
+            self.input_length
+            if self.input_length > 0
+            else (
+                p1_pop.genes.values.shape[0]
+                if hasattr(p1_pop.genes, "values")
+                else len(p1_pop)
+            )
+        )
+
         if self.num_offspring == 1:
-            if self.typed_keys:
-                keys_flat = all_keys.reshape(self.input_length, n_keys)
+            if typed:
+                keys_flat = all_keys.reshape(in_len, n_keys)
             else:
-                keys_flat = all_keys.reshape(self.input_length, n_keys, 2)
+                keys_flat = all_keys.reshape(in_len, n_keys, 2)
 
             def _cross_flat(k: chex.Array, p1: G, p2: G) -> G:
                 return self._cross_fused(k, p1, p2, config, generation)
@@ -456,10 +509,10 @@ class BaseCrossover(Generic[G, C]):
             )
             return p1_pop.spawn_offspring(new_genes)
 
-        if self.typed_keys:
-            keys_reshaped = all_keys.reshape(self.input_length, self.num_offspring, n_keys)
+        if typed:
+            keys_reshaped = all_keys.reshape(in_len, self.num_offspring, n_keys)
         else:
-            keys_reshaped = all_keys.reshape(self.input_length, self.num_offspring, n_keys, 2)
+            keys_reshaped = all_keys.reshape(in_len, self.num_offspring, n_keys, 2)
 
         def _process_pairs(k_block: chex.Array, parent1: G, parent2: G) -> Any:
             def _inner_cross(k: chex.Array) -> G:

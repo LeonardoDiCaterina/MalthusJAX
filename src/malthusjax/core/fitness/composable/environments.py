@@ -781,8 +781,17 @@ class MuJoCoMJXEnv(BaseRLEnvironment):
     ) -> tuple[chex.Array, Any, chex.Numeric, chex.Array, Any]:
         """Step physics simulation forward by one control timestep."""
         if self.backend_pipeline is not None:
-            next_state = self.backend_pipeline.step(state, action)
-            return next_state.obs, next_state, next_state.reward, next_state.done, {}
+            clamped_action = jnp.clip(action, -1.0, 1.0)
+            next_state = self.backend_pipeline.step(state, clamped_action)
+            is_nan = jnp.logical_or(
+                jnp.isnan(next_state.reward), jnp.any(jnp.isnan(next_state.obs))
+            )
+            safe_obs = jnp.nan_to_num(next_state.obs, nan=0.0, posinf=0.0, neginf=0.0)
+            safe_reward = jnp.where(
+                is_nan, 0.0, jnp.nan_to_num(next_state.reward, nan=0.0, posinf=0.0, neginf=0.0)
+            )
+            safe_done = jnp.logical_or(next_state.done > 0.5, is_nan)
+            return safe_obs, next_state, safe_reward, safe_done, {}
 
         from mujoco import mjx as mujoco_mjx
 

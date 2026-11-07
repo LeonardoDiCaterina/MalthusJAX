@@ -62,15 +62,18 @@ fi
 python -c "import jax; print('JAX Version:', jax.__version__, '| Default Backend:', jax.default_backend(), '| Devices:', jax.devices())"
 
 # 4. Run the Empirical Paper Curves Generator
-SMOKE_FLAG=""
+MODE_FLAG=""
 if [[ "${1:-}" == "--smoke" ]]; then
-    SMOKE_FLAG="--smoke"
+    MODE_FLAG="--smoke"
     echo ">>> Running in --smoke mode for quick validation..."
+elif [[ "${1:-}" == "--heavy" ]]; then
+    MODE_FLAG="--heavy"
+    echo ">>> Running in --heavy mode for maximum H100 stress benchmark..."
 else
-    echo ">>> Running full multi-seed empirical curve generation..."
+    echo ">>> Running standard publication multi-seed empirical benchmark..."
 fi
 
-python examples/generate_empirical_paper_curves.py ${SMOKE_FLAG}
+python examples/generate_empirical_paper_curves.py ${MODE_FLAG}
 
 echo ""
 echo "=========================================================="

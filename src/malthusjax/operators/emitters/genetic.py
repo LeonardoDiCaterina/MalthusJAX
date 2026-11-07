@@ -78,7 +78,12 @@ class GeneticMutationEmitter(BaseEmitter):
 
         # 3. Call the MalthusJAX highly optimized Tier-3 operator
         # We pass generation and params to ensure Gaussian decay schedules work!
-        offspring_pop = self.mutation(
+        mutation_op = (
+            self.mutation.set_input_length(self.batch_size)
+            if hasattr(self.mutation, "set_input_length")
+            else self.mutation
+        )
+        offspring_pop = mutation_op(
             vmap_keys, parent_pop, config=self.genome_config, generation=generation
         )
 

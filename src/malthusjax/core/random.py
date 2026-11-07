@@ -177,13 +177,19 @@ def create_key(seed: int, impl: Optional[PRNGImpl] = None) -> jax.Array:
 def _is_legacy_prngkey(key: jax.Array) -> bool:
     """Heuristic to detect legacy PRNGKey (uint32[2]) used by older JAX.
 
-    Legacy keys produced by ``jax.random.PRNGKey`` are uint32 arrays of length 2.
-    New-style typed keys typically have dtype != uint32 or length != 2
-    (e.g., Philox uses a larger key).
+    Legacy keys produced by ``jax.random.PRNGKey`` are uint32 arrays with trailing dimension 2
+    (or a single key of shape (2,) / size 2).
+    New-style typed keys typically have dtype != uint32 (e.g. key<fry> or key<phx>).
     """
     try:
         arr = jnp.asarray(key)
-        return arr.dtype == jnp.uint32 and arr.size == 2
+        if arr.dtype != jnp.uint32:
+            return False
+        if arr.ndim == 0:
+            return False
+        if arr.ndim == 1:
+            return arr.size == 2
+        return arr.shape[-1] == 2
     except Exception:
         return False
 

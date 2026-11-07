@@ -92,6 +92,14 @@ class BaseComposableEvaluator(Generic[E, T, I, O]):
         compiled_pop = self.transform.transform_population(population.genes, state=state)
 
         # 2. Evaluate
+        if rng is None:
+            import inspect
+
+            sig = inspect.signature(self.evaluate)
+            if "rng" in sig.parameters:
+                seed_val = getattr(self, "seed", 42)
+                rng = jax.random.PRNGKey(seed_val)
+
         if rng is not None:
             rngs = jax.random.split(rng, population.fitness.shape[0])
             fitness_scores, infos = jax.vmap(self.evaluate)(
@@ -187,13 +195,22 @@ class RLEvaluator(
                     env_state, action, rng_action
                 )
 
-                reward = reward * (1.0 - done)
-                new_cum_reward = cum_reward + reward
-                new_done = jnp.logical_or(done, next_done)
+                is_invalid = jnp.logical_or(
+                    jnp.isnan(reward),
+                    jnp.logical_or(jnp.isinf(reward), jnp.any(jnp.isnan(next_obs))),
+                )
+                safe_reward = jnp.where(
+                    jnp.logical_or(done, is_invalid),
+                    0.0,
+                    jnp.nan_to_num(reward, nan=0.0, posinf=0.0, neginf=0.0),
+                )
+                safe_next_obs = jnp.nan_to_num(next_obs, nan=0.0, posinf=0.0, neginf=0.0)
+                new_cum_reward = cum_reward + safe_reward
+                new_done = jnp.logical_or(done, jnp.logical_or(next_done, is_invalid))
 
-                step_info = self.output.observe_step(env_state, obs, action, reward)
+                step_info = self.output.observe_step(env_state, obs, action, safe_reward)
 
-                return (next_state, next_obs, step_rng, new_cum_reward, new_done), step_info
+                return (next_state, safe_next_obs, step_rng, new_cum_reward, new_done), step_info
 
             carry_init = (env_state, obs, rng_episode, jnp.array(0.0), jnp.array(False, dtype=bool))
             final_carry, step_infos = jax.lax.scan(step_fn, carry_init, None, length=max_steps)
