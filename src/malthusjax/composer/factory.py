@@ -99,6 +99,10 @@ def build_real_engine(
             data_registry=data_registry,
         )
     if isinstance(strategy, GeneticStrategy):
+        default_crossover = "uniform_binary" if genome_type == "binary" else "blend:alpha=0.5"
+        default_mutation = (
+            "bitflip:mutation_rate=0.1" if genome_type == "binary" else "gaussian:mutation_rate=0.1"
+        )
         resolved_selection = (
             catalog.get(
                 strategy.selection
@@ -109,14 +113,12 @@ def build_real_engine(
             else strategy.selection
         )
         resolved_crossover = (
-            catalog.get(strategy.crossover or "blend:alpha=0.5", data_registry=data_registry)
+            catalog.get(strategy.crossover or default_crossover, data_registry=data_registry)
             if isinstance(strategy.crossover, (str, dict)) or strategy.crossover is None
             else strategy.crossover
         )
         resolved_mutation = (
-            catalog.get(
-                strategy.mutation or "gaussian:mutation_rate=0.1", data_registry=data_registry
-            )
+            catalog.get(strategy.mutation or default_mutation, data_registry=data_registry)
             if isinstance(strategy.mutation, (str, dict)) or strategy.mutation is None
             else strategy.mutation
         )

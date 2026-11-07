@@ -254,10 +254,37 @@ def real_size_config(request) -> RealGenomeConfig:
 
 # Performance testing markers
 def pytest_configure(config):
-    """Configure custom pytest markers."""
+    """Configure custom pytest markers and strict integration gates."""
     config.addinivalue_line("markers", "slow: marks tests as slow (deselect with -m 'not slow')")
     config.addinivalue_line("markers", "jit: marks tests that specifically test JIT compilation")
     config.addinivalue_line("markers", "integration: marks integration tests")
+
+    if os.environ.get("MALTHUS_STRICT_INTEGRATIONS") == "1":
+        strict_packages = {
+            "evosax",
+            "qdax",
+            "tensorneat",
+            "kozax",
+            "gymnax",
+            "brax",
+            "jumanji",
+            "mujoco",
+        }
+        orig_importorskip = pytest.importorskip
+
+        def strict_importorskip(modname, minversion=None, reason=None, **kwargs):
+            base_mod = modname.split(".")[0]
+            try:
+                return orig_importorskip(modname, minversion=minversion, reason=reason, **kwargs)
+            except pytest.skip.Exception as exc:
+                if base_mod in strict_packages:
+                    pytest.fail(
+                        f"[MALTHUS_STRICT_INTEGRATIONS=1] Strict dependency failure: "
+                        f"Required backend '{modname}' is missing or incompatible: {exc}"
+                    )
+                raise
+
+        pytest.importorskip = strict_importorskip
 
 
 # ------------------------

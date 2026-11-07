@@ -41,13 +41,13 @@ cuda12 = ["jax[cuda12]>=0.4.0"]
 cpu = ["jax[cpu]>=0.4.0"]
 
 # Modular Integrations
-evosax = ["evosax"]
-qdax = ["qdax"]
+evosax = ["evosax>=0.2.0,<0.3.0"]
+qdax = ["qdax>=0.5.0,<0.6.0"]
 mujoco = ["mujoco>=3.0.0", "imageio>=2.30.0"]
-rl = ["gymnax", "brax", "jumanji", "mujoco>=3.0.0", "imageio>=2.30.0"]
+rl = ["gymnax>=0.0.9", "brax>=0.14.0", "jumanji>=1.1.0", "mujoco>=3.0.0", "imageio>=2.30.0"]
 bbobax = ["bbobax>=0.2.2"]
-kozax = ["kozax"]
-tensorneat = ["tensorneat @ git+https://github.com/EMI-Group/tensorneat.git"]
+kozax = ["kozax>=0.1.4,<0.2.0"]
+tensorneat = ["tensorneat @ git+https://github.com/EMI-Group/tensorneat.git@ee204900e8e55ffe0ed756651ea871c70230dd34"]
 stats = [
     "scikit-learn>=1.0.0",
     "statsmodels>=0.14.0",

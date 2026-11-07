@@ -115,9 +115,13 @@ class MLPInterpreter(BaseInterpreter[RealGenome]):
             return jax.nn.relu
         elif self.activation == "sigmoid":
             return jax.nn.sigmoid
+        elif self.activation == "gelu":
+            return jax.nn.gelu
+        elif self.activation in ("identity", "linear", "none"):
+            return lambda x: x
         else:
             raise ValueError(
-                f"Unknown activation '{self.activation}'. Supported: 'tanh', 'relu', 'sigmoid'."
+                f"Unknown activation '{self.activation}'. Supported: 'tanh', 'relu', 'sigmoid', 'gelu', 'identity'."
             )
 
     def _unflatten(self, flat_params: chex.Array) -> list[tuple[chex.Array, chex.Array]]:

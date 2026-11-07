@@ -13,6 +13,7 @@ from typing import Any
 import chex
 import jax
 import jax.numpy as jnp
+import numpy as np
 from flax import struct
 
 from malthusjax.core.fitness.composable.base import (
@@ -471,14 +472,24 @@ class JumanjiEnv(BaseRLEnvironment):
         # 'obs' is actually a Jumanji TimeStep object, so its .observation is the true observation struct
         true_obs = getattr(obs, "observation", obs)
 
-        # Heuristic to extract the main feature array from the observation struct
-        if hasattr(true_obs, "grid"):
+        if isinstance(true_obs, (jnp.ndarray, np.ndarray)):
+            return jnp.reshape(true_obs, -1)
+
+        # Heuristic to extract the main feature array from the observation struct if simple
+        if hasattr(true_obs, "grid") and not hasattr(true_obs, "_specs"):
             return jnp.reshape(true_obs.grid, -1)
-        elif hasattr(true_obs, "feature"):
+        elif hasattr(true_obs, "feature") and not hasattr(true_obs, "_specs"):
             return jnp.reshape(true_obs.feature, -1)
-        elif hasattr(true_obs, "observation"):
+        elif hasattr(true_obs, "observation") and not hasattr(true_obs, "_specs"):
             return jnp.reshape(true_obs.observation, -1)
-        return jnp.reshape(true_obs, -1)
+
+        # Fallback to flattening all PyTree leaves and concatenating
+        leaves = [
+            jnp.asarray(x, dtype=jnp.float32).ravel() for x in jax.tree_util.tree_leaves(true_obs)
+        ]
+        if len(leaves) == 1:
+            return leaves[0]
+        return jnp.concatenate(leaves)
 
     def postprocess_action(self, logits: chex.Array, raw_obs: Any = None) -> chex.Array:
         true_obs = getattr(raw_obs, "observation", raw_obs)
@@ -496,13 +507,21 @@ class JumanjiEnv(BaseRLEnvironment):
             if callable(self.env.observation_spec)
             else self.env.observation_spec
         )
-        if hasattr(spec, "observation"):
-            return int(np.prod(spec.observation.shape))
-        elif hasattr(spec, "grid"):
-            return int(np.prod(spec.grid.shape))
-        elif hasattr(spec, "feature"):
-            return int(np.prod(spec.feature.shape))
-        return int(np.prod(spec.shape))
+
+        def _get_spec_dim(s: Any) -> int:
+            if hasattr(s, "shape"):
+                return int(np.prod(s.shape))
+            elif hasattr(s, "_specs"):
+                return sum(_get_spec_dim(child) for child in s._specs.values())
+            elif hasattr(s, "observation"):
+                return _get_spec_dim(s.observation)
+            elif hasattr(s, "grid"):
+                return _get_spec_dim(s.grid)
+            elif hasattr(s, "feature"):
+                return _get_spec_dim(s.feature)
+            return int(np.prod(getattr(s, "shape", ())))
+
+        return _get_spec_dim(spec)
 
     @property
     def action_dim(self) -> int:
