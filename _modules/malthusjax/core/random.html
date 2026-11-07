@@ -531,13 +531,19 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">_is_legacy_prngkey</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Heuristic to detect legacy PRNGKey (uint32[2]) used by older JAX.</span>
 
-<span class="sd">    Legacy keys produced by ``jax.random.PRNGKey`` are uint32 arrays of length 2.</span>
-<span class="sd">    New-style typed keys typically have dtype != uint32 or length != 2</span>
-<span class="sd">    (e.g., Philox uses a larger key).</span>
+<span class="sd">    Legacy keys produced by ``jax.random.PRNGKey`` are uint32 arrays with trailing dimension 2</span>
+<span class="sd">    (or a single key of shape (2,) / size 2).</span>
+<span class="sd">    New-style typed keys typically have dtype != uint32 (e.g. key&lt;fry&gt; or key&lt;phx&gt;).</span>
 <span class="sd">    """</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">arr</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">arr</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">jnp</span><span class="o">.</span><span class="n">uint32</span> <span class="ow">and</span> <span class="n">arr</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">uint32</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">arr</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">2</span>
+        <span class="k">return</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">False</span>
 
