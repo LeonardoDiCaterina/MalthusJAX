@@ -78,7 +78,8 @@ install_crash_handler()
 
 def get_task_config(task_name: str) -> Dict[str, Any]:
     """Retrieve environment and MLP policy configuration for the specified task."""
-    if task_name == "cartpole":
+    normalized = task_name.lower().replace("_", "-")
+    if normalized == "cartpole":
         return {
             "env_name": "cartpole",
             "hidden_dims": (32, 32),
@@ -86,8 +87,9 @@ def get_task_config(task_name: str) -> Dict[str, Any]:
             "render_height": 240,
             "render_width": 320,
             "fps": 30,
+            "env_kwargs": {},
         }
-    elif task_name == "ant":
+    elif normalized == "ant":
         return {
             "env_name": "ant",
             "hidden_dims": (64, 64),
@@ -95,9 +97,42 @@ def get_task_config(task_name: str) -> Dict[str, Any]:
             "render_height": 240,
             "render_width": 320,
             "fps": 30,
+            "env_kwargs": {},
+        }
+    elif normalized == "halfcheetah":
+        return {
+            "env_name": "halfcheetah",
+            "hidden_dims": (64, 64),
+            "max_steps": 1000,
+            "render_height": 240,
+            "render_width": 320,
+            "fps": 30,
+            "env_kwargs": {},
+        }
+    elif normalized == "hopper":
+        return {
+            "env_name": "hopper",
+            "hidden_dims": (64, 64),
+            "max_steps": 1000,
+            "render_height": 240,
+            "render_width": 320,
+            "fps": 30,
+            "env_kwargs": {},
+        }
+    elif normalized in ("hopper-ablated", "hopper_ablated"):
+        return {
+            "env_name": "hopper",
+            "hidden_dims": (64, 64),
+            "max_steps": 1000,
+            "render_height": 240,
+            "render_width": 320,
+            "fps": 30,
+            "env_kwargs": {"healthy_reward": 0.0},
         }
     else:
-        raise ValueError(f"Unknown task: {task_name}. Choose 'cartpole' or 'ant'.")
+        raise ValueError(
+            f"Unknown task: {task_name}. Choose 'cartpole', 'ant', 'halfcheetah', 'hopper', 'hopper-ablated', 'locomotion', or 'all'."
+        )
 
 
 def build_pipeline_definitions(pop_size: int) -> Dict[str, Dict[str, Any]]:
@@ -210,7 +245,8 @@ def run_showcase(
     print(f"{'='*70}\n")
 
     # 1. Instantiate environment & interpreter to inspect policy structure
-    env = MuJoCoMJXEnv.create(env_name=cfg["env_name"])
+    env_kwargs = cfg.get("env_kwargs", {})
+    env = MuJoCoMJXEnv.create(env_name=cfg["env_name"], **env_kwargs)
     interpreter = MLPInterpreter(
         input_dim=env.obs_dim,
         output_dim=env.action_dim,
@@ -220,15 +256,20 @@ def run_showcase(
     print(f"• Environment: {cfg['env_name']} (Obs: {env.obs_dim}, Action: {env.action_dim})")
     print(f"• Policy MLP: {env.obs_dim} -> {list(cfg['hidden_dims'])} -> {env.action_dim}")
     print(f"• Genome Parameters: {interpreter.num_params:,} weights & biases")
+    if env_kwargs:
+        print(f"• Environment Kwargs: {env_kwargs}")
 
     # 2. Run multi-pipeline comparison
     composer = Composer.create_default()
     pipelines = build_pipeline_definitions(pop_size)
 
+    env_spec: Dict[str, Any] = {"type": "MuJoCoMJXEnv", "env_name": cfg["env_name"]}
+    env_spec.update(env_kwargs)
+
     fitness_spec = {
         "type": "RLEvaluator",
         "max_steps": cfg["max_steps"],
-        "env": {"type": "MuJoCoMJXEnv", "env_name": cfg["env_name"]},
+        "env": env_spec,
         "interpreter": {
             "type": "MLPInterpreter",
             "hidden": list(cfg["hidden_dims"]),
@@ -364,8 +405,17 @@ def main() -> None:
         "--task",
         type=str,
         default="cartpole",
-        choices=["cartpole", "ant", "both"],
-        help="Physics environment task: 'cartpole' (fast), 'ant' (quadruped), or 'both'.",
+        choices=[
+            "cartpole",
+            "ant",
+            "halfcheetah",
+            "hopper",
+            "hopper-ablated",
+            "locomotion",
+            "all",
+            "both",
+        ],
+        help="Physics task: 'cartpole', 'ant', 'halfcheetah' (no death), 'hopper' (death cliff), 'hopper-ablated' (zero healthy bonus), 'locomotion' (cheetah+hopper), or 'all'.",
     )
     parser.add_argument(
         "--generations",
@@ -407,11 +457,20 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    tasks = ["cartpole", "ant"] if args.task == "both" else [args.task]
+    if args.task == "both":
+        tasks = ["cartpole", "ant"]
+    elif args.task == "locomotion":
+        tasks = ["halfcheetah", "hopper", "hopper-ablated"]
+    elif args.task == "all":
+        tasks = ["cartpole", "ant", "halfcheetah", "hopper", "hopper-ablated"]
+    else:
+        tasks = [args.task]
+
+    is_multi = len(tasks) > 1
     for t in tasks:
         out = (
             Path(args.output_dir) / t
-            if (args.output_dir and args.task == "both")
+            if (args.output_dir and is_multi)
             else args.output_dir
         )
         run_showcase(

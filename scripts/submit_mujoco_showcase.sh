@@ -3,8 +3,8 @@
 # Slurm Submission Script: DeepMind MuJoCo MJX Benchmark Showcase
 #
 # Usage:
-#   sbatch scripts/submit_mujoco_showcase.sh [cartpole|ant|both]
-#   ./scripts/submit_mujoco_showcase.sh cartpole
+#   sbatch scripts/submit_mujoco_showcase.sh [cartpole|ant|halfcheetah|hopper|hopper-ablated|locomotion|both|all]
+#   ./scripts/submit_mujoco_showcase.sh halfcheetah
 # =============================================================================
 
 #SBATCH --job-name=mjx_showcase
