@@ -1,6 +1,8 @@
 import time
 from typing import Any
 
+from malthusjax.core.timing import block_until_ready
+
 
 class MapElitesEngineAdapter:
     """Adapter to make Native MapElitesEngine compatible with BenchmarkRunner."""
@@ -121,6 +123,7 @@ class MapElitesEngineAdapter:
         final_state, scan_history, _ = self.engine.run(
             state, time_it=True, compile=True, prepared_run=prepared
         )
+        block_until_ready((final_state, scan_history))
         t_exec_end = time.perf_counter()
 
         num_gens = int(self.engine.engine_params.num_generations)

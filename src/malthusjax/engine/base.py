@@ -17,6 +17,7 @@ from malthusjax.core.logger import (
     _host_log_step,
     get_logger,
 )
+from malthusjax.core.timing import block_until_ready
 
 logger = get_logger("engine")
 
@@ -247,6 +248,7 @@ class AbstractEngine(Generic[G, P], ABC):
         step_logging: Optional[StepLoggingConfig] = None,
     ) -> PreparedEvolution:
         """Compile the exact scan that a subsequent prepared run will invoke."""
+        block_until_ready(initial_state)
         logging_config = step_logging or getattr(self.engine_params, "step_logging", None)
         kernel = _get_evolution_kernel(
             self.engine_params,
@@ -309,7 +311,9 @@ class AbstractEngine(Generic[G, P], ABC):
                 step_logging=effective_step_logging,
             )
 
-        start_time = time.time()
+        if time_it:
+            block_until_ready(initial_state)
+        start_time = time.perf_counter()
 
         try:
             # Execute Scan
@@ -320,7 +324,7 @@ class AbstractEngine(Generic[G, P], ABC):
 
             # Force synchronization for accurate timing if requested
             if time_it:
-                _ = final_state.best_fitness.block_until_ready()
+                block_until_ready((final_state, history))
 
         except Exception as e:
             logger.error("Evolution failed during scan execution: %s", str(e), exc_info=True)
@@ -328,7 +332,7 @@ class AbstractEngine(Generic[G, P], ABC):
 
         elapsed_time = None
         if time_it:
-            elapsed_time = time.time() - start_time
+            elapsed_time = time.perf_counter() - start_time
             if verbose:
                 logger.info("Evolution completed in %.3fs", elapsed_time)
             logger.debug("Evolution wall-clock runtime: %.4fs", elapsed_time)

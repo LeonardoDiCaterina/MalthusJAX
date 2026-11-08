@@ -22,6 +22,7 @@ from malthusjax.core.logger import (
     _host_log_step,
     get_logger,
 )
+from malthusjax.core.timing import block_until_ready
 
 logger = get_logger("composer.adapters")
 
@@ -34,22 +35,8 @@ def _has_block_until_ready(obj: Any) -> bool:
 
 
 def _block_all_until_ready(obj: Any) -> None:
-    """Recursively block execution until all JAX arrays inside any object/struct/dict are ready."""
-    if _has_block_until_ready(obj):
-        obj.block_until_ready()
-    elif isinstance(obj, dict):
-        for v in obj.values():
-            _block_all_until_ready(v)
-    elif isinstance(obj, (list, tuple)):
-        for item in obj:
-            _block_all_until_ready(item)
-    else:
-        try:
-            d = vars(obj)
-            for v in d.values():
-                _block_all_until_ready(v)
-        except Exception:
-            pass
+    """Compatibility wrapper around the shared, error-propagating PyTree barrier."""
+    block_until_ready(obj)
 
 
 class UniversalAdapterEngine:
