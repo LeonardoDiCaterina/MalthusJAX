@@ -24,7 +24,6 @@ from ..core.genome.binary_genome import BinaryGenomeConfig
 from ..core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
 from ..core.logger import StepLoggingConfig, get_logger
 from ..core.random import resolve_prng_impl
-from ..engine.base import _get_evolution_kernel
 from ..engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
 from ..engine.schedules import TrackBest
 
@@ -117,19 +116,14 @@ class GeneticEngineAdapter:
 
         # JIT compilation warmup — trigger tracing + XLA optimisation so
         # the cost is captured in the "warmup" bucket, not "execution".
-        _ws, _ = self.genetic_engine.step(state)
-        _ws.best_fitness.block_until_ready()
-
-        ep = self.genetic_engine.engine_params
-        jit_fn = _get_evolution_kernel(ep, compile_jit=True, unroll_num=ep.unroll_num)
-        _ = jit_fn.lower(self.genetic_engine, state).compile()
+        active_logging = step_logging or self.step_logging
+        prepared = self.genetic_engine.prepare_run(state, step_logging=active_logging)
         t_warmup_end = time.perf_counter()
 
         # ---- Execution phase: run the pre-compiled scan (JIT cache warm) ----
         t_exec_start = time.perf_counter()
-        active_logging = step_logging or self.step_logging
         final_state, scan_history, _ = self.genetic_engine.run(
-            state, time_it=True, compile=True, step_logging=active_logging
+            state, time_it=True, compile=True, step_logging=active_logging, prepared_run=prepared
         )
         t_exec_end = time.perf_counter()
 

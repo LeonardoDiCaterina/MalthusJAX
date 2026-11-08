@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import time
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import Any, Generic, List, Optional, Tuple, TypeVar, Union, cast
 
 import chex
@@ -31,6 +32,20 @@ G = TypeVar("G", bound=BaseGenome)  # Genome type
 P = TypeVar("P", bound=BasePopulation[Any])  # Population type (parameterized with Any)
 
 _field: Any = struct.field  # Helper alias for typed field calls
+
+
+@dataclass(frozen=True)
+class PreparedEvolution:
+    """An already compiled scan bound to its engine and effective run options.
+
+    The compiled callable validates input signatures and cannot silently retrace
+    a different shape, dtype, key representation, or sharding during execution.
+    """
+
+    engine: Any
+    executable: Any
+    return_history: bool
+    step_logging: Optional[StepLoggingConfig]
 
 
 def compute_unroll_num(num_generations: int) -> int:
@@ -224,6 +239,24 @@ class AbstractEngine(Generic[G, P], ABC):
             history.append(output)
         return state, history
 
+    def prepare_run(
+        self,
+        initial_state: AbstractEvolutionState[G, P],
+        *,
+        return_history: bool = True,
+        step_logging: Optional[StepLoggingConfig] = None,
+    ) -> PreparedEvolution:
+        """Compile the exact scan that a subsequent prepared run will invoke."""
+        logging_config = step_logging or getattr(self.engine_params, "step_logging", None)
+        kernel = _get_evolution_kernel(
+            self.engine_params,
+            return_history=return_history,
+            unroll_num=self.engine_params.unroll_num,
+            step_logging=logging_config,
+        )
+        executable = kernel.lower(self, initial_state).compile()
+        return PreparedEvolution(self, executable, return_history, logging_config)
+
     def run(
         self,
         initial_state: AbstractEvolutionState[G, P],
@@ -232,6 +265,7 @@ class AbstractEngine(Generic[G, P], ABC):
         verbose: bool = False,
         return_history: bool = True,
         step_logging: Optional[StepLoggingConfig] = None,
+        prepared_run: Optional[PreparedEvolution] = None,
     ) -> Tuple[AbstractEvolutionState[G, P], Any, Optional[float]]:
         """Run the full evolution loop starting from *initial_state*.
 
@@ -257,19 +291,32 @@ class AbstractEngine(Generic[G, P], ABC):
                 compile,
             )
         # Retrieve the compiled loop function
-        evolve_fn = _get_evolution_kernel(
-            self.engine_params,
-            compile_jit=compile,
-            unroll_num=self.engine_params.unroll_num,
-            return_history=return_history,
-            step_logging=effective_step_logging,
-        )
+        if prepared_run is not None:
+            if (
+                not compile
+                or prepared_run.engine is not self
+                or prepared_run.return_history != return_history
+                or prepared_run.step_logging != effective_step_logging
+            ):
+                raise ValueError("Prepared execution does not match this engine/run configuration")
+            evolve_fn = prepared_run.executable
+        else:
+            evolve_fn = _get_evolution_kernel(
+                self.engine_params,
+                compile_jit=compile,
+                unroll_num=self.engine_params.unroll_num,
+                return_history=return_history,
+                step_logging=effective_step_logging,
+            )
 
         start_time = time.time()
 
         try:
             # Execute Scan
-            final_state, history = evolve_fn(self, initial_state)
+            if prepared_run is not None:
+                final_state, history = evolve_fn(initial_state)
+            else:
+                final_state, history = evolve_fn(self, initial_state)
 
             # Force synchronization for accurate timing if requested
             if time_it:
@@ -370,13 +417,25 @@ class AbstractEngine(Generic[G, P], ABC):
 import functools
 
 
-@functools.lru_cache(maxsize=128)
 def _get_evolution_kernel(
     params: AbstractEngineParams,
     compile_jit: bool = True,
     unroll_num: int = 1,
     return_history: bool = True,
     step_logging: Optional[StepLoggingConfig] = None,
+) -> Any:
+    """Normalize effective arguments before looking up a cached scan function."""
+    cfg = step_logging or getattr(params, "step_logging", None)
+    return _build_evolution_kernel(params, compile_jit, unroll_num, return_history, cfg)
+
+
+@functools.lru_cache(maxsize=128)
+def _build_evolution_kernel(
+    params: AbstractEngineParams,
+    compile_jit: bool,
+    unroll_num: int,
+    return_history: bool,
+    step_logging: Optional[StepLoggingConfig],
 ) -> Any:
     """
     Factory: Builds evolution kernel (jax.lax.scan loop).
@@ -492,3 +551,8 @@ def _get_evolution_kernel(
         return jax.jit(_evolve_loop, donate_argnums=1, static_argnums=0)
     else:
         return _evolve_loop
+
+
+# Preserve the existing cache inspection/reset interface for diagnostics.
+_get_evolution_kernel.cache_clear = _build_evolution_kernel.cache_clear
+_get_evolution_kernel.cache_info = _build_evolution_kernel.cache_info

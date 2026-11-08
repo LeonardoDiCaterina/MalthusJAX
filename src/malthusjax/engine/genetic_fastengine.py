@@ -29,6 +29,7 @@ from .base import (
     AbstractEngineParams,
     AbstractEvolutionState,
     AbstractGenerationOutput,
+    PreparedEvolution,
 )
 from .resource_mapper import (
     KeyDerivationStrategy,
@@ -879,6 +880,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
         verbose: bool = False,
         return_history: bool = True,
         step_logging: Optional[StepLoggingConfig] = None,
+        prepared_run: Optional[PreparedEvolution] = None,
     ) -> Tuple[
         AbstractEvolutionState[BaseGenome, BasePopulation[Any]], AbstractGenerationOutput, Any
     ]:
@@ -968,6 +970,7 @@ class GeneticEngine(AbstractEngine[BaseGenome, BasePopulation[Any]]):
             verbose=verbose,
             return_history=return_history,
             step_logging=step_logging,
+            prepared_run=prepared_run,
         )
         params = cast(GeneticEngineParams, self.engine_params)
         if params.track_best in (TrackBest.NONE, TrackBest.LIGHT):

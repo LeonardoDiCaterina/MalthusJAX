@@ -17,7 +17,6 @@ class MapElitesEngineAdapter:
 
     def run_once(self, key):
         import jax
-        from malthusjax.engine.base import _get_evolution_kernel
 
         t_warmup_start = time.perf_counter()
 
@@ -115,17 +114,13 @@ class MapElitesEngineAdapter:
             # Force the exact QDAX key into the state for generation 1
             state = state.replace(rng_key=k_init_qdax)
 
-        ep = getattr(self.engine, "engine_params", None)
-        try:
-            if ep is not None and getattr(ep, "unroll_num", None) is not None:
-                jit_fn = _get_evolution_kernel(ep, compile_jit=True, unroll_num=ep.unroll_num)
-                _ = jit_fn.lower(self.engine, state).compile()
-        except Exception:
-            pass
+        prepared = self.engine.prepare_run(state)
         t_warmup_end = time.perf_counter()
 
         t_exec_start = time.perf_counter()
-        final_state, scan_history, _ = self.engine.run(state, time_it=True, compile=True)
+        final_state, scan_history, _ = self.engine.run(
+            state, time_it=True, compile=True, prepared_run=prepared
+        )
         t_exec_end = time.perf_counter()
 
         num_gens = int(self.engine.engine_params.num_generations)
