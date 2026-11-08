@@ -31,7 +31,7 @@ The audit contains reproduced defects, source-confirmed behavior, and unverified
 | Order | Work | Status / gate |
 |---|---|---|
 | 1 | P0–P2: baseline, honest extraction, safe ingestion | Implemented; source `e5971e96`, paper `07700c6`. Full real ingestion still deferred to P10. |
-| 2 | PT1–PT3: exact executable preparation, synchronization, adapter adoption | Next implementation batch; CPU regression gate first. |
+| 2 | PT1–PT3: exact executable preparation, synchronization, adapter adoption | Implemented with CPU regression evidence; see [PT1](audit_remediation/PT1.md), [PT2](audit_remediation/PT2.md), [PT3](audit_remediation/PT3.md). |
 | 3 | PT4–PT5: versioned samples, consistent consumers, focused GPU validation | Must pass before claiming corrected throughput or running another large timing comparison. |
 | 4 | P3/P4: shared metric semantics and statistical validity | Still open; timing success does not close these findings. |
 | 5 | P5/P6/P7: mathematical defects, exact island horizons, regression contracts | P6's shared timing machinery moves into PT1–PT4; scheduling stays in P6. |
@@ -289,4 +289,4 @@ Separate approval is appropriate for expensive GPU jobs and publication/deployme
 
 ## Next implementation batch
 
-P0–P2 are complete within their stated safety scope. Implement PT1 and PT2 first, then PT3, with a reviewable commit and regression evidence for each. Complete PT4 and prepare PT5's timing-only entrypoint before requesting a small cluster validation run. Report timing gates A/B explicitly. Resume P3/P4, then the remaining original work packages. Publication-sized reruns remain gated on scientific validity and the P10 evidence matrix.
+P0–P2 and PT1–PT3 are implemented within their stated scopes, with separate implementation commits and regression evidence. Next complete PT4's versioned timing records and consumer validation, then prepare PT5's timing-only entrypoint before requesting a small cluster validation run. Core CPU boundary/adoption regressions pass; complete gate A still requires PT4's consumer checks, and gate B requires actual cluster validation. Resume P3/P4, then the remaining original work packages. Publication-sized reruns remain gated on scientific validity and the P10 evidence matrix.

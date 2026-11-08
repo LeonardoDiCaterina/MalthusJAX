@@ -9,6 +9,7 @@ import jax.numpy as jnp
 
 from malthusjax.core.genome.binary_genome import BinaryGenomeConfig
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
+from malthusjax.core.timing import block_until_ready, execution_metadata
 from malthusjax.engine.mo.mo_engine import MOEngine, MOEngineParams
 
 
@@ -42,11 +43,14 @@ class MOEngineAdapter:
 
         state = self.mo_engine.init_state(key, pop)
 
-        # JIT Warmup
-        _ws, _ = self.mo_engine.step(state)
+        prepared = self.mo_engine.prepare_run(state)
+        t_warmup_end = time.perf_counter()
 
         t_exec_start = time.perf_counter()
-        final_state, scan_history, _ = self.mo_engine.run(state, time_it=False, compile=True)
+        final_state, scan_history, _ = self.mo_engine.run(
+            state, time_it=True, compile=True, prepared_run=prepared
+        )
+        block_until_ready((final_state, scan_history), effects=True)
         t_exec_end = time.perf_counter()
 
         num_gens = int(self.mo_engine.engine_params.num_generations)
@@ -76,20 +80,17 @@ class MOEngineAdapter:
             ),
         }
 
-        # Timings
-        # We did not strictly isolate JIT from execution for brevity in the adapter,
-        # but time_it=False compile=True internally compiles inside run().
-        # Actually, let's just record total time.
-        t_total_end = time.perf_counter()
         timings = {
+            "warmup": t_warmup_end - t_warmup_start,
             "execution": t_exec_end - t_exec_start,
-            "total": t_total_end - t_warmup_start,
+            "total": t_exec_end - t_warmup_start,
         }
 
         return {
             "history": history,
             "summary": summary,
             "timings": timings,
+            "timing_metadata": execution_metadata(),
         }
 
 

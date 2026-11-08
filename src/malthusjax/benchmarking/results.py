@@ -46,6 +46,7 @@ class RunResult:
     timings: Optional[Dict[str, float]] = None
     error: Optional[str] = None
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timing_metadata: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize the object to a JSON-friendly dictionary.
@@ -60,6 +61,7 @@ class RunResult:
             "artifacts": self.artifacts,
             "duration_seconds": self.duration_seconds,
             "timings": self.timings,
+            "timing_metadata": self.timing_metadata,
             "error": self.error,
             "created_at": self.created_at.isoformat(),
         }
@@ -98,6 +100,7 @@ class RunResult:
             artifacts=d.get("artifacts", {}),
             duration_seconds=d.get("duration_seconds"),
             timings=d.get("timings"),
+            timing_metadata=d.get("timing_metadata") or {},
             error=d.get("error"),
             created_at=d["created_at"],
         )

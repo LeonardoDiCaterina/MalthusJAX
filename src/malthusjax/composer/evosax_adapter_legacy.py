@@ -40,6 +40,8 @@ import jax
 import jax.numpy as jnp
 import jax.random as jr
 
+from malthusjax.core.timing import block_until_ready, execution_metadata
+
 try:
     import evosax
     from evosax.algorithms import population_based_algorithms
@@ -97,6 +99,7 @@ class EvosaxEngineAdapter:
         self.evaluator = evaluator
         self.history_metrics = history_metrics
         self._jit_run_loop = None  # Cached JIT-compiled evolution loop
+        self._jit_run_spec = None
 
     def _build_jit_loop(self):
         """Build and cache the JIT-compiled evolution loop.
@@ -113,7 +116,14 @@ class EvosaxEngineAdapter:
             A ``jax.jit``-compiled function implementing the full
             ask/tell scan loop.
         """
-        if self._jit_run_loop is not None:
+        spec = (
+            id(self.strategy),
+            id(self.params),
+            id(self.problem),
+            self.maximize,
+            self.num_generations,
+        )
+        if self._jit_run_loop is not None and self._jit_run_spec == spec:
             return self._jit_run_loop
 
         # Capture references for the closure — these do not change between
@@ -160,6 +170,7 @@ class EvosaxEngineAdapter:
             return carry[1], metrics
 
         self._jit_run_loop = jax.jit(run_loop)
+        self._jit_run_spec = spec
         return self._jit_run_loop
 
     def run_once(
@@ -216,19 +227,16 @@ class EvosaxEngineAdapter:
         # Get or build the cached JIT-compiled evolution loop.
         run_fn = self._build_jit_loop()
 
-        # Trigger JIT compilation with a throwaway key so the cost is
-        # captured in the "warmup" bucket, not in "execution".
-        key_warmup = jr.PRNGKey(0xDEAD)
-        _ws, _wm = run_fn(key_warmup, population_init, tell_fitness_init, prob_state_init)
-        jax.tree_util.tree_map(lambda x: x.block_until_ready(), _ws)
-        del _ws, _wm
+        inputs = (key, population_init, tell_fitness_init, prob_state_init)
+        block_until_ready(inputs, effects=True)
+        run_fn = run_fn.lower(*inputs).compile()
 
         t_warmup_end = time.perf_counter()
 
         # ---- Execution phase: run with the real key on a warm JIT cache ----
         t_exec_start = time.perf_counter()
         final_state, metrics = run_fn(key, population_init, tell_fitness_init, prob_state_init)
-        jax.tree_util.tree_map(lambda x: x.block_until_ready(), final_state)
+        block_until_ready((final_state, metrics), effects=True)
         t_exec_end = time.perf_counter()
 
         # ---- Post-processing: extract history and summary ----
@@ -274,7 +282,12 @@ class EvosaxEngineAdapter:
             "total": t_exec_end - t_warmup_start,
         }
 
-        return {"history": history, "summary": summary, "timings": timings}
+        return {
+            "history": history,
+            "summary": summary,
+            "timings": timings,
+            "timing_metadata": execution_metadata(),
+        }
 
 
 def build_evosax_engine(

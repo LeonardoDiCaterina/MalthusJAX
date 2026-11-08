@@ -1,7 +1,7 @@
 import time
 from typing import Any
 
-from malthusjax.core.timing import block_until_ready
+from malthusjax.core.timing import block_until_ready, execution_metadata
 
 
 class MapElitesEngineAdapter:
@@ -123,7 +123,7 @@ class MapElitesEngineAdapter:
         final_state, scan_history, _ = self.engine.run(
             state, time_it=True, compile=True, prepared_run=prepared
         )
-        block_until_ready((final_state, scan_history))
+        block_until_ready((final_state, scan_history), effects=True)
         t_exec_end = time.perf_counter()
 
         num_gens = int(self.engine.engine_params.num_generations)
@@ -163,6 +163,7 @@ class MapElitesEngineAdapter:
         return {
             "history": history,
             "summary": summary,
+            "timing_metadata": execution_metadata(),
             "timings": {
                 "warmup": t_warmup_end - t_warmup_start,
                 "execution": t_exec_end - t_exec_start,

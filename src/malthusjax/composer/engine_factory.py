@@ -24,7 +24,7 @@ from ..core.genome.binary_genome import BinaryGenomeConfig
 from ..core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
 from ..core.logger import StepLoggingConfig, get_logger
 from ..core.random import resolve_prng_impl
-from ..core.timing import block_until_ready
+from ..core.timing import block_until_ready, execution_metadata
 from ..engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
 from ..engine.schedules import TrackBest
 
@@ -127,7 +127,7 @@ class GeneticEngineAdapter:
             state, time_it=True, compile=True, step_logging=active_logging, prepared_run=prepared
         )
         # GeneticEngine.run performs best-genome finalization after its base scan.
-        block_until_ready((final_state, scan_history))
+        block_until_ready((final_state, scan_history), effects=True)
         t_exec_end = time.perf_counter()
 
         num_gens = int(self.genetic_engine.engine_params.num_generations)
@@ -186,6 +186,7 @@ class GeneticEngineAdapter:
             "history": history,
             "summary": summary,
             "timings": timings,
+            "timing_metadata": execution_metadata(),
         }
 
 

@@ -126,3 +126,10 @@ def test_universal_compatibility_wrapper_propagates_nested_failure():
 
     with pytest.raises(RuntimeError, match="device error"):
         _block_all_until_ready(SimpleNamespace(child=Broken()))
+
+
+def test_callback_effects_complete_before_readiness_returns(monkeypatch):
+    events = []
+    monkeypatch.setattr(jax, "effects_barrier", lambda: events.append("effects"))
+    block_until_ready(Pending("output", events), effects=True)
+    assert events == ["output", "effects"]

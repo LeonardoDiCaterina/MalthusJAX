@@ -248,7 +248,7 @@ class AbstractEngine(Generic[G, P], ABC):
         step_logging: Optional[StepLoggingConfig] = None,
     ) -> PreparedEvolution:
         """Compile the exact scan that a subsequent prepared run will invoke."""
-        block_until_ready(initial_state)
+        block_until_ready(initial_state, effects=True)
         logging_config = step_logging or getattr(self.engine_params, "step_logging", None)
         kernel = _get_evolution_kernel(
             self.engine_params,
@@ -276,6 +276,10 @@ class AbstractEngine(Generic[G, P], ABC):
         measures wall-clock duration, optionally logging progress when
         *verbose* is enabled or via logger. Returns the final state, the stacked KPI history,
         and an optional elapsed time.
+
+        Ordinary calls may include compilation. Benchmark adapters must call
+        prepare_run first and pass its result explicitly to isolate prepared
+        first execution; this is not automatically a steady-state measurement.
         """
         effective_step_logging = step_logging or getattr(self.engine_params, "step_logging", None)
         logger.debug(
@@ -312,7 +316,7 @@ class AbstractEngine(Generic[G, P], ABC):
             )
 
         if time_it:
-            block_until_ready(initial_state)
+            block_until_ready(initial_state, effects=True)
         start_time = time.perf_counter()
 
         try:
@@ -324,7 +328,7 @@ class AbstractEngine(Generic[G, P], ABC):
 
             # Force synchronization for accurate timing if requested
             if time_it:
-                block_until_ready((final_state, history))
+                block_until_ready((final_state, history), effects=True)
 
         except Exception as e:
             logger.error("Evolution failed during scan execution: %s", str(e), exc_info=True)
@@ -443,9 +447,9 @@ def _build_evolution_kernel(
 ) -> Any:
     """
     Factory: Builds evolution kernel (jax.lax.scan loop).
-    JAX's own compilation cache (keyed on static args + input shapes) handles
-    deduplication — an additional lru_cache is redundant and can leak memory
-    by preventing GC of closed-over engine/state references (JR-3).
+    A bounded, canonically keyed factory cache preserves JIT function identity.
+    JAX's executable cache then specializes it to the static engine and input
+    signatures. Creating a new closure for equivalent options would retrace.
     Closure pattern: _evolve_loop captures engine as compile-time constant (static_argnums=0).
     This avoids passing engine in scan carry ("light carry"), reducing memory.
     donate_argnums=1 donates initial_state arrays (JIT donation optimization).

@@ -25,6 +25,7 @@ except ImportError:
     _HAS_QDAX = False
 
 from malthusjax.core.logger import StepLoggingConfig, get_logger
+from malthusjax.core.timing import block_until_ready, execution_metadata
 from malthusjax.engine.qd.map_elites import MapElitesEngine, MapElitesState
 
 logger = get_logger("engine.qd.adapter")
@@ -78,6 +79,8 @@ class MapElitesEngineAdapter:
         self.maxval = list(maxval)
         self.maximize = maximize
         self.step_logging = step_logging
+        self._run_kernel = None
+        self._run_spec = None
 
         # Precompute CVT Voronoi centroids for static repertoire layout
         if not _HAS_QDAX or compute_cvt_centroids is None:
@@ -119,9 +122,30 @@ class MapElitesEngineAdapter:
             next_state, kpi = self.engine.step(cur_state)
             return next_state, kpi
 
-        final_inner_state, kpis = jax.lax.scan(_loop, init_state, None, length=self.generations)
-
-        elapsed = time.perf_counter() - start_time
+        block_until_ready(init_state, effects=True)
+        spec = (id(self.engine), self.generations)
+        if self._run_spec != spec:
+            self._run_kernel = jax.jit(
+                lambda state: jax.lax.scan(_loop, state, None, length=self.generations)
+            )
+            self._run_spec = spec
+        prepared = self._run_kernel.lower(init_state).compile()
+        warmup_end = time.perf_counter()
+        execution_start = time.perf_counter()
+        final_inner_state, kpis = prepared(init_state)
+        block_until_ready((final_inner_state, kpis), effects=True)
+        execution_end = time.perf_counter()
+        elapsed = execution_end - execution_start
+        self.last_timings = {
+            "warmup": warmup_end - start_time,
+            "total": execution_end - start_time,
+        }
+        reason = (
+            "QD adapter step logging is not implemented" if self.step_logging is not None else None
+        )
+        self.last_timing_metadata = execution_metadata(reason)
+        if reason is None:
+            self.last_timings["execution"] = elapsed
         logger.debug(
             "MapElitesEngine completed %d generations in %.3fs (Best Fitness: %s)",
             self.generations,
@@ -261,8 +285,6 @@ class IslandMapElitesAdapter:
             current_state, history = self.step(current_state)
             all_histories.append(history)
 
-        elapsed = time.perf_counter() - start_time
-
         # Global best reduction across all islands and all repertoire cells
         # current_state.repertoire.fitnesses has shape (num_islands, num_centroids, 1) or (num_islands, num_centroids)
         rep_fitnesses = current_state.repertoire.fitnesses.squeeze()
@@ -277,6 +299,13 @@ class IslandMapElitesAdapter:
         best_fitness = rep_fitnesses[island_idx, centroid_idx]
         if not self.maximize:
             best_fitness = -best_fitness
+
+        block_until_ready((current_state, all_histories, best_genome, best_fitness), effects=True)
+        elapsed = time.perf_counter() - start_time
+        self.last_timings = {"total": elapsed}
+        self.last_timing_metadata = execution_metadata(
+            "Legacy island-QD Python outer loop has no prepared compiled execution measurement"
+        )
 
         logger.debug(
             "IslandMapElites completed in %.3fs across %d islands. Global Best Fitness: %s (Island %d, Cell %d)",

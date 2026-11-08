@@ -160,3 +160,19 @@ def test_genetic_prepared_path_keeps_best_genome_finalization(genetic_engine):
         jax.tree.leaves(final.best_genome), jax.tree.leaves(reference.best_genome)
     ):
         np.testing.assert_allclose(actual, expected)
+
+
+def test_explicit_named_sharding_is_prepared_without_measured_trace():
+    events = []
+    engine = TimingEngine(
+        engine_params=base.AbstractEngineParams(pop_size=4, num_generations=2),
+        trace_hook=lambda: events.append("trace"),
+    )
+    mesh = jax.sharding.Mesh(np.asarray(jax.devices()[:1]), ("device",))
+    sharding = jax.sharding.NamedSharding(mesh, jax.sharding.PartitionSpec())
+    state = jax.device_put(engine.init_state(jax.random.key(42)), sharding)
+    prepared = engine.prepare_run(state)
+    events.clear()
+    final, _, _ = engine.run(state, prepared_run=prepared, time_it=True)
+    assert events == []
+    assert int(final.generation) == 2

@@ -11,6 +11,7 @@ import jax.numpy as jnp
 from flax import struct
 
 from malthusjax.core.logger import StepLoggingConfig, get_logger
+from malthusjax.core.timing import block_until_ready, execution_metadata
 from malthusjax.engine.island_model.base import BaseIslandModel
 
 logger = get_logger("engine.island_model.adapter")
@@ -49,6 +50,8 @@ class IslandEngineAdapter:
         self.maximize = maximize
         self.history_metrics = history_metrics
         self.step_logging = step_logging
+        self._compiled_run = None
+        self._compiled_spec = None
 
     @property
     def engine(self) -> Any:
@@ -100,7 +103,16 @@ class IslandEngineAdapter:
         """BenchmarkRunner protocol implementation."""
         t_start = time.perf_counter()
         init_state = self.init_state(key)
-        final_state, history, _ = self.run(init_state)
+        block_until_ready(init_state, effects=True)
+        spec = (self.generations, id(self.island_model))
+        if self._compiled_spec != spec:
+            self._compiled_run = jax.jit(self.run)
+            self._compiled_spec = spec
+        prepared = self._compiled_run.lower(init_state).compile()
+        t_warmup_end = time.perf_counter()
+        t_execution_start = time.perf_counter()
+        final_state, history, _ = prepared(init_state)
+        block_until_ready((final_state, history), effects=True)
         t_end = time.perf_counter()
 
         best_fit = float(final_state.best_fitness)
@@ -113,13 +125,23 @@ class IslandEngineAdapter:
         }
         timings = {
             "total": t_end - t_start,
-            "execution": t_end - t_start,
-            "warmup": 0.0,
+            "warmup": t_warmup_end - t_start,
         }
+        interval = int(self.island_model.migration_interval)
+        unavailable = None
+        if self.generations <= 0 or interval <= 0 or self.generations % interval:
+            unavailable = (
+                "Island horizon/interval contract requires P6; execution timing unavailable"
+            )
+        elif step_logging is not None or self.step_logging is not None:
+            unavailable = "Island step logging is not implemented by this adapter"
+        else:
+            timings["execution"] = t_end - t_execution_start
         return {
             "history": [],
             "summary": summary,
             "timings": timings,
+            "timing_metadata": execution_metadata(unavailable),
         }
 
     def __getattr__(self, name: str) -> Any:

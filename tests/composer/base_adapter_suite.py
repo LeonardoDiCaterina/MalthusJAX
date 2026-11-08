@@ -49,7 +49,13 @@ class BaseAdapterTestSuite(abc.ABC):
     def test_result_keys(self, small_adapter):
         """Verify the output of run_once contains exactly the required keys."""
         result = small_adapter.run_once(jr.PRNGKey(0))
-        assert set(result.keys()) == {"history", "summary", "timings"}
+        assert set(result.keys()) == {"history", "summary", "timings", "timing_metadata"}
+        metadata = result["timing_metadata"]
+        if metadata["status"] == "valid":
+            assert metadata["phase"] == "prepared_first_execution"
+        else:
+            assert metadata["status"] == "unavailable"
+            assert metadata["reason"]
 
     def test_history_format(self, small_adapter):
         """Verify the history is a list of dictionaries with standard keys."""
@@ -89,10 +95,12 @@ class BaseAdapterTestSuite(abc.ABC):
         timings = result["timings"]
 
         assert "warmup" in timings
-        assert "execution" in timings
         assert "total" in timings
         assert timings["warmup"] >= 0
-        assert timings["execution"] > 0
+        if result["timing_metadata"]["status"] == "valid":
+            assert timings["execution"] > 0
+        else:
+            assert "execution" not in timings
         assert timings["total"] > 0
 
     def test_fitness_values_are_finite(self, small_adapter):
@@ -161,5 +169,5 @@ class BaseAdapterTestSuite(abc.ABC):
             pytest.skip("EvalMode.MALTHUSJAX not implemented for this adapter.")
 
         result = small_adapter_mjx.run_once(jr.PRNGKey(0))
-        assert set(result.keys()) == {"history", "summary", "timings"}
+        assert set(result.keys()) == {"history", "summary", "timings", "timing_metadata"}
         assert len(result["history"]) > 0

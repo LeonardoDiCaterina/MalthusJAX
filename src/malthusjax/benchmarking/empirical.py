@@ -74,6 +74,7 @@ def extract_control_runs(
                 "best_fitness": curve.tolist(),
                 "best_so_far": np.maximum.accumulate(curve).tolist(),
                 "execution_seconds": _execution_seconds(run),
+                "timing_metadata": dict(getattr(run, "timing_metadata", {}) or {}),
             }
         )
     observed = np.asarray([r["best_fitness"] for r in records])
@@ -107,6 +108,7 @@ def extract_qd_runs(comparison: Any, pipeline: str, generations: int) -> dict[st
                 "coverage": _curve(run, "coverage").tolist(),
                 "qd_score": _curve(run, "qd_score").tolist(),
                 "execution_seconds": _execution_seconds(run),
+                "timing_metadata": dict(getattr(run, "timing_metadata", {}) or {}),
             }
         )
     return {

@@ -22,7 +22,7 @@ from malthusjax.core.logger import (
     _host_log_step,
     get_logger,
 )
-from malthusjax.core.timing import block_until_ready
+from malthusjax.core.timing import block_until_ready, execution_metadata
 
 logger = get_logger("composer.adapters")
 
@@ -36,7 +36,7 @@ def _has_block_until_ready(obj: Any) -> bool:
 
 def _block_all_until_ready(obj: Any) -> None:
     """Compatibility wrapper around the shared, error-propagating PyTree barrier."""
-    block_until_ready(obj)
+    block_until_ready(obj, effects=True)
 
 
 class UniversalAdapterEngine:
@@ -86,10 +86,29 @@ class UniversalAdapterEngine:
         self.step_logging = step_logging
 
         self._jit_run_loop = None
+        self._jit_run_spec = None
 
     def _build_jit_loop(self) -> Any:
         """Build and cache the JIT-compiled evolution loop."""
-        if self._jit_run_loop is not None:
+        # Replaced static objects/options require preparation of a new loop.
+        # In-place mutation of third-party strategy internals is unsupported;
+        # callers must construct a new adapter for those changes.
+        spec = (
+            id(self.framework_obj),
+            id(self.framework_params),
+            id(self.step_fn),
+            id(self.eval_translator),
+            id(self.evaluator),
+            self.num_generations,
+            self.maximize,
+            self.backend_maximizes,
+            self.step_logging,
+            tuple(
+                (m.name, id(m.source) if callable(m.source) else m.source, m.is_objective_value)
+                for m in self.metrics_catalog
+            ),
+        )
+        if self._jit_run_loop is not None and self._jit_run_spec == spec:
             return self._jit_run_loop
 
         def wrapped_eval_translator(*args: Any, **kwargs: Any) -> Any:
@@ -184,6 +203,7 @@ class UniversalAdapterEngine:
             return carry[1], metrics
 
         self._jit_run_loop = jax.jit(run_loop)  # type: ignore[assignment]
+        self._jit_run_spec = spec
         return self._jit_run_loop
 
     def _build_python_loop(self) -> Any:
@@ -268,6 +288,7 @@ class UniversalAdapterEngine:
         state_init = self.init_fn(
             self.framework_obj, key_init, self.framework_params, self.initial_population
         )
+        block_until_ready((key, state_init), effects=True)
 
         # Build JIT loop or Python loop
         if self.use_python_loop:
@@ -275,7 +296,7 @@ class UniversalAdapterEngine:
         else:
             run_loop = self._build_jit_loop()
             if compile:
-                _ = run_loop.lower(key, state_init).compile()
+                run_loop = run_loop.lower(key, state_init).compile()
 
         t_warmup_end = time.perf_counter()
 
@@ -335,21 +356,28 @@ class UniversalAdapterEngine:
 
         timings = {
             "warmup": t_warmup_end - t_warmup_start,
-            "execution": t_exec_end - t_exec_start,
             "total": t_exec_end - t_warmup_start,
         }
+        unavailable = None
+        if self.use_python_loop:
+            unavailable = "Python-loop mode does not provide prepared compiled execution timing"
+        elif not compile:
+            unavailable = "Compilation was not prepared; execution may include tracing/compilation"
+        else:
+            timings["execution"] = t_exec_end - t_exec_start
 
         logger.debug(
-            "UniversalAdapterEngine completed in %.4fs (warmup: %.4fs, exec: %.4fs)",
+            "UniversalAdapterEngine completed in %.4fs (warmup: %.4fs, exec: %s)",
             timings["total"],
             timings["warmup"],
-            timings["execution"],
+            timings.get("execution", "unavailable"),
         )
 
         return {
             "history": history,
             "summary": summary,
             "timings": timings,
+            "timing_metadata": execution_metadata(unavailable),
         }
 
     def get_supported_metrics(self) -> list[Any]:

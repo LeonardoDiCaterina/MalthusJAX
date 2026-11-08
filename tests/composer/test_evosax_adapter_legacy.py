@@ -231,7 +231,21 @@ class TestEvosaxAdapterRunOnce:
 
     def test_result_keys(self, small_adapter):
         result = small_adapter.run_once(jr.PRNGKey(0))
-        assert set(result.keys()) == {"history", "summary", "timings"}
+        assert set(result.keys()) == {"history", "summary", "timings", "timing_metadata"}
+        assert result["timing_metadata"]["phase"] == "prepared_first_execution"
+
+    def test_changed_static_configuration_is_prepared_again(self, small_adapter):
+        key = jr.PRNGKey(42)
+        small_adapter.run_once(key)
+        previous = small_adapter._build_jit_loop()
+        small_adapter.num_generations = 3
+        result = small_adapter.run_once(key)
+        reference = build_evosax_engine(
+            strategy_name="SimpleGA", evaluator=small_adapter.evaluator,
+            pop_size=8, generations=3,
+        ).run_once(key)
+        assert previous is not small_adapter._build_jit_loop()
+        assert result["history"] == reference["history"]
 
     def test_history_format(self, small_adapter):
         result = small_adapter.run_once(jr.PRNGKey(0))
