@@ -36,4 +36,4 @@ Environment for source checks: `/opt/anaconda3/bin/python3`, Python 3.12.5, JAX 
 - Backend-native signed QD scores are preserved, but comparative QD inference is unavailable pending P3's shared definition.
 - Full paper table generation from cluster analysis remains explicitly unavailable pending P10; H2 dry-run inspection validates structure and finite coefficients only.
 - Other legacy table narratives and scientific claims still require P10/A22 review.
-- Recommended next batch: P3 metric contracts and P4 statistical validity/decisions.
+- The initial next-batch recommendation was P3/P4. After job 1303 exposed timing contamination, [the revised implementation plan](../audit_remediation_plan.md) prioritizes PT1–PT5 timing repairs and focused hardware validation first, then resumes P3/P4. This checkpoint report does not certify timing isolation.

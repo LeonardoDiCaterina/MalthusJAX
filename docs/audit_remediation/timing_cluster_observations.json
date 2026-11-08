@@ -1,0 +1,25 @@
+{
+  "source": "User-pasted output from Slurm job 1303; raw cluster JSON/log files not downloaded",
+  "source_revision": "e5971e968bb2c77428fa1d283a22c0ba666668fd",
+  "jax_version": "0.12.0.1",
+  "backend": "gpu",
+  "tier": "smoke",
+  "population_size": 32,
+  "generations": 15,
+  "execution_seconds_printed_to_six_decimals": {
+    "malthusjax_native": {
+      "42": 0.632122,
+      "43": 0.001463
+    },
+    "qdax_baseline": {
+      "42": 0.004266,
+      "43": 0.002083
+    }
+  },
+  "aggregate_ms_per_generation": {
+    "malthusjax_native": 21.119504996264975,
+    "qdax_baseline": 0.21163343141476312
+  },
+  "reported_qdax_over_native_ratio": 0.01002075718404342,
+  "interpretation": "Observed timing-boundary contamination is strongly supported; do not infer a steady-state speed ratio from these mixed-phase measurements."
+}

@@ -1,0 +1,63 @@
+{
+  "environment": {
+    "jax": "0.11.0",
+    "devices": [
+      "cpu:0"
+    ]
+  },
+  "same_warmup_and_execution_function": false,
+  "native_trace_events": [
+    {
+      "seed": 42,
+      "phase": "warmup",
+      "event": "trace_step"
+    },
+    {
+      "seed": 42,
+      "phase": "execution",
+      "event": "trace_step"
+    }
+  ],
+  "native_xla_compilation_events": [
+    {
+      "seed": 42,
+      "phase": "warmup",
+      "message": "Finished XLA compilation of jit(_evolve_loop) in 0.046711922 sec"
+    },
+    {
+      "seed": 42,
+      "phase": "execution",
+      "message": "Finished XLA compilation of jit(_evolve_loop) in 0.037276268 sec"
+    }
+  ],
+  "toy_timings_not_hardware_benchmark": [
+    {
+      "seed": 42,
+      "timings": {
+        "warmup": 0.20717083400813863,
+        "execution": 0.047808250004891306,
+        "total": 0.25497962499503046
+      }
+    },
+    {
+      "seed": 43,
+      "timings": {
+        "warmup": 0.0007067919941619039,
+        "execution": 7.591600297018886e-05,
+        "total": 0.000783249968662858
+      }
+    }
+  ],
+  "warmup_failure_propagated": false,
+  "warmup_failure_still_reports_execution": true,
+  "base_run_blocked_leaves": [
+    "best_fitness"
+  ],
+  "universal_blocked_leaves": [
+    "best_fitness",
+    "state_other",
+    "history"
+  ],
+  "universal_struct_sync_failure_propagated": false,
+  "universal_slots_pytree_blocked_leaves": []
+}
