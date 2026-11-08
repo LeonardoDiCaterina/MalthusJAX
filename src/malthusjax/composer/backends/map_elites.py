@@ -96,9 +96,7 @@ def build_map_elites_engine(
             )
     else:
         from malthusjax.composer.catalog import OperatorCatalog
-        from malthusjax.core.fitness.base import BaseEvaluatorConfig
-        from malthusjax.core.fitness.qd.evaluator import BaseQDEvaluator
-        from malthusjax.core.genome.qd.population import QDPopulation
+        from malthusjax.core.fitness.qd.evaluator import ensure_qd_evaluator
 
         cat = OperatorCatalog()
         seed_val = kwargs.get("seed", 42)
@@ -110,7 +108,7 @@ def build_map_elites_engine(
                     if ":" not in fitness_spec
                     else f"{fitness_spec},seed={seed_val}"
                 )
-            resolved_base_evaluator = cat.get(fitness_spec)
+            resolved_base_evaluator = cat.get(fitness_spec, maximize=maximize)
         elif fitness_spec is not None:
             resolved_base_evaluator = fitness_spec
         else:
@@ -120,31 +118,11 @@ def build_map_elites_engine(
         bounds = kwargs.get("bounds", (-5.0, 5.0))
         num_desc = getattr(strategy, "num_descriptors", 2)
 
-        class ComposedQDEvaluator(BaseQDEvaluator[Any, Any, Any]):
-            def evaluate_qd(self, genome):
-                raise NotImplementedError("Use evaluate_population directly")
-
-            def evaluate_population(self, population, key=None, **kwargs):
-                from malthusjax.core.fitness.base import dispatch_evaluate_population
-
-                updated_pop = dispatch_evaluate_population(
-                    resolved_base_evaluator, population, key=key, **kwargs
-                )
-                genotypes = getattr(population.genes, "values", population.genes)
-                desc_dims = genotypes[:, :num_desc]
-                lo, hi = float(bounds[0]), float(bounds[1])
-                descriptors = (desc_dims - lo) / (hi - lo)
-                new_info = dict(population.info) if population.info else {}
-                new_info["descriptors"] = descriptors
-                fitness = updated_pop.fitness
-                return QDPopulation(
-                    genes=population.genes,
-                    fitness=fitness,
-                    config=population.config,
-                    info=new_info,
-                )
-
-        evaluator = ComposedQDEvaluator(config=BaseEvaluatorConfig(maximize=maximize), data=None)
+        evaluator = ensure_qd_evaluator(
+            resolved_base_evaluator,
+            num_descriptors=num_desc,
+            bounds=bounds,
+        )
     centroids = getattr(strategy, "centroids", None)
     if centroids is None:
         centroids = compute_cvt_centroids(

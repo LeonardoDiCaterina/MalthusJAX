@@ -112,11 +112,12 @@ class MapElitesEngine(AbstractEngine[G, P]):
         # 1. Evaluate the initial population to get fitness and descriptors
         eval_pop = dispatch_evaluate_population(self.evaluator, initial_population, k1)
 
-        # In MalthusJAX, minimization tasks return lower raw fitnesses (lower is better).
-        # However, MapElitesRepertoire ALWAYS maximizes. Therefore, we must flip the sign
-        # of the fitness if we are minimizing.
-        repertoire_fitnesses = (
-            eval_pop.fitness if self.engine_params.maximize else -eval_pop.fitness
+        # In MalthusJAX, MapElitesRepertoire ALWAYS maximizes. Convert eval_pop.fitness
+        # to higher-is-better repertoire space respecting evaluator contracts.
+        from malthusjax.core.fitness.qd.evaluator import to_repertoire_fitness
+
+        repertoire_fitnesses = to_repertoire_fitness(
+            self.evaluator, eval_pop.fitness, self.engine_params.maximize
         )
 
         # 2. Initialize the QDAX MapElitesRepertoire
@@ -220,8 +221,10 @@ class MapElitesEngine(AbstractEngine[G, P]):
         eval_pop = dispatch_evaluate_population(self.evaluator, offspring_pop, k_eval)
 
         # 3. Add to the repertoire (returns a new updated repertoire)
-        repertoire_fitnesses = (
-            eval_pop.fitness if self.engine_params.maximize else -eval_pop.fitness
+        from malthusjax.core.fitness.qd.evaluator import to_repertoire_fitness
+
+        repertoire_fitnesses = to_repertoire_fitness(
+            self.evaluator, eval_pop.fitness, self.engine_params.maximize
         )
         new_repertoire = state.repertoire.add(
             _extract_genotypes(eval_pop.genes), eval_pop.info["descriptors"], repertoire_fitnesses

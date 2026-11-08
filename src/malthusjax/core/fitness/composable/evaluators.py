@@ -29,9 +29,11 @@ from malthusjax.core.fitness.composable.base import (
     BaseSupervisedEnvironment,
     BaseTransform,
     IdentityTransform,
+    QDOutput,
     ScalarOutput,
 )
 from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
+from malthusjax.core.genome.qd.population import QDPopulation
 
 E = TypeVar("E")
 T = TypeVar("T", bound=BaseTransform)
@@ -115,7 +117,12 @@ class BaseComposableEvaluator(Generic[E, T, I, O]):
                 population.genes, compiled_pop, **kwargs
             )
 
-        return cast(Any, population).replace(fitness=fitness_scores, info=infos)
+        updated_pop = cast(Any, population).replace(fitness=fitness_scores, info=infos)
+        if isinstance(self.output, QDOutput) or (
+            isinstance(infos, dict) and infos.get("descriptors") is not None
+        ):
+            return QDPopulation.from_population(updated_pop)
+        return updated_pop
 
 
 # =============================================================================

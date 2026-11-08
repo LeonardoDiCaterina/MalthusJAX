@@ -265,13 +265,6 @@ class BasePopulation(Generic[G]):
     config: Any = _field(pytree_node=False, default=None)
     info: dict[str, Any] = _field(default_factory=dict)
 
-    @property
-    def descriptors(self) -> chex.Array | None:
-        """Convenience property for Quality-Diversity descriptors stored in info."""
-        if hasattr(self, "info") and isinstance(self.info, dict):
-            return self.info.get("descriptors")
-        return None
-
     def clone_buffers(self: BasePopulation[G]) -> BasePopulation[G]:
         """Deep-copies the population PyTree and all leaf arrays.
 

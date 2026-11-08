@@ -18,45 +18,11 @@ def resolve_qdax_evaluator(
     num_dims: int = 10,
     **kwargs: Any,
 ) -> Any:
-    from malthusjax.composer.backends._evaluator_resolver import resolve_evaluator_base
-    from malthusjax.core.genome.real_genome import RealGenome, RealPopulation
-
-    class QDAXNativeEvaluator:
-        def __init__(self, fitness_fn, evaluator=None, num_descriptors=2):
-            self._fitness_fn = fitness_fn
-            self._evaluator = evaluator
-            self._num_descriptors = num_descriptors
-
-        def scoring_function(self, genotypes, random_key):
-            import jax
-            import jax.numpy as jnp
-
-            if self._evaluator is not None:
-                genes = RealGenome(values=genotypes)
-                pop = RealPopulation(
-                    genes=genes, fitness=jnp.zeros(genotypes.shape[0]), config=None
-                )
-                from malthusjax.core.fitness.base import dispatch_evaluate_population
-
-                updated_pop = dispatch_evaluate_population(self._evaluator, pop, random_key)
-                fitnesses = updated_pop.fitness
-                if not maximize:
-                    fitnesses = -fitnesses
-                if getattr(updated_pop, "descriptors", None) is not None:
-                    descriptors = updated_pop.descriptors
-                else:
-                    desc_dims = genotypes[:, : self._num_descriptors]
-                    lo, hi = float(bounds[0]), float(bounds[1])
-                    descriptors = (desc_dims - lo) / max(hi - lo, 1e-6)
-            else:
-                fitnesses = jax.vmap(self._fitness_fn)(genotypes)
-                desc_dims = genotypes[:, : self._num_descriptors]
-                lo, hi = float(bounds[0]), float(bounds[1])
-                descriptors = (desc_dims - lo) / (hi - lo)
-            return fitnesses, descriptors, {}
-
     if hasattr(fitness_spec, "scoring_function"):
         return fitness_spec
+
+    from malthusjax.composer.backends._evaluator_resolver import resolve_evaluator_base
+    from malthusjax.core.fitness.qd.evaluator import ensure_qd_evaluator
 
     resolved = resolve_evaluator_base(
         fitness_spec,
@@ -66,7 +32,8 @@ def resolve_qdax_evaluator(
         bounds=bounds,
         **kwargs,
     )
-    return QDAXNativeEvaluator(None, evaluator=resolved)
+    num_desc = kwargs.get("num_descriptors", kwargs.get("qdax_num_descriptors", 2))
+    return ensure_qd_evaluator(resolved, num_descriptors=num_desc, bounds=bounds)
 
 
 def build_qdax_engine(
@@ -164,6 +131,7 @@ def build_qdax_engine(
         seed=kwargs.get("seed", 42),
         num_dims=genome_length,
     )
+    eval_mode = "native" if hasattr(evaluator, "scoring_function") else "malthusjax"
     return adapter_build_qdax_engine(
         strategy_cls=strategy_cls,
         emitter=emitter,
@@ -174,7 +142,7 @@ def build_qdax_engine(
         pop_size=pop_size,
         generations=generations,
         maximize=maximize,
-        eval_mode="native",
+        eval_mode=eval_mode,
         history_metrics=history_metrics or ["qd_score", "coverage"],
         bounds=bounds,
         genome_length=genome_length,

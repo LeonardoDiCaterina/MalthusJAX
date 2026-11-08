@@ -37,8 +37,11 @@ from malthusjax.core.fitness.composable.base import (
     BaseOptimizationEnvironment,
     BaseRLEnvironment,
     BaseSupervisedEnvironment,
+    GenotypeBoxDescriptorFn,
     MOOutput,
     QDOutput,
+    RLActionSummaryDescriptorFn,
+    RLFinalStateDescriptorFn,
     ScalarOutput,
 )
 from malthusjax.core.fitness.composable.environments import (
@@ -67,6 +70,9 @@ __all__ = [
     "ScalarOutput",
     "QDOutput",
     "MOOutput",
+    "GenotypeBoxDescriptorFn",
+    "RLFinalStateDescriptorFn",
+    "RLActionSummaryDescriptorFn",
     # Interpreters
     "IdentityInterpreter",
     "MLPInterpreter",

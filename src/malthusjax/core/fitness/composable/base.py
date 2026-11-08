@@ -342,6 +342,109 @@ class BaseDescriptorFn:
 
 
 @struct.dataclass
+class GenotypeBoxDescriptorFn(BaseDescriptorFn):
+    """Behavior descriptor function projecting genotype slice into [0, 1]^k.
+
+    Extracts the first `num_descriptors` values from the genome (or zero-pads if shorter),
+    and normalizes them into [0.0, 1.0]^k via search bounds.
+    """
+
+    num_descriptors: int = struct.field(pytree_node=False, default=2)  # type: ignore[no-untyped-call]
+    bounds: tuple[float, float] = struct.field(pytree_node=False, default=(-5.0, 5.0))  # type: ignore[no-untyped-call]
+
+    def _project(self, genome: Any) -> chex.Array:
+        g = getattr(genome, "values", genome)
+        if not hasattr(g, "shape"):
+            g = jnp.asarray(g, dtype=jnp.float32)
+        flat = jnp.reshape(g, (-1,))
+        lo, hi = self.bounds
+        span = jnp.maximum(hi - lo, 1e-6)
+        if flat.shape[0] < self.num_descriptors:
+            pad = jnp.zeros(self.num_descriptors - flat.shape[0], dtype=flat.dtype)
+            flat = jnp.concatenate([flat, pad], axis=0)
+        sliced = flat[: self.num_descriptors]
+        return jnp.clip((sliced - lo) / span, 0.0, 1.0)
+
+    def compute(self, genome: Any, inputs: chex.Array | None, outputs: chex.Array) -> chex.Array:
+        return self._project(genome)
+
+    def compute_rl(self, genome: Any, final_state: Any, step_infos: Any) -> chex.Array:
+        return self._project(genome)
+
+
+@struct.dataclass
+class RLFinalStateDescriptorFn(BaseDescriptorFn):
+    """Behavior descriptor extracting specific indices from final RL state/obs, scaled to [0, 1]."""
+
+    indices: tuple[int, ...] = struct.field(pytree_node=False, default=(0, 1))  # type: ignore[no-untyped-call]
+    bounds: tuple[float, float] = struct.field(pytree_node=False, default=(-1.0, 1.0))  # type: ignore[no-untyped-call]
+
+    def compute(self, genome: Any, inputs: chex.Array | None, outputs: chex.Array) -> chex.Array:
+        g = getattr(genome, "values", genome)
+        flat = jnp.reshape(jnp.asarray(g, dtype=jnp.float32), (-1,))
+        lo, hi = self.bounds
+        span = jnp.maximum(hi - lo, 1e-6)
+        k = len(self.indices)
+        if flat.shape[0] < k:
+            pad = jnp.zeros(k - flat.shape[0], dtype=flat.dtype)
+            flat = jnp.concatenate([flat, pad], axis=0)
+        return jnp.clip((flat[:k] - lo) / span, 0.0, 1.0)
+
+    def compute_rl(self, genome: Any, final_state: Any, step_infos: Any) -> chex.Array:
+        obs = getattr(final_state, "obs", None)
+        if obs is None:
+            obs = getattr(final_state, "pipeline_state", None)
+        if obs is None:
+            obs = final_state
+        flat_obs = jnp.reshape(jnp.asarray(obs, dtype=jnp.float32), (-1,))
+        idx = jnp.array(self.indices, dtype=jnp.int32)
+        features = jnp.take(flat_obs, idx)
+        lo, hi = self.bounds
+        span = jnp.maximum(hi - lo, 1e-6)
+        return jnp.clip((features - lo) / span, 0.0, 1.0)
+
+
+@struct.dataclass
+class RLActionSummaryDescriptorFn(BaseDescriptorFn):
+    """Behavior descriptor from rollout actions (e.g. mean action vector)."""
+
+    num_descriptors: int = struct.field(pytree_node=False, default=2)  # type: ignore[no-untyped-call]
+    bounds: tuple[float, float] = struct.field(pytree_node=False, default=(-1.0, 1.0))  # type: ignore[no-untyped-call]
+
+    def compute(self, genome: Any, inputs: chex.Array | None, outputs: chex.Array) -> chex.Array:
+        g = getattr(genome, "values", genome)
+        flat = jnp.reshape(jnp.asarray(g, dtype=jnp.float32), (-1,))
+        lo, hi = self.bounds
+        span = jnp.maximum(hi - lo, 1e-6)
+        k = self.num_descriptors
+        if flat.shape[0] < k:
+            pad = jnp.zeros(k - flat.shape[0], dtype=flat.dtype)
+            flat = jnp.concatenate([flat, pad], axis=0)
+        return jnp.clip((flat[:k] - lo) / span, 0.0, 1.0)
+
+    def compute_rl(self, genome: Any, final_state: Any, step_infos: Any) -> chex.Array:
+        actions = None
+        if isinstance(step_infos, dict) and "action" in step_infos:
+            actions = step_infos["action"]
+        elif hasattr(step_infos, "action"):
+            actions = getattr(step_infos, "action")
+        if actions is not None and hasattr(actions, "shape") and actions.ndim >= 2:
+            mean_action = jnp.mean(actions, axis=0)
+            flat = jnp.reshape(mean_action, (-1,))
+        else:
+            g = getattr(genome, "values", genome)
+            flat = jnp.reshape(jnp.asarray(g, dtype=jnp.float32), (-1,))
+
+        lo, hi = self.bounds
+        span = jnp.maximum(hi - lo, 1e-6)
+        k = self.num_descriptors
+        if flat.shape[0] < k:
+            pad = jnp.zeros(k - flat.shape[0], dtype=flat.dtype)
+            flat = jnp.concatenate([flat, pad], axis=0)
+        return jnp.clip((flat[:k] - lo) / span, 0.0, 1.0)
+
+
+@struct.dataclass
 class QDOutput(BaseOutputMode):
     """QD (Quality Diversity) output mode: fitness + behavior descriptors.
 
@@ -351,6 +454,30 @@ class QDOutput(BaseOutputMode):
 
     scalar_output: ScalarOutput
     descriptor_fn: BaseDescriptorFn = struct.field(pytree_node=False)  # type: ignore[no-untyped-call]
+
+    @property
+    def maximize(self) -> bool:
+        """Optimization direction delegated from wrapped scalar output."""
+        return getattr(self.scalar_output, "maximize", False)
+
+    @classmethod
+    def create(
+        cls,
+        maximize: bool = False,
+        num_descriptors: int = 2,
+        bounds: tuple[float, float] = (-5.0, 5.0),
+        descriptor_fn: BaseDescriptorFn | None = None,
+        scalar_output: ScalarOutput | None = None,
+        **kwargs: Any,
+    ) -> QDOutput:
+        """Convenience factory for QDOutput instantiation."""
+        if scalar_output is None:
+            scalar_output = ScalarOutput(maximize=maximize, **kwargs)
+        if descriptor_fn is None:
+            descriptor_fn = GenotypeBoxDescriptorFn(
+                num_descriptors=num_descriptors, bounds=bounds
+            )
+        return cls(scalar_output=scalar_output, descriptor_fn=descriptor_fn)
 
     def process_sl(
         self, genome: Any, X: chex.Array, y: chex.Array, predictions: chex.Array

@@ -14,12 +14,16 @@ from malthusjax.core.fitness.binary_evaluators import (
     KnapsackEvaluator,
 )
 from malthusjax.core.fitness.composable.base import (
+    BaseDescriptorFn,
     BaseInterpreter,
     BaseOutputMode,
     BaseTransform,
+    GenotypeBoxDescriptorFn,
     IdentityTransform,
     MOOutput,
     QDOutput,
+    RLActionSummaryDescriptorFn,
+    RLFinalStateDescriptorFn,
     ScalarOutput,
 )
 from malthusjax.core.fitness.composable.environments import (
@@ -75,6 +79,10 @@ __all__ = [
     "ScalarOutput",
     "QDOutput",
     "MOOutput",
+    "BaseDescriptorFn",
+    "GenotypeBoxDescriptorFn",
+    "RLFinalStateDescriptorFn",
+    "RLActionSummaryDescriptorFn",
     "SklearnEnv",
     "CustomDatasetEnv",
     "BBOBEnv",

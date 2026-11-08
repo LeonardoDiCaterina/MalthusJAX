@@ -58,20 +58,27 @@ def _qdax_native_eval(evaluator, pop, state, key):
 
 
 def _qdax_malthusjax_eval(
-    evaluator: Any, genome_config: Any, maximize: bool = True
+    evaluator: Any,
+    genome_config: Any,
+    maximize: bool = True,
+    bounds: Tuple[float, float] = (-5.0, 5.0),
+    num_descriptors: int = 2,
 ) -> Callable[..., Any]:
     """Creates a QDax-compatible scoring function from a MalthusJAX evaluator.
 
     QDAX MAPElites expects a scoring_function with signature:
-    (genotypes, random_key) -> (fitnesses, descriptors, extra_scores, random_key)
+    (genotypes, random_key) -> (fitnesses, descriptors, extra_scores)
     """
+    from malthusjax.core.fitness.qd.evaluator import ensure_qd_evaluator, to_repertoire_fitness
+    from malthusjax.core.genome.qd.population import has_descriptors
+
+    qd_eval = ensure_qd_evaluator(evaluator, num_descriptors=num_descriptors, bounds=bounds)
 
     def scoring_fn(
         genotypes: chex.Array, random_key: chex.PRNGKey
     ) -> Tuple[chex.Array, chex.Array, Dict[str, Any]]:
         # QDax passes genotypes as a batch array. We wrap it in a MalthusJAX Population.
-        # We need the genome_config to know how to instantiate the genome (e.g. RealGenome).
-        # Import the correct Genome type based on the config. For now we assume RealGenome since QDax mostly uses continuous spaces.
+        from malthusjax.core.fitness.base import dispatch_evaluate_population
         from malthusjax.core.genome.real_genome import RealGenome, RealPopulation
 
         # Instantiate a population PyTree
@@ -81,21 +88,21 @@ def _qdax_malthusjax_eval(
         )
 
         # Evaluate QD
-        from malthusjax.core.fitness.base import dispatch_evaluate_population
-
-        updated_pop = dispatch_evaluate_population(evaluator, pop, random_key)
-        if hasattr(updated_pop, "descriptors") and updated_pop.descriptors is not None:
+        updated_pop = dispatch_evaluate_population(qd_eval, pop, random_key)
+        if has_descriptors(updated_pop):
             descriptors = updated_pop.descriptors
+        elif hasattr(updated_pop, "info") and "descriptors" in updated_pop.info:
+            descriptors = updated_pop.info["descriptors"]
         else:
-            descriptors = genotypes[:, :2]
+            lo, hi = float(bounds[0]), float(bounds[1])
+            span = max(hi - lo, 1e-6)
+            descriptors = jnp.clip((genotypes[:, :num_descriptors] - lo) / span, 0.0, 1.0)
 
         # extra_scores can be empty dict
         extra_scores: dict[str, Any] = {}
 
-        # QDAX always maximizes.
-        # If user wants to maximize, we pass it directly.
-        # If user wants to minimize, we negate it.
-        fit = updated_pop.fitness if maximize else -updated_pop.fitness
+        # Convert to higher-is-better repertoire fitness
+        fit = to_repertoire_fitness(evaluator, updated_pop.fitness, maximize)
 
         return fit, descriptors, extra_scores
 
@@ -201,6 +208,18 @@ def build_qdax_engine(
 ) -> Any:
     """Builds a QDaxEngineAdapter from QDAX components and a MalthusJAX evaluator."""
 
+    from malthusjax.composer.adapters.utils import resolve_bounds
+
+    # Bounds extraction
+    resolved_bounds = resolve_bounds(
+        kwargs.get("bounds"), evaluator, caller_name="build_qdax_engine"
+    )
+    num_desc = (
+        centroids.shape[1]
+        if centroids is not None and hasattr(centroids, "shape")
+        else int(kwargs.get("num_descriptors", kwargs.get("qdax_num_descriptors", 2)))
+    )
+
     scoring_fn: Any
     if eval_mode == EvalMode.MALTHUSJAX:
         # We need the genome config to know how to build Populations.
@@ -225,7 +244,13 @@ def build_qdax_engine(
             genome_config = RealGenomeConfig(shape=shape)
 
         # Build the scoring function wrapper
-        scoring_fn = _qdax_malthusjax_eval(evaluator, genome_config, maximize)
+        scoring_fn = _qdax_malthusjax_eval(
+            evaluator,
+            genome_config,
+            maximize,
+            bounds=resolved_bounds,
+            num_descriptors=num_desc,
+        )
         problem_eval = evaluator
     else:
         # Native QDAX tasks like Brax/Jumanji come with their own scoring_function natively
@@ -237,13 +262,6 @@ def build_qdax_engine(
 
     strategy = strategy_cls(
         scoring_function=scoring_fn, emitter=emitter, metrics_function=metrics_function
-    )
-
-    from malthusjax.composer.adapters.utils import resolve_bounds
-
-    # Bounds extraction
-    resolved_bounds = resolve_bounds(
-        kwargs.get("bounds"), evaluator, caller_name="build_qdax_engine"
     )
 
     init_pop = kwargs.get("initial_population", init_variables)
