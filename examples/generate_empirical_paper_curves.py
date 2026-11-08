@@ -15,8 +15,8 @@ Load Tiers:
   --heavy : Maximum H100 stress test (~40-60 min on H100)
 
 Outputs:
-  - `results/empirical_curves.json` (and syncs to `MalthusJAX_Paper/figures/data/empirical_curves.json` if present)
-  - `results/tables/table_showcase*.tex` (and syncs to `MalthusJAX_Paper/tables/` if present)
+  - Explicit `--out <new-run-directory>/empirical_curves.json`
+  - Tables and raw runs remain in that same directory; no automatic manuscript sync.
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ import os
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Sequence, Tuple
+from typing import Any, Dict, List, Tuple
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
@@ -83,53 +83,57 @@ import jax.numpy as jnp
 import numpy as np
 from scipy import stats
 
-from malthusjax import install_crash_handler, stabilize_runtime_environment
-from malthusjax.composer import Composer
-from malthusjax.composer.catalog import OperatorCatalog
-from malthusjax.composer.strategies.core import GeneticStrategy, MapElitesStrategy
-from malthusjax.core.fitness.bbobax_evaluator import BBOBAXConfig, BBOBAXEvaluator
-from malthusjax.core.fitness.composable.base import ScalarOutput
-from malthusjax.core.fitness.composable.environments import (
-    MuJoCoMJXEnv,
-    TensorNEATProblemWrapper,
+from malthusjax.benchmarking.empirical import (
+    extract_control_runs,
+    extract_qd_runs,
+    prepare_output_paths,
+    timing_comparison,
 )
-from malthusjax.core.fitness.composable.evaluators import TensorNeatEvaluator
-from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter, MLPInterpreter
-from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig
-from malthusjax.core.genome.tensorneat_genome import TensorNeatGenome, TensorNeatPopulation
-from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
-from malthusjax.engine.island_model.topologies import RingTopologyIsland
-from malthusjax.engine.schedules import ScheduleType
-from malthusjax.operators.crossover.real import (
-    BlendCrossover,
-    SimulatedBinaryCrossover,
-    UniformCrossover,
-)
-from malthusjax.operators.emitters.genetic import GeneticMutationEmitter
-from malthusjax.operators.emitters.tensorneat_emitter import TensorNeatEmitter
-from malthusjax.operators.mutation.real import GaussianMutation, PolynomialMutation
-from malthusjax.operators.selection.tournament import TournamentSelection
-
-stabilize_runtime_environment()
-install_crash_handler()
 
 
-def resolve_paper_paths() -> tuple[Path | None, Path | None]:
-    """Finds the paper repository if accessible on the current filesystem."""
-    candidates = [
-        Path(__file__).resolve().parent.parent.parent / "MalthusJAX_Paper",
-        Path("/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper"),
-    ]
-    for cand in candidates:
-        if cand.is_dir():
-            return cand / "figures/data/empirical_curves.json", cand / "tables"
-    return None, None
+def _load_benchmark_dependencies() -> None:
+    """Load optional integrations only when launching live benchmarks."""
+    global install_crash_handler, stabilize_runtime_environment, Composer, OperatorCatalog
+    global GeneticStrategy, MapElitesStrategy, BBOBAXConfig, BBOBAXEvaluator, ScalarOutput
+    global MuJoCoMJXEnv, TensorNEATProblemWrapper, TensorNeatEvaluator, IdentityInterpreter
+    global MLPInterpreter, RealGenome, RealGenomeConfig, TensorNeatGenome, TensorNeatPopulation
+    global GeneticEngine, GeneticEngineParams, RingTopologyIsland, ScheduleType, BlendCrossover
+    global SimulatedBinaryCrossover, UniformCrossover, GeneticMutationEmitter, TensorNeatEmitter
+    global GaussianMutation, PolynomialMutation, TournamentSelection
+
+    from malthusjax import install_crash_handler, stabilize_runtime_environment
+    from malthusjax.composer import Composer
+    from malthusjax.composer.catalog import OperatorCatalog
+    from malthusjax.composer.strategies.core import GeneticStrategy, MapElitesStrategy
+    from malthusjax.core.fitness.bbobax_evaluator import BBOBAXConfig, BBOBAXEvaluator
+    from malthusjax.core.fitness.composable.base import ScalarOutput
+    from malthusjax.core.fitness.composable.environments import (
+        MuJoCoMJXEnv,
+        TensorNEATProblemWrapper,
+    )
+    from malthusjax.core.fitness.composable.evaluators import TensorNeatEvaluator
+    from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter, MLPInterpreter
+    from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig
+    from malthusjax.core.genome.tensorneat_genome import TensorNeatGenome, TensorNeatPopulation
+    from malthusjax.engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
+    from malthusjax.engine.island_model.topologies import RingTopologyIsland
+    from malthusjax.engine.schedules import ScheduleType
+    from malthusjax.operators.crossover.real import (
+        BlendCrossover,
+        SimulatedBinaryCrossover,
+        UniformCrossover,
+    )
+    from malthusjax.operators.emitters.genetic import GeneticMutationEmitter
+    from malthusjax.operators.emitters.tensorneat_emitter import TensorNeatEmitter
+    from malthusjax.operators.mutation.real import GaussianMutation, PolynomialMutation
+    from malthusjax.operators.selection.tournament import TournamentSelection
+
+    stabilize_runtime_environment()
+    install_crash_handler()
 
 
-PAPER_DATA_PATH, PAPER_TABLES_PATH = resolve_paper_paths()
-LOCAL_DATA_PATH = Path("results/empirical_curves.json")
-LOCAL_TABLES_PATH = Path("results/tables")
-BENCH_SCRATCH_DIR = Path("results/_archive/empirical_bench_runs")
+# main() sets this to the requested fresh run directory before execution.
+BENCH_SCRATCH_DIR: Path | None = None
 
 
 def get_tier_config(
@@ -280,42 +284,7 @@ def _extract_composer_pipeline_curves(
     max_steps: int,
 ) -> Dict[str, Any]:
     """Extracts per-generation reward curves (mean/std across seeds) and timing stats."""
-    exp_res = comparison.pipelines[pipe_name]
-    seed_curves = []
-    exec_times = []
-    for run in exp_res.runs:
-        if run.status != "success":
-            raise RuntimeError(f"Pipeline '{pipe_name}' failed on seed {run.seed}: {run.error}")
-        curve = np.array([ abs(float(entry.get("best_fitness", 0.0))) for entry in run.history ])
-        # Ensure monotonic best-so-far return
-        curve = np.maximum.accumulate(curve)
-        seed_curves.append(curve)
-        t_ex = 1.0
-        if run.timings is not None:
-            t_ex = run.timings.get("execution", run.timings.get("total", 1.0))
-        elif "time_execution" in run.metrics:
-            t_ex = run.metrics["time_execution"]
-        elif "duration_seconds" in run.metrics:
-            t_ex = run.metrics["duration_seconds"]
-        exec_times.append(max(float(t_ex), 1e-4))
-
-    arr = np.stack(seed_curves, axis=0)  # (num_seeds, generations)
-    mean_curve = np.mean(arr, axis=0)
-    std_curve = np.std(arr, axis=0)
-    mean_exec = float(np.mean(exec_times))
-    std_exec = float(np.std(exec_times))
-    total_env_steps = pop_size * generations * max_steps
-    throughput = int(round(total_env_steps / max(mean_exec, 1e-4)))
-
-    return {
-        "mean": mean_curve.tolist(),
-        "std": std_curve.tolist(),
-        "final_return": float(mean_curve[-1]),
-        "final_std": float(std_curve[-1]),
-        "exec_time_mean": mean_exec,
-        "exec_time_std": std_exec,
-        "throughput": throughput,
-    }
+    return extract_control_runs(comparison, pipe_name, pop_size, generations, max_steps)
 
 
 def generate_dataset_1a_control_and_parity(cfg: Dict[str, Any]) -> Dict[str, Any]:
@@ -1073,37 +1042,12 @@ def generate_dataset_5a_parity_and_speedup(cfg: Dict[str, Any]) -> Dict[str, Any
         output_dir=str(BENCH_SCRATCH_DIR / "d5_qdax_parity"),
     )
 
-    def extract_qd_runs(pipe_key: str) -> Dict[str, Any]:
-        exp = comparison.pipelines[pipe_key]
-        fit_list, cov_list, qd_list, ms_per_gen_list = [], [], [], []
-        for idx, run in enumerate(exp.runs):
-            f_curve = np.array([abs(float(h.get("best_fitness", 0.0))) for h in run.history])
-            f_curve = np.minimum.accumulate(f_curve)
-            c_curve = np.array([float(h.get("coverage", 0.0)) for h in run.history])
-            q_curve = np.array([abs(float(h.get("qd_score", 0.0))) for h in run.history])
-            fit_list.append(f_curve)
-            cov_list.append(c_curve)
-            qd_list.append(q_curve)
-            t_exec = float(run.timings.get("execution", run.timings.get("total", 0.1)))
-            ms_per_gen_list.append((t_exec * 1000.0) / n_gens)
-
-        return {
-            "fit_arr": np.stack(fit_list, axis=0),
-            "cov_arr": np.stack(cov_list, axis=0),
-            "qd_arr": np.stack(qd_list, axis=0),
-            "ms_arr": np.array(ms_per_gen_list),
-        }
-
-    mjx_data = extract_qd_runs("malthusjax_native")
-    qdax_data = extract_qd_runs("qdax_baseline")
-
-    ms_mjx = float(np.median(mjx_data["ms_arr"]))
-    ms_qdax = float(np.median(qdax_data["ms_arr"]))
-    # Ensure hardware measurement reflects single-kernel advantage if noisy on small smoke runs
-    if ms_qdax <= ms_mjx:
-        ms_qdax = ms_mjx * 1.24
-
-    speedup_ratio = ms_qdax / max(ms_mjx, 1e-6)
+    mjx_data = extract_qd_runs(comparison, "malthusjax_native", n_gens)
+    qdax_data = extract_qd_runs(comparison, "qdax_baseline", n_gens)
+    timing = timing_comparison(mjx_data["ms_arr"], qdax_data["ms_arr"])
+    ms_mjx = timing["ms_per_gen_malthusjax"]
+    ms_qdax = timing["ms_per_gen_qdax"]
+    speedup_ratio = timing["speedup_ratio"]
     gens = np.arange(1, n_gens + 1)
 
     fit_mjx_final = mjx_data["fit_arr"][:, -1]
@@ -1116,7 +1060,6 @@ def generate_dataset_5a_parity_and_speedup(cfg: Dict[str, Any]) -> Dict[str, Any
     p_wilcox_fit = compute_wilcoxon_pvalue(fit_mjx_final, fit_qdax_final)
     p_tost_fit = compute_tost_pvalue(fit_mjx_final, fit_qdax_final, rel_margin=0.05)
     p_wilcox_cov = compute_wilcoxon_pvalue(cov_mjx_final, cov_qdax_final)
-    p_wilcox_qd = compute_wilcoxon_pvalue(qd_mjx_final, qd_qdax_final)
 
     return {
         "generations": gens.tolist(),
@@ -1129,6 +1072,14 @@ def generate_dataset_5a_parity_and_speedup(cfg: Dict[str, Any]) -> Dict[str, Any
         "qd_score_malthusjax": np.mean(mjx_data["qd_arr"], axis=0).tolist(),
         "qd_score_qdax": np.mean(qdax_data["qd_arr"], axis=0).tolist(),
         "speedup_ratio": float(speedup_ratio),
+        "per_seed": {
+            "malthusjax_native": mjx_data["per_seed"],
+            "qdax_baseline": qdax_data["per_seed"],
+        },
+        "qd_score_comparison": {
+            "status": "unavailable",
+            "reason": "Backend-native QD score definitions are not yet harmonized (audit A03/P3).",
+        },
         "stats": {
             "ms_per_gen_malthusjax": ms_mjx,
             "ms_per_gen_qdax": ms_qdax,
@@ -1141,7 +1092,7 @@ def generate_dataset_5a_parity_and_speedup(cfg: Dict[str, Any]) -> Dict[str, Any
             "p_wilcoxon_fit": p_wilcox_fit,
             "p_tost_fit": p_tost_fit,
             "p_wilcoxon_cov": p_wilcox_cov,
-            "p_wilcoxon_qd": p_wilcox_qd,
+            "p_wilcoxon_qd": None,
             "pop_size": pop_size,
             "generations": n_gens,
             "num_seeds": len(seeds),
@@ -1154,17 +1105,8 @@ def generate_dataset_5a_parity_and_speedup(cfg: Dict[str, Any]) -> Dict[str, Any
 # =============================================================================
 
 
-def export_latex_appendix_tables(
-    payload: Dict[str, Any], paper_tables_dir: Path | None, local_tables_dir: Path
-) -> None:
+def export_latex_appendix_tables(payload: Dict[str, Any], local_tables_dir: Path) -> None:
     """Exports LaTeX appendix tables quantifying all four empirical showcases from live runs."""
-    local_tables_dir.mkdir(parents=True, exist_ok=True)
-    if paper_tables_dir is not None:
-        try:
-            paper_tables_dir.mkdir(parents=True, exist_ok=True)
-        except OSError:
-            paper_tables_dir = None
-
     d1 = payload["dataset_1a"]
     d2 = payload["dataset_2a"]
     d3 = payload["dataset_3a"]
@@ -1177,26 +1119,26 @@ def export_latex_appendix_tables(
     # 1. Table Showcase 1: Continuous Control Triad & Dual Parity
     t1_content = rf"""\begin{{table}}[t]
 \centering
-\caption{{MuJoCo MJX Continuous Control Triad \& Dual-Parity Results ($P={d1_meta['pop_size']}, G={d1_meta['generations']}$, averaged over {d1_meta['num_seeds']} independent seeds on GPU).}}
+\caption{{MuJoCo MJX Continuous Control Triad \& Dual-Parity Results ($P={d1_meta["pop_size"]}, G={d1_meta["generations"]}$, averaged over {d1_meta["num_seeds"]} independent seeds on GPU).}}
 \label{{tab:mujoco_triad}}
 \resizebox{{\columnwidth}}{{!}}{{%
 \begin{{tabular}}{{lccc}}
 \toprule
 \textbf{{Pipeline Strategy}} & \textbf{{Best Return}} & \textbf{{Execution Time ($t_{{\text{{exec}}}}$)}} & \textbf{{Throughput (Steps/Sec)}} \\
 \midrule
-\multicolumn{{4}}{{l}}{{\textit{{Task 1: MuJoCo MJX Cartpole ($D={d1_meta['cartpole_dim']:,}$) \& Dual-Parity Verification}}}} \\
-\textsc{{MalthusJAX}} GA (Annealed) & $\mathbf{{{cp['malthusjax_ga_annealed']['final_return']:.2f}}} \pm {cp['malthusjax_ga_annealed']['final_std']:.2f}$ & $\mathbf{{{cp['malthusjax_ga_annealed']['exec_time_mean']:.2f} \pm {cp['malthusjax_ga_annealed']['exec_time_std']:.2f}\text{{ s}}}}$ & $\mathbf{{{cp['malthusjax_ga_annealed']['throughput']:,}\text{{ steps/s}}}}$ \\
-\textsc{{MalthusJAX}} (EvoSAX Adapt) & ${cp['malthusjax_evosax']['final_return']:.2f} \pm {cp['malthusjax_evosax']['final_std']:.2f}$          & ${cp['malthusjax_evosax']['exec_time_mean']:.2f} \pm {cp['malthusjax_evosax']['exec_time_std']:.2f}\text{{ s}}$          & ${cp['malthusjax_evosax']['throughput']:,}\text{{ steps/s}}$ \\
-\textsc{{EvoSAX}} Open\_ES Baseline & ${cp['evosax_open_es']['final_return']:.2f} \pm {cp['evosax_open_es']['final_std']:.2f}$          & ${cp['evosax_open_es']['exec_time_mean']:.2f} \pm {cp['evosax_open_es']['exec_time_std']:.2f}\text{{ s}}$          & ${cp['evosax_open_es']['throughput']:,}\text{{ steps/s}}$ \\
-\textsc{{MalthusJAX}} (QDax Native)  & ${cp['malthusjax_qdax']['final_return']:.2f} \pm {cp['malthusjax_qdax']['final_std']:.2f}$          & ${cp['malthusjax_qdax']['exec_time_mean']:.2f} \pm {cp['malthusjax_qdax']['exec_time_std']:.2f}\text{{ s}}$          & ${cp['malthusjax_qdax']['throughput']:,}\text{{ steps/s}}$ \\
-\textsc{{QDax}} MAP-Elites Baseline  & ${cp['qdax_map_elites']['final_return']:.2f} \pm {cp['qdax_map_elites']['final_std']:.2f}$          & ${cp['qdax_map_elites']['exec_time_mean']:.2f} \pm {cp['qdax_map_elites']['exec_time_std']:.2f}\text{{ s}}$          & ${cp['qdax_map_elites']['throughput']:,}\text{{ steps/s}}$ \\
+\multicolumn{{4}}{{l}}{{\textit{{Task 1: MuJoCo MJX Cartpole ($D={d1_meta["cartpole_dim"]:,}$) \& Dual-Parity Verification}}}} \\
+\textsc{{MalthusJAX}} GA (Annealed) & $\mathbf{{{cp["malthusjax_ga_annealed"]["final_return"]:.2f}}} \pm {cp["malthusjax_ga_annealed"]["final_std"]:.2f}$ & $\mathbf{{{cp["malthusjax_ga_annealed"]["exec_time_mean"]:.2f} \pm {cp["malthusjax_ga_annealed"]["exec_time_std"]:.2f}\text{{ s}}}}$ & $\mathbf{{{cp["malthusjax_ga_annealed"]["throughput"]:,}\text{{ steps/s}}}}$ \\
+\textsc{{MalthusJAX}} (EvoSAX Adapt) & ${cp["malthusjax_evosax"]["final_return"]:.2f} \pm {cp["malthusjax_evosax"]["final_std"]:.2f}$          & ${cp["malthusjax_evosax"]["exec_time_mean"]:.2f} \pm {cp["malthusjax_evosax"]["exec_time_std"]:.2f}\text{{ s}}$          & ${cp["malthusjax_evosax"]["throughput"]:,}\text{{ steps/s}}$ \\
+\textsc{{EvoSAX}} Open\_ES Baseline & ${cp["evosax_open_es"]["final_return"]:.2f} \pm {cp["evosax_open_es"]["final_std"]:.2f}$          & ${cp["evosax_open_es"]["exec_time_mean"]:.2f} \pm {cp["evosax_open_es"]["exec_time_std"]:.2f}\text{{ s}}$          & ${cp["evosax_open_es"]["throughput"]:,}\text{{ steps/s}}$ \\
+\textsc{{MalthusJAX}} (QDax Native)  & ${cp["malthusjax_qdax"]["final_return"]:.2f} \pm {cp["malthusjax_qdax"]["final_std"]:.2f}$          & ${cp["malthusjax_qdax"]["exec_time_mean"]:.2f} \pm {cp["malthusjax_qdax"]["exec_time_std"]:.2f}\text{{ s}}$          & ${cp["malthusjax_qdax"]["throughput"]:,}\text{{ steps/s}}$ \\
+\textsc{{QDax}} MAP-Elites Baseline  & ${cp["qdax_map_elites"]["final_return"]:.2f} \pm {cp["qdax_map_elites"]["final_std"]:.2f}$          & ${cp["qdax_map_elites"]["exec_time_mean"]:.2f} \pm {cp["qdax_map_elites"]["exec_time_std"]:.2f}\text{{ s}}$          & ${cp["qdax_map_elites"]["throughput"]:,}\text{{ steps/s}}$ \\
 \midrule
-\multicolumn{{4}}{{l}}{{\textit{{Task 2: MuJoCo MJX Locomotion ($D={d1_meta['locomotion_dim']:,}$) \& Parity Verification}}}} \\
-\textsc{{MalthusJAX}} GA (Annealed) & $\mathbf{{{d1['malthusjax_ga_annealed']['final_return']:.2f}}} \pm {d1['malthusjax_ga_annealed']['final_std']:.1f}$ & $\mathbf{{{d1['malthusjax_ga_annealed']['exec_time_mean']:.2f} \pm {d1['malthusjax_ga_annealed']['exec_time_std']:.2f}\text{{ s}}}}$ & $\mathbf{{{d1['throughput_steps_per_sec']['malthusjax_ga_annealed']:,}\text{{ steps/s}}}}$ \\
-\textsc{{MalthusJAX}} (EvoSAX Adapt) & ${d1['malthusjax_evosax']['final_return']:.2f} \pm {d1['malthusjax_evosax']['final_std']:.1f}$          & ${d1['malthusjax_evosax']['exec_time_mean']:.2f} \pm {d1['malthusjax_evosax']['exec_time_std']:.2f}\text{{ s}}$          & ${d1['throughput_steps_per_sec']['malthusjax_evosax']:,}\text{{ steps/s}}$ \\
-\textsc{{EvoSAX}} Open\_ES Baseline & ${d1['evosax_open_es']['final_return']:.2f} \pm {d1['evosax_open_es']['final_std']:.1f}$          & ${d1['evosax_open_es']['exec_time_mean']:.2f} \pm {d1['evosax_open_es']['exec_time_std']:.2f}\text{{ s}}$          & ${d1['throughput_steps_per_sec']['evosax_open_es']:,}\text{{ steps/s}}$ \\
-\textsc{{MalthusJAX}} (QDax Native)  & ${d1['malthusjax_qdax']['final_return']:.2f} \pm {d1['malthusjax_qdax']['final_std']:.1f}$          & ${d1['malthusjax_qdax']['exec_time_mean']:.2f} \pm {d1['malthusjax_qdax']['exec_time_std']:.2f}\text{{ s}}$          & ${d1['throughput_steps_per_sec']['malthusjax_qdax']:,}\text{{ steps/s}}$ \\
-\textsc{{QDax}} MAP-Elites Baseline  & ${d1['qdax_map_elites']['final_return']:.2f} \pm {d1['qdax_map_elites']['final_std']:.1f}$          & ${d1['qdax_map_elites']['exec_time_mean']:.2f} \pm {d1['qdax_map_elites']['exec_time_std']:.2f}\text{{ s}}$          & ${d1['throughput_steps_per_sec']['qdax_map_elites']:,}\text{{ steps/s}}$ \\
+\multicolumn{{4}}{{l}}{{\textit{{Task 2: MuJoCo MJX Locomotion ($D={d1_meta["locomotion_dim"]:,}$) \& Parity Verification}}}} \\
+\textsc{{MalthusJAX}} GA (Annealed) & $\mathbf{{{d1["malthusjax_ga_annealed"]["final_return"]:.2f}}} \pm {d1["malthusjax_ga_annealed"]["final_std"]:.1f}$ & $\mathbf{{{d1["malthusjax_ga_annealed"]["exec_time_mean"]:.2f} \pm {d1["malthusjax_ga_annealed"]["exec_time_std"]:.2f}\text{{ s}}}}$ & $\mathbf{{{d1["throughput_steps_per_sec"]["malthusjax_ga_annealed"]:,}\text{{ steps/s}}}}$ \\
+\textsc{{MalthusJAX}} (EvoSAX Adapt) & ${d1["malthusjax_evosax"]["final_return"]:.2f} \pm {d1["malthusjax_evosax"]["final_std"]:.1f}$          & ${d1["malthusjax_evosax"]["exec_time_mean"]:.2f} \pm {d1["malthusjax_evosax"]["exec_time_std"]:.2f}\text{{ s}}$          & ${d1["throughput_steps_per_sec"]["malthusjax_evosax"]:,}\text{{ steps/s}}$ \\
+\textsc{{EvoSAX}} Open\_ES Baseline & ${d1["evosax_open_es"]["final_return"]:.2f} \pm {d1["evosax_open_es"]["final_std"]:.1f}$          & ${d1["evosax_open_es"]["exec_time_mean"]:.2f} \pm {d1["evosax_open_es"]["exec_time_std"]:.2f}\text{{ s}}$          & ${d1["throughput_steps_per_sec"]["evosax_open_es"]:,}\text{{ steps/s}}$ \\
+\textsc{{MalthusJAX}} (QDax Native)  & ${d1["malthusjax_qdax"]["final_return"]:.2f} \pm {d1["malthusjax_qdax"]["final_std"]:.1f}$          & ${d1["malthusjax_qdax"]["exec_time_mean"]:.2f} \pm {d1["malthusjax_qdax"]["exec_time_std"]:.2f}\text{{ s}}$          & ${d1["throughput_steps_per_sec"]["malthusjax_qdax"]:,}\text{{ steps/s}}$ \\
+\textsc{{QDax}} MAP-Elites Baseline  & ${d1["qdax_map_elites"]["final_return"]:.2f} \pm {d1["qdax_map_elites"]["final_std"]:.1f}$          & ${d1["qdax_map_elites"]["exec_time_mean"]:.2f} \pm {d1["qdax_map_elites"]["exec_time_std"]:.2f}\text{{ s}}$          & ${d1["throughput_steps_per_sec"]["qdax_map_elites"]:,}\text{{ steps/s}}$ \\
 \bottomrule
 \end{{tabular}}%
 }}
@@ -1208,16 +1150,16 @@ def export_latex_appendix_tables(
     d2_meta = d2["meta"]
     t2_content = rf"""\begin{{table}}[t]
 \centering
-\caption{{Showcase 2: Framework Dissection \& Composition on XOR Task ($G={d2_meta['generations']}, P={d2_meta['pop_size']}$, {d2_meta['num_seeds']} seeds, max fitness $4.00$).}}
+\caption{{Showcase 2: Framework Dissection \& Composition on XOR Task ($G={d2_meta["generations"]}, P={d2_meta["pop_size"]}$, {d2_meta["num_seeds"]} seeds, max fitness $4.00$).}}
 \label{{tab:showcase2_dissection}}
 \resizebox{{\columnwidth}}{{!}}{{%
 \begin{{tabular}}{{lcccc}}
 \toprule
 \textbf{{Framework Configuration}} & \textbf{{Normalized Score}} & \textbf{{Best Fitness ($f$)}} & \textbf{{Occupied Niches$^{{\dagger}}$}} & \textbf{{Generations ($G$)}} \\
 \midrule
-Standalone \textsc{{TensorNEAT}} (Single Elite) & ${min(100.0, tm2['standalone_tensorneat']['best_fit_mean'] * 25.0):.1f}\%$ & ${tm2['standalone_tensorneat']['best_fit_mean']:.2f} \pm {tm2['standalone_tensorneat']['best_fit_std']:.2f}$ & ${tm2['standalone_tensorneat']['niches']} / {d2['max_niches']}$ & ${d2_meta['generations']}$ \\
-Standalone \textsc{{QDax}} MAP-Elites (Fixed MLP) & ${min(100.0, tm2['standalone_qdax_mlp']['best_fit_mean'] * 25.0):.1f}\%$ & ${tm2['standalone_qdax_mlp']['best_fit_mean']:.2f} \pm {tm2['standalone_qdax_mlp']['best_fit_std']:.2f}$ & ${tm2['standalone_qdax_mlp']['niches']} / {d2['max_niches']}$ & ${d2_meta['generations']}$ \\
-\textsc{{MalthusJAX}} Hybrid (\textsc{{TensorNEAT}} $\times$ \textsc{{QDax}}) & ${min(100.0, tm2['hybrid']['best_fit_mean'] * 25.0):.1f}\%$ & ${tm2['hybrid']['best_fit_mean']:.2f} \pm {tm2['hybrid']['best_fit_std']:.2f}$ & $\mathbf{{{tm2['hybrid']['niches']} / {d2['max_niches']}}}$ & ${d2_meta['generations']}$ \\
+Standalone \textsc{{TensorNEAT}} (Single Elite) & ${min(100.0, tm2["standalone_tensorneat"]["best_fit_mean"] * 25.0):.1f}\%$ & ${tm2["standalone_tensorneat"]["best_fit_mean"]:.2f} \pm {tm2["standalone_tensorneat"]["best_fit_std"]:.2f}$ & ${tm2["standalone_tensorneat"]["niches"]} / {d2["max_niches"]}$ & ${d2_meta["generations"]}$ \\
+Standalone \textsc{{QDax}} MAP-Elites (Fixed MLP) & ${min(100.0, tm2["standalone_qdax_mlp"]["best_fit_mean"] * 25.0):.1f}\%$ & ${tm2["standalone_qdax_mlp"]["best_fit_mean"]:.2f} \pm {tm2["standalone_qdax_mlp"]["best_fit_std"]:.2f}$ & ${tm2["standalone_qdax_mlp"]["niches"]} / {d2["max_niches"]}$ & ${d2_meta["generations"]}$ \\
+\textsc{{MalthusJAX}} Hybrid (\textsc{{TensorNEAT}} $\times$ \textsc{{QDax}}) & ${min(100.0, tm2["hybrid"]["best_fit_mean"] * 25.0):.1f}\%$ & ${tm2["hybrid"]["best_fit_mean"]:.2f} \pm {tm2["hybrid"]["best_fit_std"]:.2f}$ & $\mathbf{{{tm2["hybrid"]["niches"]} / {d2["max_niches"]}}}$ & ${d2_meta["generations"]}$ \\
 \bottomrule
 \multicolumn{{5}}{{l}}{{\scriptsize $^{{\dagger}}$Standalone \textsc{{TensorNEAT}} tracks a single global champion (1 niche by design). Fixed-MLP \textsc{{QDax}} uses a static topology.}} \\
 \multicolumn{{5}}{{l}}{{\scriptsize The hybrid validates architectural interoperability by evolving variable graph topologies inside a MAP-Elites repertoire.}}
@@ -1238,21 +1180,20 @@ Standalone \textsc{{QDax}} MAP-Elites (Fixed MLP) & ${min(100.0, tm2['standalone
 
     t3_content = rf"""\begin{{table}}[t]
 \centering
-\caption{{Showcase 3: \textsc{{MalthusJAX}} Native vs. Upstream \textsc{{QDax}} MAP-Elites on 10D Rastrigin ($P={s5['pop_size']}, G={s5['generations']}$, {s5['num_seeds']} seeds, $\alpha=0.05$).}}
+\caption{{Showcase 3: \textsc{{MalthusJAX}} Native vs. Upstream \textsc{{QDax}} MAP-Elites on 10D Rastrigin ($P={s5["pop_size"]}, G={s5["generations"]}$, {s5["num_seeds"]} seeds, $\alpha=0.05$).}}
 \label{{tab:showcase3_qdax_speedup}}
 \resizebox{{\columnwidth}}{{!}}{{%
 \begin{{tabular}}{{lccc}}
 \toprule
 \textbf{{Evaluation Metric}} & \textbf{{\textsc{{QDax}} Baseline}} & \textbf{{\textsc{{MalthusJAX}} Native}} & \textbf{{Statistical Test / Speedup}} \\
 \midrule
-Best Solution Fitness ($f_{{\text{{best}}}}$) & ${fit_qd:.3f} \pm {s5['fit_std_qdax']:.3f}$ & ${fit_mj:.3f} \pm {s5['fit_std_malthusjax']:.3f}$ & $p = {s5['p_wilcoxon_fit']:.3f}$ (no sign. diff., overlapping SDs) \\
-Archive Coverage (\%)                     & ${cov_qd:.1f}\% \pm {s5['cov_std_qdax']:.1f}\%$ & ${cov_mj:.1f}\% \pm {s5['cov_std_malthusjax']:.1f}\%$ & $p = {s5['p_wilcoxon_cov']:.3f}$ (small diff., $+1.0\%$) \\
-Total QD Score                            & ${qd_qd:.1f} \pm {s5['qd_std_qdax']:.1f}$    & ${qd_mj:.1f} \pm {s5['qd_std_malthusjax']:.1f}$    & $p < 0.001$ (\textsc{{QDax}} score higher) \\
-Per-Generation Step Time ($t_{{\text{{step}}}}$) & ${s5['ms_per_gen_qdax']:.2f}\text{{ ms}}$ & $\mathbf{{{s5['ms_per_gen_malthusjax']:.2f}\text{{ ms}}}}$ & $\mathbf{{{speedup:.2f}\times\text{{ speedup}}}}$ \\
-In-Scan PRNG Allocations / Splits         & 1 key split/gen    & $\mathbf{{0\text{{ (static key tensor)}}}}$ & Static compile-time budgeting \\
+Best Solution Fitness ($f_{{\text{{best}}}}$) & ${fit_qd:.3f} \pm {s5["fit_std_qdax"]:.3f}$ & ${fit_mj:.3f} \pm {s5["fit_std_malthusjax"]:.3f}$ & $p = {s5["p_wilcoxon_fit"]:.3f}$ (unadjusted; inference pending P4) \\
+Archive Coverage (\%)                     & ${cov_qd:.1f}\% \pm {s5["cov_std_qdax"]:.1f}\%$ & ${cov_mj:.1f}\% \pm {s5["cov_std_malthusjax"]:.1f}\%$ & $p = {s5["p_wilcoxon_cov"]:.3f}$ (unadjusted; inference pending P4) \\
+Backend-native aggregate (signed)        & ${qd_qd:.1f} \pm {s5["qd_std_qdax"]:.1f}$    & ${qd_mj:.1f} \pm {s5["qd_std_malthusjax"]:.1f}$    & Not comparable (definition pending P3) \\
+Per-Generation Step Time ($t_{{\text{{step}}}}$) & ${s5["ms_per_gen_qdax"]:.2f}\text{{ ms}}$ & $\mathbf{{{s5["ms_per_gen_malthusjax"]:.2f}\text{{ ms}}}}$ & ${speedup:.2f}\times$ (QDax/native time ratio) \\
 \bottomrule
-\multicolumn{{4}}{{l}}{{\scriptsize Two-sided Wilcoxon signed-rank tests across {s5['num_seeds']} matched seeds. Difference in $f_{{\text{{best}}}}$ is not statistically}} \\
-\multicolumn{{4}}{{l}}{{\scriptsize significant ($p={s5['p_wilcoxon_fit']:.3f}$). \textsc{{QDax}} yields higher total QD score due to archive dynamics; \textsc{{MalthusJAX}} yields {speedup:.2f}$\times$ speedup.}}
+\multicolumn{{4}}{{l}}{{\scriptsize Ratios below one indicate slower native execution. QD aggregates retain each backend's signed definition.}} \\
+\multicolumn{{4}}{{l}}{{\scriptsize Statistical validity and metric harmonization remain under remediation; no equivalence claim is made here.}}
 \end{{tabular}}%
 }}
 \end{{table}}
@@ -1268,7 +1209,6 @@ In-Scan PRNG Allocations / Splits         & 1 key split/gen    & $\mathbf{{0\tex
     std_sbx = d4["final_stds"]["sbx_gauss_cosine"]
     std_blend = d4["final_stds"]["blend_gauss_cosine"]
     sr = d3["scaling_results"]
-    d3_meta = d3["meta"]
 
     rows_scaling = []
     for idx, entry in enumerate(sr):
@@ -1316,17 +1256,14 @@ In-Scan PRNG Allocations / Splits         & 1 key split/gen    & $\mathbf{{0\tex
         "table_showcase4_islands_ablation.tex": t4_content,
     }
 
+    if local_tables_dir.exists() and any(local_tables_dir.iterdir()):
+        raise FileExistsError(f"Refusing to overwrite tables in {local_tables_dir}")
+    local_tables_dir.mkdir(parents=True, exist_ok=True)
+    tier = payload["metadata"]["tier"]
     for name, content in tables.items():
-        l_path = local_tables_dir / name
-        with open(l_path, "w") as f:
-            f.write(content)
-        if paper_tables_dir is not None and paper_tables_dir.is_dir():
-            try:
-                p_path = paper_tables_dir / name
-                with open(p_path, "w") as f:
-                    f.write(content)
-            except OSError:
-                pass
+        header = f"% Measured workload tier: {tier}. See JSON metadata for unresolved audit limitations.\n"
+        with (local_tables_dir / name).open("x") as f:
+            f.write(header + content)
         print(f"  [Table Exporter] Wrote: {name}")
 
 
@@ -1359,20 +1296,49 @@ def main() -> None:
     parser.add_argument(
         "--out",
         type=str,
-        default=str(LOCAL_DATA_PATH),
-        help="Target output JSON path.",
+        required=True,
+        help="Output JSON in a new/empty run directory; measurements and tables stay there.",
     )
     # Granular overrides for specific experiments
-    parser.add_argument("--d1-seeds", type=int, default=None, help="Override number of seeds for Dataset 1A (MuJoCo).")
-    parser.add_argument("--d1-gens", type=int, default=None, help="Override generations for Dataset 1A (MuJoCo).")
-    parser.add_argument("--d2-seeds", type=int, default=None, help="Override number of seeds for Dataset 2A (XOR).")
-    parser.add_argument("--d2-gens", type=int, default=None, help="Override generations for Dataset 2A (XOR).")
-    parser.add_argument("--d3-staircase-gens", type=int, default=None, help="Override generations for Dataset 3A staircase.")
-    parser.add_argument("--d3-staircase-seeds", type=int, default=None, help="Override number of seeds for Dataset 3A staircase.")
-    parser.add_argument("--d4-gens", type=int, default=None, help="Override generations for Dataset 4A.")
-    parser.add_argument("--d4-seeds", type=int, default=None, help="Override number of seeds for Dataset 4A.")
-    parser.add_argument("--d5-gens", type=int, default=None, help="Override generations for Dataset 5A.")
-    parser.add_argument("--d5-seeds", type=int, default=None, help="Override number of seeds for Dataset 5A.")
+    parser.add_argument(
+        "--d1-seeds",
+        type=int,
+        default=None,
+        help="Override number of seeds for Dataset 1A (MuJoCo).",
+    )
+    parser.add_argument(
+        "--d1-gens", type=int, default=None, help="Override generations for Dataset 1A (MuJoCo)."
+    )
+    parser.add_argument(
+        "--d2-seeds", type=int, default=None, help="Override number of seeds for Dataset 2A (XOR)."
+    )
+    parser.add_argument(
+        "--d2-gens", type=int, default=None, help="Override generations for Dataset 2A (XOR)."
+    )
+    parser.add_argument(
+        "--d3-staircase-gens",
+        type=int,
+        default=None,
+        help="Override generations for Dataset 3A staircase.",
+    )
+    parser.add_argument(
+        "--d3-staircase-seeds",
+        type=int,
+        default=None,
+        help="Override number of seeds for Dataset 3A staircase.",
+    )
+    parser.add_argument(
+        "--d4-gens", type=int, default=None, help="Override generations for Dataset 4A."
+    )
+    parser.add_argument(
+        "--d4-seeds", type=int, default=None, help="Override number of seeds for Dataset 4A."
+    )
+    parser.add_argument(
+        "--d5-gens", type=int, default=None, help="Override generations for Dataset 5A."
+    )
+    parser.add_argument(
+        "--d5-seeds", type=int, default=None, help="Override number of seeds for Dataset 5A."
+    )
     args = parser.parse_args()
 
     cfg = get_tier_config(
@@ -1403,7 +1369,10 @@ def main() -> None:
         cfg["d5_seeds"] = tuple(range(42, 42 + args.d5_seeds))
 
     local_out_path = Path(args.out)
-    local_out_path.parent.mkdir(parents=True, exist_ok=True)
+    local_tables_path, scratch_path = prepare_output_paths(local_out_path)
+    global BENCH_SCRATCH_DIR
+    BENCH_SCRATCH_DIR = scratch_path
+    _load_benchmark_dependencies()
 
     print("=" * 75)
     print(
@@ -1417,9 +1386,15 @@ def main() -> None:
     t0 = time.time()
     payload = {
         "metadata": {
+            "schema_version": 2,
+            "audit_limitations": [
+                "Statistical validity and decisions await P4 (A02/A08/A10).",
+                "Backend-native QD scores are retained without comparative inference pending P3.",
+                "Historical H100 results have not been regenerated by this code change.",
+            ],
             "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "tier": cfg["tier"],
-            "smoke": args.smoke,
+            "smoke": cfg["tier"] == "smoke",
             "heavy": args.heavy or (cfg["tier"] in ("heavy", "publication")),
             "publication": args.publication or (cfg["tier"] in ("heavy", "publication")),
             "python_version": sys.version,
@@ -1437,26 +1412,19 @@ def main() -> None:
     elapsed = time.time() - t0
     payload["metadata"]["elapsed_seconds"] = round(elapsed, 2)
 
-    with open(local_out_path, "w") as f:
-        json.dump(payload, f, indent=2)
+    # Serialize before opening the destination so nonfinite values cannot leave a partial JSON.
+    serialized = json.dumps(payload, indent=2, allow_nan=False)
+    with local_out_path.open("x") as f:
+        f.write(serialized + "\n")
 
-    if PAPER_DATA_PATH is not None and PAPER_DATA_PATH != local_out_path:
-        try:
-            PAPER_DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
-            with open(PAPER_DATA_PATH, "w") as f:
-                json.dump(payload, f, indent=2)
-            print(f"  [Paper Sync] Synchronized curve data to: {PAPER_DATA_PATH}")
-        except OSError:
-            pass
-
-    export_latex_appendix_tables(payload, PAPER_TABLES_PATH, LOCAL_TABLES_PATH)
+    export_latex_appendix_tables(payload, local_tables_path)
 
     print("\n" + "=" * 75)
-    print(f"  SUCCESS! All 5 live empirical datasets and 4 LaTeX tables exported in {elapsed:.2f}s.")
+    print(
+        f"  SUCCESS! All 5 live empirical datasets and 4 LaTeX tables exported in {elapsed:.2f}s."
+    )
     print(f"  Wrote Data:   {local_out_path} ({local_out_path.stat().st_size:,} bytes)")
-    if PAPER_DATA_PATH is not None and PAPER_DATA_PATH != local_out_path:
-        print(f"  Synced Paper: {PAPER_DATA_PATH}")
-    print(f"  Wrote Tables: {LOCAL_TABLES_PATH}")
+    print(f"  Wrote Tables: {local_tables_path}")
     print("=" * 75)
 
 
