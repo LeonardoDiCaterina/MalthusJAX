@@ -93,6 +93,14 @@ class MapElitesEngine(AbstractEngine[G, P]):
     evaluator: BaseQDEvaluator[Any, Any, Any] = _field(pytree_node=False)
     engine_params: MapElitesEngineParams = _field(pytree_node=False)
 
+    def __hash__(self) -> int:
+        """Make engine hashable for JIT static_argnums."""
+        return id(self)
+
+    def __eq__(self, other: object) -> bool:
+        """Identity-based equality for JIT caching consistency."""
+        return self is other
+
     @property
     def maximize(self) -> bool:
         return self.engine_params.maximize

@@ -163,6 +163,21 @@ class AbstractEngine(Generic[G, P], ABC):
         """Identity-based equality for JIT caching consistency."""
         return self is other
 
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        """Ensure all subclass engines preserve identity-based hashing and equality.
+
+        Flax @struct.dataclass synthesizes __hash__ and __eq__ by default,
+        which recursively hashes all engine fields. When an engine holds an
+        evaluator or environment containing JAX array parameters (e.g. MuJoCo MJX
+        model arrays), Flax's synthesized __hash__ fails with:
+            TypeError: unhashable type: 'jaxlib._jax.ArrayImpl'
+        Setting __hash__ and __eq__ directly on cls prevents @struct.dataclass from
+        overwriting them with field-recursive hashers.
+        """
+        super().__init_subclass__(**kwargs)
+        cls.__hash__ = lambda self: id(self)  # type: ignore[method-assign]
+        cls.__eq__ = lambda self, other: self is other  # type: ignore[method-assign]
+
     @abstractmethod
     def init_state(self, rng_key: Union[int, jnp.ndarray]) -> AbstractEvolutionState[G, P]:
         """Build and return the initial evolution state.

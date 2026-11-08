@@ -72,6 +72,14 @@ class MOEngine(AbstractEngine[G, P]):
     evaluator: BaseMOEvaluator[Any, Any, Any] = _field(pytree_node=False)
     engine_params: MOEngineParams = _field(pytree_node=False)
 
+    def __hash__(self) -> int:
+        """Make engine hashable for JIT static_argnums."""
+        return id(self)
+
+    def __eq__(self, other: object) -> bool:
+        """Identity-based equality for JIT caching consistency."""
+        return self is other
+
     def init_state(  # type: ignore[override]
         self, rng_key: chex.Array, initial_population: BasePopulation[G]
     ) -> MOState[G, P]:
