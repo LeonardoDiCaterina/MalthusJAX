@@ -365,45 +365,11 @@
     <span class="n">num_dims</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.backends._evaluator_resolver</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_evaluator_base</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.genome.real_genome</span><span class="w"> </span><span class="kn">import</span> <span class="n">RealGenome</span><span class="p">,</span> <span class="n">RealPopulation</span>
-
-    <span class="k">class</span><span class="w"> </span><span class="nc">QDAXNativeEvaluator</span><span class="p">:</span>
-        <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fitness_fn</span><span class="p">,</span> <span class="n">evaluator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_descriptors</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_fitness_fn</span> <span class="o">=</span> <span class="n">fitness_fn</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_evaluator</span> <span class="o">=</span> <span class="n">evaluator</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_num_descriptors</span> <span class="o">=</span> <span class="n">num_descriptors</span>
-
-        <span class="k">def</span><span class="w"> </span><span class="nf">scoring_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genotypes</span><span class="p">,</span> <span class="n">random_key</span><span class="p">):</span>
-            <span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
-            <span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
-
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">genes</span> <span class="o">=</span> <span class="n">RealGenome</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">genotypes</span><span class="p">)</span>
-                <span class="n">pop</span> <span class="o">=</span> <span class="n">RealPopulation</span><span class="p">(</span>
-                    <span class="n">genes</span><span class="o">=</span><span class="n">genes</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">genotypes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span>
-                <span class="p">)</span>
-                <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">dispatch_evaluate_population</span>
-
-                <span class="n">updated_pop</span> <span class="o">=</span> <span class="n">dispatch_evaluate_population</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_evaluator</span><span class="p">,</span> <span class="n">pop</span><span class="p">,</span> <span class="n">random_key</span><span class="p">)</span>
-                <span class="n">fitnesses</span> <span class="o">=</span> <span class="n">updated_pop</span><span class="o">.</span><span class="n">fitness</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">maximize</span><span class="p">:</span>
-                    <span class="n">fitnesses</span> <span class="o">=</span> <span class="o">-</span><span class="n">fitnesses</span>
-                <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">updated_pop</span><span class="p">,</span> <span class="s2">"descriptors"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">descriptors</span> <span class="o">=</span> <span class="n">updated_pop</span><span class="o">.</span><span class="n">descriptors</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">desc_dims</span> <span class="o">=</span> <span class="n">genotypes</span><span class="p">[:,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_descriptors</span><span class="p">]</span>
-                    <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-                    <span class="n">descriptors</span> <span class="o">=</span> <span class="p">(</span><span class="n">desc_dims</span> <span class="o">-</span> <span class="n">lo</span><span class="p">)</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">hi</span> <span class="o">-</span> <span class="n">lo</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">fitnesses</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fitness_fn</span><span class="p">)(</span><span class="n">genotypes</span><span class="p">)</span>
-                <span class="n">desc_dims</span> <span class="o">=</span> <span class="n">genotypes</span><span class="p">[:,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_descriptors</span><span class="p">]</span>
-                <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-                <span class="n">descriptors</span> <span class="o">=</span> <span class="p">(</span><span class="n">desc_dims</span> <span class="o">-</span> <span class="n">lo</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">hi</span> <span class="o">-</span> <span class="n">lo</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">fitnesses</span><span class="p">,</span> <span class="n">descriptors</span><span class="p">,</span> <span class="p">{}</span>
-
     <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fitness_spec</span><span class="p">,</span> <span class="s2">"scoring_function"</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">fitness_spec</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.backends._evaluator_resolver</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_evaluator_base</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.qd.evaluator</span><span class="w"> </span><span class="kn">import</span> <span class="n">ensure_qd_evaluator</span>
 
     <span class="n">resolved</span> <span class="o">=</span> <span class="n">resolve_evaluator_base</span><span class="p">(</span>
         <span class="n">fitness_spec</span><span class="p">,</span>
@@ -413,7 +379,8 @@
         <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="n">QDAXNativeEvaluator</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">evaluator</span><span class="o">=</span><span class="n">resolved</span><span class="p">)</span></div>
+    <span class="n">num_desc</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"num_descriptors"</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"qdax_num_descriptors"</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">ensure_qd_evaluator</span><span class="p">(</span><span class="n">resolved</span><span class="p">,</span> <span class="n">num_descriptors</span><span class="o">=</span><span class="n">num_desc</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">)</span></div>
 
 
 
@@ -514,6 +481,7 @@
         <span class="n">seed</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"seed"</span><span class="p">,</span> <span class="mi">42</span><span class="p">),</span>
         <span class="n">num_dims</span><span class="o">=</span><span class="n">genome_length</span><span class="p">,</span>
     <span class="p">)</span>
+    <span class="n">eval_mode</span> <span class="o">=</span> <span class="s2">"native"</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">evaluator</span><span class="p">,</span> <span class="s2">"scoring_function"</span><span class="p">)</span> <span class="k">else</span> <span class="s2">"malthusjax"</span>
     <span class="k">return</span> <span class="n">adapter_build_qdax_engine</span><span class="p">(</span>
         <span class="n">strategy_cls</span><span class="o">=</span><span class="n">strategy_cls</span><span class="p">,</span>
         <span class="n">emitter</span><span class="o">=</span><span class="n">emitter</span><span class="p">,</span>
@@ -524,7 +492,7 @@
         <span class="n">pop_size</span><span class="o">=</span><span class="n">pop_size</span><span class="p">,</span>
         <span class="n">generations</span><span class="o">=</span><span class="n">generations</span><span class="p">,</span>
         <span class="n">maximize</span><span class="o">=</span><span class="n">maximize</span><span class="p">,</span>
-        <span class="n">eval_mode</span><span class="o">=</span><span class="s2">"native"</span><span class="p">,</span>
+        <span class="n">eval_mode</span><span class="o">=</span><span class="n">eval_mode</span><span class="p">,</span>
         <span class="n">history_metrics</span><span class="o">=</span><span class="n">history_metrics</span> <span class="ow">or</span> <span class="p">[</span><span class="s2">"qd_score"</span><span class="p">,</span> <span class="s2">"coverage"</span><span class="p">],</span>
         <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span>
         <span class="n">genome_length</span><span class="o">=</span><span class="n">genome_length</span><span class="p">,</span>

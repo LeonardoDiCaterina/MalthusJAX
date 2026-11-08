@@ -1682,7 +1682,7 @@ function. Follows the single-source-of-truth optimization direction contract:
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>scalar_output</strong> (<a class="reference internal" href="#malthusjax.core.fitness.ScalarOutput" title="malthusjax.core.fitness.composable.base.ScalarOutput"><em>ScalarOutput</em></a>)</p></li>
-<li><p><strong>descriptor_fn</strong> (<em>BaseDescriptorFn</em>)</p></li>
+<li><p><strong>descriptor_fn</strong> (<a class="reference internal" href="#malthusjax.core.fitness.BaseDescriptorFn" title="malthusjax.core.fitness.composable.base.BaseDescriptorFn"><em>BaseDescriptorFn</em></a>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -1693,8 +1693,35 @@ function. Follows the single-source-of-truth optimization direction contract:
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.core.fitness.QDOutput.descriptor_fn">
-<span class="sig-name descname"><span class="pre">descriptor_fn</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">BaseDescriptorFn</span></span><a class="headerlink" href="#malthusjax.core.fitness.QDOutput.descriptor_fn" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">descriptor_fn</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#malthusjax.core.fitness.BaseDescriptorFn" title="malthusjax.core.fitness.composable.base.BaseDescriptorFn"><span class="pre">BaseDescriptorFn</span></a></span><a class="headerlink" href="#malthusjax.core.fitness.QDOutput.descriptor_fn" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.QDOutput.maximize">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">maximize</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><a class="headerlink" href="#malthusjax.core.fitness.QDOutput.maximize" title="Link to this definition">¶</a></dt>
+<dd><p>Optimization direction delegated from wrapped scalar output.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.QDOutput.create">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">maximize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_descriptors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-5.0,</span> <span class="pre">5.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">descriptor_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scalar_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/composable/base.html#QDOutput.create"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.QDOutput.create" title="Link to this definition">¶</a></dt>
+<dd><p>Convenience factory for QDOutput instantiation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>maximize</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
+<li><p><strong>num_descriptors</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>bounds</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>]</em>)</p></li>
+<li><p><strong>descriptor_fn</strong> (<a class="reference internal" href="#malthusjax.core.fitness.BaseDescriptorFn" title="malthusjax.core.fitness.composable.base.BaseDescriptorFn"><em>BaseDescriptorFn</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>scalar_output</strong> (<a class="reference internal" href="#malthusjax.core.fitness.ScalarOutput" title="malthusjax.core.fitness.composable.base.ScalarOutput"><em>ScalarOutput</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#malthusjax.core.fitness.QDOutput" title="malthusjax.core.fitness.composable.base.QDOutput"><em>QDOutput</em></a></p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.core.fitness.QDOutput.process_sl">
@@ -1847,6 +1874,282 @@ function. Follows the single-source-of-truth optimization direction contract:
 <dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.core.fitness.MOOutput.replace">
 <span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.core.fitness.MOOutput.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.BaseDescriptorFn">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.fitness.</span></span><span class="sig-name descname"><span class="pre">BaseDescriptorFn</span></span><a class="reference internal" href="../_modules/malthusjax/core/fitness/composable/base.html#BaseDescriptorFn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.BaseDescriptorFn" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Computes behavior descriptors for QD algorithms.</p>
+<p>Injected into <code class="docutils literal notranslate"><span class="pre">QDOutput</span></code> — the Evaluator itself knows nothing about
+descriptors. This keeps QD concerns fully orthogonal to the Task/Env/Interpreter
+decomposition.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.BaseDescriptorFn.compute">
+<span class="sig-name descname"><span class="pre">compute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">genome</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/composable/base.html#BaseDescriptorFn.compute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.BaseDescriptorFn.compute" title="Link to this definition">¶</a></dt>
+<dd><p>Compute behavior descriptor for Supervised/Optimization tasks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>genome</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>inputs</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>outputs</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.BaseDescriptorFn.compute_rl">
+<span class="sig-name descname"><span class="pre">compute_rl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">genome</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_infos</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/composable/base.html#BaseDescriptorFn.compute_rl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.BaseDescriptorFn.compute_rl" title="Link to this definition">¶</a></dt>
+<dd><p>Compute behavior descriptor for RL tasks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>genome</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>final_state</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>step_infos</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.BaseDescriptorFn.observe_step">
+<span class="sig-name descname"><span class="pre">observe_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/composable/base.html#BaseDescriptorFn.observe_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.BaseDescriptorFn.observe_step" title="Link to this definition">¶</a></dt>
+<dd><p>Optional: Accumulate step info during RL rollouts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>env_state</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>obs</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>action</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>reward</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.BaseDescriptorFn.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.core.fitness.BaseDescriptorFn.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.GenotypeBoxDescriptorFn">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.fitness.</span></span><span class="sig-name descname"><span class="pre">GenotypeBoxDescriptorFn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_descriptors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-5.0,</span> <span class="pre">5.0)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/composable/base.html#GenotypeBoxDescriptorFn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.GenotypeBoxDescriptorFn" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#malthusjax.core.fitness.BaseDescriptorFn" title="malthusjax.core.fitness.composable.base.BaseDescriptorFn"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseDescriptorFn</span></code></a></p>
+<p>Behavior descriptor function projecting genotype slice into [0, 1]^k.</p>
+<p>Extracts the first <cite>num_descriptors</cite> values from the genome (or zero-pads if shorter),
+and normalizes them into [0.0, 1.0]^k via search bounds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_descriptors</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>bounds</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.GenotypeBoxDescriptorFn.num_descriptors">
+<span class="sig-name descname"><span class="pre">num_descriptors</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#malthusjax.core.fitness.GenotypeBoxDescriptorFn.num_descriptors" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.GenotypeBoxDescriptorFn.bounds">
+<span class="sig-name descname"><span class="pre">bounds</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(-5.0,</span> <span class="pre">5.0)</span></span><a class="headerlink" href="#malthusjax.core.fitness.GenotypeBoxDescriptorFn.bounds" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.GenotypeBoxDescriptorFn.compute">
+<span class="sig-name descname"><span class="pre">compute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">genome</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/composable/base.html#GenotypeBoxDescriptorFn.compute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.GenotypeBoxDescriptorFn.compute" title="Link to this definition">¶</a></dt>
+<dd><p>Compute behavior descriptor for Supervised/Optimization tasks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>genome</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>inputs</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>outputs</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.GenotypeBoxDescriptorFn.compute_rl">
+<span class="sig-name descname"><span class="pre">compute_rl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">genome</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_infos</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/composable/base.html#GenotypeBoxDescriptorFn.compute_rl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.GenotypeBoxDescriptorFn.compute_rl" title="Link to this definition">¶</a></dt>
+<dd><p>Compute behavior descriptor for RL tasks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>genome</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>final_state</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>step_infos</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.GenotypeBoxDescriptorFn.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.core.fitness.GenotypeBoxDescriptorFn.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.RLFinalStateDescriptorFn">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.fitness.</span></span><span class="sig-name descname"><span class="pre">RLFinalStateDescriptorFn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-1.0,</span> <span class="pre">1.0)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/composable/base.html#RLFinalStateDescriptorFn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.RLFinalStateDescriptorFn" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#malthusjax.core.fitness.BaseDescriptorFn" title="malthusjax.core.fitness.composable.base.BaseDescriptorFn"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseDescriptorFn</span></code></a></p>
+<p>Behavior descriptor extracting specific indices from final RL state/obs, scaled to [0, 1].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>indices</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>...</em><em>]</em>)</p></li>
+<li><p><strong>bounds</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.RLFinalStateDescriptorFn.indices">
+<span class="sig-name descname"><span class="pre">indices</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0,</span> <span class="pre">1)</span></span><a class="headerlink" href="#malthusjax.core.fitness.RLFinalStateDescriptorFn.indices" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.RLFinalStateDescriptorFn.bounds">
+<span class="sig-name descname"><span class="pre">bounds</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(-1.0,</span> <span class="pre">1.0)</span></span><a class="headerlink" href="#malthusjax.core.fitness.RLFinalStateDescriptorFn.bounds" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.RLFinalStateDescriptorFn.compute">
+<span class="sig-name descname"><span class="pre">compute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">genome</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/composable/base.html#RLFinalStateDescriptorFn.compute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.RLFinalStateDescriptorFn.compute" title="Link to this definition">¶</a></dt>
+<dd><p>Compute behavior descriptor for Supervised/Optimization tasks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>genome</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>inputs</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>outputs</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.RLFinalStateDescriptorFn.compute_rl">
+<span class="sig-name descname"><span class="pre">compute_rl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">genome</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_infos</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/composable/base.html#RLFinalStateDescriptorFn.compute_rl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.RLFinalStateDescriptorFn.compute_rl" title="Link to this definition">¶</a></dt>
+<dd><p>Compute behavior descriptor for RL tasks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>genome</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>final_state</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>step_infos</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.RLFinalStateDescriptorFn.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.core.fitness.RLFinalStateDescriptorFn.replace" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.RLActionSummaryDescriptorFn">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.core.fitness.</span></span><span class="sig-name descname"><span class="pre">RLActionSummaryDescriptorFn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_descriptors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-1.0,</span> <span class="pre">1.0)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/composable/base.html#RLActionSummaryDescriptorFn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.RLActionSummaryDescriptorFn" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#malthusjax.core.fitness.BaseDescriptorFn" title="malthusjax.core.fitness.composable.base.BaseDescriptorFn"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseDescriptorFn</span></code></a></p>
+<p>Behavior descriptor from rollout actions (e.g. mean action vector).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_descriptors</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>)</p></li>
+<li><p><strong>bounds</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.RLActionSummaryDescriptorFn.num_descriptors">
+<span class="sig-name descname"><span class="pre">num_descriptors</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#malthusjax.core.fitness.RLActionSummaryDescriptorFn.num_descriptors" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.RLActionSummaryDescriptorFn.bounds">
+<span class="sig-name descname"><span class="pre">bounds</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(-1.0,</span> <span class="pre">1.0)</span></span><a class="headerlink" href="#malthusjax.core.fitness.RLActionSummaryDescriptorFn.bounds" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.RLActionSummaryDescriptorFn.compute">
+<span class="sig-name descname"><span class="pre">compute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">genome</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/composable/base.html#RLActionSummaryDescriptorFn.compute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.RLActionSummaryDescriptorFn.compute" title="Link to this definition">¶</a></dt>
+<dd><p>Compute behavior descriptor for Supervised/Optimization tasks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>genome</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>inputs</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>outputs</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.RLActionSummaryDescriptorFn.compute_rl">
+<span class="sig-name descname"><span class="pre">compute_rl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">genome</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_infos</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/core/fitness/composable/base.html#RLActionSummaryDescriptorFn.compute_rl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.core.fitness.RLActionSummaryDescriptorFn.compute_rl" title="Link to this definition">¶</a></dt>
+<dd><p>Compute behavior descriptor for RL tasks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>genome</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>final_state</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+<li><p><strong>step_infos</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Array</em> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.core.fitness.RLActionSummaryDescriptorFn.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#malthusjax.core.fitness.RLActionSummaryDescriptorFn.replace" title="Link to this definition">¶</a></dt>
 <dd><p>Returns a new object replacing the specified fields with new values.</p>
 </dd></dl>
 
@@ -3196,6 +3499,8 @@ on GPU/TPU accelerators under <code class="docutils literal notranslate"><span c
 <li><a class="reference internal" href="#malthusjax.core.fitness.QDOutput"><code class="docutils literal notranslate"><span class="pre">QDOutput</span></code></a><ul>
 <li><a class="reference internal" href="#malthusjax.core.fitness.QDOutput.scalar_output"><code class="docutils literal notranslate"><span class="pre">QDOutput.scalar_output</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.fitness.QDOutput.descriptor_fn"><code class="docutils literal notranslate"><span class="pre">QDOutput.descriptor_fn</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.QDOutput.maximize"><code class="docutils literal notranslate"><span class="pre">QDOutput.maximize</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.QDOutput.create"><code class="docutils literal notranslate"><span class="pre">QDOutput.create()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.fitness.QDOutput.process_sl"><code class="docutils literal notranslate"><span class="pre">QDOutput.process_sl()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.fitness.QDOutput.process_opt"><code class="docutils literal notranslate"><span class="pre">QDOutput.process_opt()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.fitness.QDOutput.process_rl"><code class="docutils literal notranslate"><span class="pre">QDOutput.process_rl()</span></code></a></li>
@@ -3209,6 +3514,37 @@ on GPU/TPU accelerators under <code class="docutils literal notranslate"><span c
 <li><a class="reference internal" href="#malthusjax.core.fitness.MOOutput.process_opt"><code class="docutils literal notranslate"><span class="pre">MOOutput.process_opt()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.fitness.MOOutput.process_rl"><code class="docutils literal notranslate"><span class="pre">MOOutput.process_rl()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.core.fitness.MOOutput.replace"><code class="docutils literal notranslate"><span class="pre">MOOutput.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.BaseDescriptorFn"><code class="docutils literal notranslate"><span class="pre">BaseDescriptorFn</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.core.fitness.BaseDescriptorFn.compute"><code class="docutils literal notranslate"><span class="pre">BaseDescriptorFn.compute()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.BaseDescriptorFn.compute_rl"><code class="docutils literal notranslate"><span class="pre">BaseDescriptorFn.compute_rl()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.BaseDescriptorFn.observe_step"><code class="docutils literal notranslate"><span class="pre">BaseDescriptorFn.observe_step()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.BaseDescriptorFn.replace"><code class="docutils literal notranslate"><span class="pre">BaseDescriptorFn.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.GenotypeBoxDescriptorFn"><code class="docutils literal notranslate"><span class="pre">GenotypeBoxDescriptorFn</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.core.fitness.GenotypeBoxDescriptorFn.num_descriptors"><code class="docutils literal notranslate"><span class="pre">GenotypeBoxDescriptorFn.num_descriptors</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.GenotypeBoxDescriptorFn.bounds"><code class="docutils literal notranslate"><span class="pre">GenotypeBoxDescriptorFn.bounds</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.GenotypeBoxDescriptorFn.compute"><code class="docutils literal notranslate"><span class="pre">GenotypeBoxDescriptorFn.compute()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.GenotypeBoxDescriptorFn.compute_rl"><code class="docutils literal notranslate"><span class="pre">GenotypeBoxDescriptorFn.compute_rl()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.GenotypeBoxDescriptorFn.replace"><code class="docutils literal notranslate"><span class="pre">GenotypeBoxDescriptorFn.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.RLFinalStateDescriptorFn"><code class="docutils literal notranslate"><span class="pre">RLFinalStateDescriptorFn</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.core.fitness.RLFinalStateDescriptorFn.indices"><code class="docutils literal notranslate"><span class="pre">RLFinalStateDescriptorFn.indices</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.RLFinalStateDescriptorFn.bounds"><code class="docutils literal notranslate"><span class="pre">RLFinalStateDescriptorFn.bounds</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.RLFinalStateDescriptorFn.compute"><code class="docutils literal notranslate"><span class="pre">RLFinalStateDescriptorFn.compute()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.RLFinalStateDescriptorFn.compute_rl"><code class="docutils literal notranslate"><span class="pre">RLFinalStateDescriptorFn.compute_rl()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.RLFinalStateDescriptorFn.replace"><code class="docutils literal notranslate"><span class="pre">RLFinalStateDescriptorFn.replace()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.RLActionSummaryDescriptorFn"><code class="docutils literal notranslate"><span class="pre">RLActionSummaryDescriptorFn</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.core.fitness.RLActionSummaryDescriptorFn.num_descriptors"><code class="docutils literal notranslate"><span class="pre">RLActionSummaryDescriptorFn.num_descriptors</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.RLActionSummaryDescriptorFn.bounds"><code class="docutils literal notranslate"><span class="pre">RLActionSummaryDescriptorFn.bounds</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.RLActionSummaryDescriptorFn.compute"><code class="docutils literal notranslate"><span class="pre">RLActionSummaryDescriptorFn.compute()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.RLActionSummaryDescriptorFn.compute_rl"><code class="docutils literal notranslate"><span class="pre">RLActionSummaryDescriptorFn.compute_rl()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.core.fitness.RLActionSummaryDescriptorFn.replace"><code class="docutils literal notranslate"><span class="pre">RLActionSummaryDescriptorFn.replace()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#malthusjax.core.fitness.SklearnEnv"><code class="docutils literal notranslate"><span class="pre">SklearnEnv</span></code></a><ul>
