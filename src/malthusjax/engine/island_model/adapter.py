@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+from numbers import Integral
 from typing import Any, Dict, Optional, Sequence, Tuple
 
 import chex
@@ -64,17 +65,22 @@ class IslandEngineAdapter:
         return self.island_model.step(multi_state)
 
     def run(self, init_state: Any, **kwargs: Any) -> Tuple[IslandEvolutionState, Any, Any]:
-        """Runs the island model for total generations, executing outer migration intervals."""
-        mig_interval = max(1, int(self.island_model.migration_interval))
-        num_outer_steps = max(1, int(self.generations // mig_interval))
+        """Execute exactly the horizon, migrating only at completed boundaries.
 
-        def train_loop(carry_state: Any, _: Any) -> Tuple[Any, Any]:
-            next_state, history_output = self.island_model.step(carry_state)
-            return next_state, history_output
-
-        final_multi_state, history = jax.lax.scan(
-            train_loop, init_state, None, length=num_outer_steps
-        )
+        History's leading axes are (generations, islands), including remainders.
+        """
+        if not isinstance(self.generations, Integral) or isinstance(self.generations, bool) or self.generations < 0:
+            raise ValueError("generations must be a nonnegative integer")
+        interval = self.island_model.migration_interval
+        if interval <= 0:
+            raise ValueError("migration_interval must be positive")
+        def train_loop(state, index):
+            evolved, history = self.island_model.evolve_one(state)
+            migrated = jax.lax.cond((index + 1) % interval == 0,
+                                   self.island_model.migrate_state, lambda x: x, evolved)
+            return migrated, history
+        final_multi_state, history = jax.lax.scan(train_loop, init_state,
+                                                 jnp.arange(self.generations))
 
         # Extract global best genome and fitness across all islands and individuals
         # final_multi_state.population.fitness shape: (num_islands, pop_size)
@@ -106,7 +112,8 @@ class IslandEngineAdapter:
         init_state = self.init_state(key)
         block_until_ready(init_state, effects=True)
         capture.initialized(init_state, self)
-        spec = (self.generations, id(self.island_model))
+        spec = (self.generations, id(self.island_model), self.island_model.migration_interval,
+                getattr(self.island_model, "num_migrants", None))
         if self._compiled_spec != spec:
             self._compiled_run = jax.jit(self.run)
             self._compiled_spec = spec
@@ -126,6 +133,7 @@ class IslandEngineAdapter:
         summary = {
             "best_fitness": reported_best,
             "final_generation": self.generations,
+            "total_evaluations": self.generations * final_state.population.fitness.size,
         }
         timings = {
             "total": t_end - t_start,
@@ -133,11 +141,7 @@ class IslandEngineAdapter:
         }
         interval = int(self.island_model.migration_interval)
         unavailable = None
-        if self.generations <= 0 or interval <= 0 or self.generations % interval:
-            unavailable = (
-                "Island horizon/interval contract requires P6; execution timing unavailable"
-            )
-        elif step_logging is not None or self.step_logging is not None:
+        if step_logging is not None or self.step_logging is not None:
             unavailable = "Island step logging is not implemented by this adapter"
         else:
             timings["execution"] = t_end - t_execution_start

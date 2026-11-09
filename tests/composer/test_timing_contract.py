@@ -183,18 +183,17 @@ def test_island_adapter_reports_unsupported_budget_timing_explicitly():
                 jax.random.split(key, 2),
             )
 
-        def step(self, state):
-            return state.replace(generation=state.generation + 2), jnp.float32(0)
+        def evolve_one(self, state):
+            return state.replace(generation=state.generation + 1), jnp.float32(0)
 
-    for generations in (4, 3):
-        adapter = IslandEngineAdapter(ToyIslands(), generations=generations)
-        result = adapter.run_once(jax.random.key(42))
-        if generations == 4:
-            assert result["timing_metadata"]["status"] == "valid"
-            assert result["timings"]["warmup"] > 0
-        else:
-            assert "execution" not in result["timings"]
-            assert result["timing_metadata"]["status"] == "unavailable"
+        def migrate_state(self, state):
+            return state
+
+    for generations in (0, 2, 3, 4, 10):
+        result = IslandEngineAdapter(ToyIslands(), generations=generations).run_once(jax.random.key(42))
+        assert result["summary"]["final_generation"] == generations
+        assert result["timing_metadata"]["status"] == "valid"
+        assert result["timings"]["warmup"] > 0
 
 
 def test_runner_persists_unavailable_timing_reason():

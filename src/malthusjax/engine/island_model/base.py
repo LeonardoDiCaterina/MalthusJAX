@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from numbers import Integral
 from typing import Any, Generic, Tuple, TypeVar
 
 import chex
@@ -15,12 +16,7 @@ E = TypeVar("E", bound=AbstractEngine[Any, Any])
 class BaseIslandModel(Generic[E]):
     """A Meta-Engine that distributes a standard MalthusJAX Engine across isolated islands.
 
-    **WIP / ARCHITECTURAL NOTE: Host Synchronization**
-    This model currently runs the inner evolutionary loop inside `jax.vmap` for `migration_interval`
-    generations, but then drops out to the Python host to perform topological migration before
-    dispatching the next JAX kernel. Future work should attempt to fully fuse the migration logic
-    inside an outer `jax.lax.scan` to achieve a 100% compiled end-to-end evolutionary kernel
-    without host synchronization bottlenecks.
+    Local evolution and migration are JAX-traceable and fused by the adapter.
 
     This wrapper seamlessly upgrades any 1D `BaseEngine` into a 2D Island Model by
     wrapping the engine's init and step methods in `jax.vmap` across the `num_islands` axis,
@@ -32,11 +28,30 @@ class BaseIslandModel(Generic[E]):
     migration_interval: int = struct.field(pytree_node=False)
     num_migrants: int = struct.field(pytree_node=False)
 
+    def __post_init__(self):
+        for name, lower in (("num_islands", 1), ("migration_interval", 1), ("num_migrants", 0)):
+            value = getattr(self, name)
+            if not isinstance(value, Integral) or isinstance(value, bool) or value < lower:
+                raise ValueError(f"{name} must be an integer >= {lower}")
+
+    def evolve_one(self, multi_state):
+        return jax.vmap(self.engine.step)(multi_state)
+
+    def migrate_state(self, evolved_state):
+        if self.num_migrants == 0:
+            return evolved_state
+        migration_key, new_key = jax.random.split(evolved_state.rng_key[0])
+        population = self.migrate(migration_key, evolved_state.population)
+        return evolved_state.replace(population=population,
+            rng_key=evolved_state.rng_key.at[0].set(new_key))
+
     def init_state(self, key: chex.PRNGKey) -> Any:
         """Initializes the engine perfectly mapped across independent islands."""
         keys = jax.random.split(key, self.num_islands)
         # multi_state contains the 2D population
         multi_state = jax.vmap(self.engine.init_state, in_axes=(0,))(keys)
+        if self.num_migrants > multi_state.population.fitness.shape[1]:
+            raise ValueError("num_migrants exceeds the per-island population")
         return multi_state
 
     def _island_loop(self, island_state: Any) -> Tuple[Any, Any]:
@@ -64,17 +79,4 @@ class BaseIslandModel(Generic[E]):
         # 1. Evolve all islands independently in parallel
         evolved_state, history = jax.vmap(self._island_loop, in_axes=(0,))(multi_state)
 
-        # 2. Extract population, migrate, and inject back into state
-        # We need a global key for migration. We can take it from the first island's rng_key
-        # and split it to ensure diversity.
-        migration_key, new_island_0_key = jax.random.split(evolved_state.rng_key[0])
-        migrated_pop = self.migrate(migration_key, evolved_state.population)
-
-        # 3. Update the state with the migrated population
-        next_state = evolved_state.replace(population=migrated_pop)
-
-        # Replace the first island's key to advance the rng stream
-        new_rng_keys = next_state.rng_key.at[0].set(new_island_0_key)
-        next_state = next_state.replace(rng_key=new_rng_keys)
-
-        return next_state, history
+        return self.migrate_state(evolved_state), history

@@ -111,3 +111,7 @@ multi_state = island_model.init_state(key)
 multi_state, history = island_model.step(multi_state)
 print("Island model step completed successfully.")
 ```
+
+## Exact adapter horizon
+
+`IslandEngineAdapter.run` executes exactly its nonnegative generation budget, migrating at completed interval boundaries only. Zero does not advance state or RNG. A remainder evolves without an extra migration. History uses `(generation, island, ...)` axes. The full production run is compiled; GPU performance still requires separate hardware validation.

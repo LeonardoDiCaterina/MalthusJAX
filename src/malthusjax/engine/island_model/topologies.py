@@ -21,6 +21,10 @@ class RingTopologyIsland(BaseIslandModel[E]):
     """
 
     def migrate(self, key: chex.PRNGKey, multi_pop: BasePopulation[Any]) -> BasePopulation[Any]:
+        if self.num_migrants > multi_pop.fitness.shape[1]:
+            raise ValueError("num_migrants exceeds per-island population")
+        if self.num_migrants == 0:
+            return multi_pop
         # multi_pop.fitness shape: (num_islands, island_size)
         # Lower fitness is better uniformly across all engines and evaluators
         sorted_indices = jnp.argsort(multi_pop.fitness, axis=-1)
@@ -66,6 +70,10 @@ class FullyConnectedIsland(BaseIslandModel[E]):
     """
 
     def migrate(self, key: chex.PRNGKey, multi_pop: BasePopulation[Any]) -> BasePopulation[Any]:
+        if self.num_migrants > multi_pop.fitness.shape[1]:
+            raise ValueError("num_migrants exceeds per-island population")
+        if self.num_migrants == 0:
+            return multi_pop
         # Lower fitness is better uniformly across all engines and evaluators
         sorted_indices = jnp.argsort(multi_pop.fitness, axis=-1)
 
