@@ -10,6 +10,9 @@ is specified here for engines to implement, and a simple deterministic
 from __future__ import annotations
 
 import time
+import copy
+import hashlib
+import json
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
@@ -21,7 +24,7 @@ from ..core.timing_records import TimingPolicy, TimingRecord, environment_identi
 from ..core.logger import get_logger
 from ..core.random import create_key, resolve_prng_impl
 from .io import write_experiment_artifacts
-from .results import ExperimentResult, RunResult
+from .results import ExperimentResult, RunResult, standard_json
 
 logger = get_logger("benchmarking.runner")
 
@@ -42,6 +45,7 @@ class BenchmarkRunner:
     write_artifacts: bool = True
     prng_impl: Optional[str] = None
     trace_dir: Optional[Path] = None  # If set, capture JAX trace for seed[0]
+    configuration: Optional[Dict[str, Any]] = None
     serialize_history: bool = True  # If False, drops generation history to save disk space
 
     timing_policy: TimingPolicy = field(default_factory=TimingPolicy)
@@ -61,8 +65,14 @@ class BenchmarkRunner:
         directory is provided the corresponding JSON/CSV artifacts are also
         written.
         """
+        if timeout_seconds is not None:
+            raise NotImplementedError(
+                "Hard timeouts require a subprocess/job boundary; this runner cannot enforce them"
+            )
         runs: List[RunResult] = []
         identity = environment_identity()
+        configuration_snapshot = standard_json(copy.deepcopy(self.configuration))
+        configuration_json = json.dumps(configuration_snapshot, sort_keys=True, allow_nan=False)
         if len(set(seeds)) != len(seeds):
             raise ValueError("Duplicate seeds are ambiguous timing observations")
 
@@ -164,6 +174,15 @@ class BenchmarkRunner:
                 "total_runs": len(runs),
                 "successful_runs": len([r for r in runs if r.status == "success"]),
                 "serialize_history": self.serialize_history,
+                "configuration": configuration_snapshot,
+                "configuration_status": (
+                    "partial_runtime_objects"
+                    if "unserializable_type" in configuration_json
+                    else "declared"
+                )
+                if self.configuration is not None
+                else "unknown",
+                "configuration_sha256": hashlib.sha256(configuration_json.encode()).hexdigest(),
                 "timing_policy": self.timing_policy.to_dict(),
                 "timing_environment": identity,
             },
@@ -241,6 +260,24 @@ class BenchmarkRunner:
                 if "generation" in last:
                     metrics["final_generation"] = float(last["generation"])
 
+            if "best_fitness" not in metrics or not math.isfinite(metrics["best_fitness"]):
+                raise ValueError("Run returned no finite required best_fitness")
+            expected = getattr(
+                self.engine, "num_generations", getattr(self.engine, "generations", None)
+            )
+            if expected is None:
+                candidate = getattr(
+                    self.engine, "genetic_engine", getattr(self.engine, "mo_engine", self.engine)
+                )
+                expected = getattr(
+                    getattr(candidate, "engine_params", None), "num_generations", None
+                )
+            if (
+                expected is not None
+                and "final_generation" in metrics
+                and metrics["final_generation"] != expected
+            ):
+                raise ValueError("Reported completed horizon differs from requested horizon")
             duration = time.perf_counter() - start_time
             metrics["duration_seconds"] = duration
 
@@ -323,7 +360,7 @@ class StubEngine:
 
             history.append(
                 {
-                    "generation": gen,
+                    "generation": gen + 1,
                     "best_fitness": current_fitness,
                     "mean_fitness": current_fitness + 0.1,
                     "std_fitness": 0.05,
@@ -332,7 +369,7 @@ class StubEngine:
 
         summary = {
             "best_fitness": current_fitness,
-            "final_generation": self.generations - 1,
+            "final_generation": self.generations,
             "total_evaluations": self.generations * 50,  # fake pop size
         }
 

@@ -28,6 +28,24 @@ if TYPE_CHECKING:
     from matplotlib.figure import Figure
 
 
+def standard_json(value):
+    """Unavailable numeric values serialize as null, never nonstandard JSON NaN."""
+    if isinstance(value, dict):
+        return {str(k): standard_json(v) for k, v in value.items()}
+    if isinstance(value, (tuple, list)):
+        return [standard_json(v) for v in value]
+    if hasattr(value, "tolist"):
+        return standard_json(value.tolist())
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    return {
+        "unserializable_type": type(value).__module__ + "." + type(value).__qualname__,
+        "repr": repr(value),
+    }
+
+
 @dataclass
 class RunResult:
     """Immutable record of a single seeded engine execution.
@@ -49,30 +67,45 @@ class RunResult:
     timing_metadata: Dict[str, Any] = field(default_factory=dict)
     timing_record: Dict[str, Any] = field(default_factory=dict)
     metric_metadata: Dict[str, Any] = field(default_factory=dict)
+    unavailable_metrics: Dict[str, str] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize the object to a JSON-friendly dictionary.
 
         The ISO-formatted ``created_at`` timestamp is included directly.
         """
-        return {
-            "seed": self.seed,
-            "status": self.status,
-            "metrics": self.metrics,
-            "history": self.history,
-            "artifacts": self.artifacts,
-            "duration_seconds": self.duration_seconds,
-            "timings": self.timings,
-            "timing_metadata": self.timing_metadata,
-            "metric_metadata": self.metric_metadata,
-            "timing_record": self.timing_record
-            or {"status": "legacy/unknown", "reason": "No versioned timing record"},
-            "error": self.error,
-            "created_at": self.created_at.isoformat(),
-        }
+        invalid = dict(self.unavailable_metrics)
+        for name, value in self.metrics.items():
+            try:
+                if not math.isfinite(float(value)):
+                    invalid[name] = repr(value)
+            except (ValueError, TypeError):
+                if value is None:
+                    invalid.setdefault(name, "unavailable")
+        status = (
+            "invalid" if self.status == "success" and "best_fitness" in invalid else self.status
+        )
+        return standard_json(
+            {
+                "seed": self.seed,
+                "status": status,
+                "unavailable_metrics": invalid,
+                "metrics": self.metrics,
+                "history": self.history,
+                "artifacts": self.artifacts,
+                "duration_seconds": self.duration_seconds,
+                "timings": self.timings,
+                "timing_metadata": self.timing_metadata,
+                "metric_metadata": self.metric_metadata,
+                "timing_record": self.timing_record
+                or {"status": "legacy/unknown", "reason": "No versioned timing record"},
+                "error": self.error,
+                "created_at": self.created_at.isoformat(),
+            }
+        )
 
     def to_json(self) -> str:
-        return json.dumps(self.to_dict())
+        return json.dumps(self.to_dict(), allow_nan=False)
 
     @property
     def summary(self) -> Dict[str, float]:
@@ -107,6 +140,7 @@ class RunResult:
             timings=d.get("timings"),
             timing_metadata=d.get("timing_metadata") or {},
             metric_metadata=d.get("metric_metadata") or {},
+            unavailable_metrics=d.get("unavailable_metrics") or {},
             timing_record=d.get("timing_record")
             or {"status": "legacy/unknown", "reason": "No versioned timing record"},
             error=d.get("error"),
@@ -199,16 +233,18 @@ class ExperimentResult:
     schema_version: str = "0.1"
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
-            "name": self.name,
-            "runs": [r.to_dict() for r in self.runs],
-            "metadata": self.metadata,
-            "created_at": self.created_at.isoformat(),
-            "schema_version": self.schema_version,
-        }
+        return standard_json(
+            {
+                "name": self.name,
+                "runs": [r.to_dict() for r in self.runs],
+                "metadata": self.metadata,
+                "created_at": self.created_at.isoformat(),
+                "schema_version": self.schema_version,
+            }
+        )
 
     def to_json(self) -> str:
-        return json.dumps(self.to_dict())
+        return json.dumps(self.to_dict(), allow_nan=False)
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "ExperimentResult":

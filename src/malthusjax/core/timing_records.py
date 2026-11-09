@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.metadata
 import json
 import math
 import platform
@@ -50,7 +51,22 @@ def environment_identity() -> dict[str, Any]:
         except (OSError, subprocess.CalledProcessError):
             return "unknown"
 
+    package_root = Path(__file__).resolve().parents[1]
+    source_digest = hashlib.sha256()
+    for path in sorted(package_root.rglob("*.py")):
+        source_digest.update(str(path.relative_to(package_root)).encode())
+        source_digest.update(path.read_bytes())
+    packages = {}
+    for name in ("jax","jaxlib","numpy","flax","chex","scipy","pandas","statsmodels","evosax","qdax","tensorneat"):
+        try:
+            packages[name] = importlib.metadata.version(name)
+        except importlib.metadata.PackageNotFoundError:
+            pass
     return {
+        "package_versions": packages,
+        "source_sha256": source_digest.hexdigest(),
+        "jax_enable_x64": bool(jax.config.x64_enabled),
+        "xla_flags": __import__("os").environ.get("XLA_FLAGS"),
         "python": platform.python_version(),
         "jax": jax.__version__,
         "jaxlib": jaxlib.__version__,

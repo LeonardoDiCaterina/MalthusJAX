@@ -1,0 +1,11 @@
+# Scoped CPU-tested candidate, Python 3.12. Not an approved GPU/publication lock.
+jax==0.11.0
+jaxlib==0.11.0
+numpy==2.5.1
+flax==0.12.8
+chex==0.1.91
+scipy==1.18.0
+pandas==3.0.5
+statsmodels==0.14.6
+evosax==0.2.0
+qdax==0.5.0

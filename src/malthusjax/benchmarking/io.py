@@ -9,6 +9,8 @@ additional outputs.
 from __future__ import annotations
 
 import csv
+import hashlib
+import uuid
 import json
 from pathlib import Path
 from typing import Dict
@@ -17,7 +19,7 @@ import chex
 import jax.numpy as jnp
 import numpy as np
 
-from .results import ExperimentResult
+from .results import ExperimentResult, standard_json
 
 
 def write_summary_json(experiment_result: ExperimentResult, path: Path | str) -> None:
@@ -34,7 +36,7 @@ def write_summary_json(experiment_result: ExperimentResult, path: Path | str) ->
     temp_path = path.with_suffix(".json.tmp")
     try:
         with temp_path.open("w") as f:
-            json.dump(experiment_result.to_dict(), f, indent=2)
+            json.dump(standard_json(experiment_result.to_dict()), f, indent=2, allow_nan=False)
         temp_path.rename(path)
     except Exception:
         # Clean up temp file on error
@@ -117,6 +119,7 @@ def write_experiment_artifacts(
     locations are returned in the resulting mapping.
     """
     output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
     written_paths = {}
 
     if write_json:
@@ -169,6 +172,21 @@ def write_experiment_artifacts(
         seed_dir = ensure_seed_folder(output_dir, run.seed)
         written_paths[f"seed_{run.seed:04d}"] = seed_dir
 
+    # A unique immutable snapshot retains raw results even if legacy summary
+    # paths are reused. Output hashes detect later replacement of those paths.
+    snapshot = {
+        "schema_version": 1,
+        "experiment": experiment_result.to_dict(),
+        "output_sha256": {
+            str(path.relative_to(output_dir)): hashlib.sha256(path.read_bytes()).hexdigest()
+            for path in written_paths.values()
+            if path.is_file()
+        },
+    }
+    manifest = output_dir / f"manifest-{uuid.uuid4().hex}.json"
+    with manifest.open("x") as stream:
+        json.dump(standard_json(snapshot), stream, indent=2, allow_nan=False)
+    written_paths["manifest"] = manifest
     return written_paths
 
 

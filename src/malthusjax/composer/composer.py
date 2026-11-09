@@ -441,7 +441,7 @@ class Composer:
         out_dir = (
             Path(config.output.output_dir)
             if config.output.output_dir
-            else Path("results") / config.output.experiment_name
+            else Path("results") / config.output.experiment_name / __import__("uuid").uuid4().hex
         )
         tr_dir = (
             Path(config.output.trace_dir) if config.output.trace_dir else Path("results/traces")
@@ -455,6 +455,7 @@ class Composer:
             prng_impl=config.execution.prng_impl,
             trace_dir=tr_dir,
             serialize_history=kwargs.get("serialize_history", True),
+            configuration=config.to_dict(),
         )
 
         normalized_seeds = normalize_seeds(config.execution.seeds)
