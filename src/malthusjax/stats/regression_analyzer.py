@@ -1,4 +1,5 @@
 import dataclasses
+import json
 from pathlib import Path
 
 import numpy as np
@@ -22,6 +23,9 @@ class RegressionSpec:
     robust_cov_types: list[str] = dataclasses.field(default_factory=lambda: ["HC0", "HC1", "HC3"])
     apply_multiple_testing: bool = True
     multiple_testing_method: str = "holm"
+    transforms: dict = dataclasses.field(default_factory=dict)
+    covariance: str = "HC3"
+    cluster_by: list[str] | None = None
 
 
 class OLSRegressionAnalyzer:
@@ -56,21 +60,18 @@ class OLSRegressionAnalyzer:
                     continue  # OLS scaling requires variance in D
 
                 for var in self.spec.dependent_vars:
-                    y_vals, X_dict = build_design_matrix(df_fn, dependent_var=var)
+                    y_vals, X_dict = build_design_matrix(df_fn, dependent_var=var, **self.spec.transforms.get(var, {}))
 
-                    dataset = RegressionDataset(y=y_vals, X=X_dict, label=f"{prefix}_{var}")
+                    dataset = RegressionDataset(y=y_vals, X=X_dict, label=f"{prefix}_{var}",
+                        covariance=self.spec.covariance,
+                        groups=(pd.factorize(pd.MultiIndex.from_frame(df_fn[self.spec.cluster_by]))[0] if self.spec.cluster_by else None),
+                        metadata={**df_fn.attrs,"observation_ids": df_fn[["fn_name","seed","D","P","G","is_treatment"]].to_dict("records")})
 
                     try:
                         ols_res = fit_ols(dataset)
 
                         # Generate markdown diagnostic output
-                        ols_res.target_name = dataset.label  # type: ignore[attr-defined]
-                        ols_res.n_observations = len(y_vals)  # type: ignore[attr-defined]
-                        ols_res.adjusted_r_squared = ols_res.r_squared  # type: ignore[attr-defined]
-                        ols_res.features = list(dataset.X.keys())  # type: ignore[attr-defined]
-                        ols_res.standard_errors = {}  # type: ignore[attr-defined]
-                        ols_res.t_values = {}  # type: ignore[attr-defined]
-
+                        (analysis_dir / f"{prefix}_{var}_ols_result.json").write_text(json.dumps(dataclasses.asdict(ols_res), indent=2))
                         md_path = analysis_dir / f"{prefix}_{var}_ols_summary.md"
                         md_path.write_text(regression_to_markdown(ols_res))
 
@@ -99,6 +100,7 @@ class OLSRegressionAnalyzer:
                             "Benchmark": fn_name,
                             "Dependent_Var": var,
                             "R2": ols_res.r_squared,
+                            "Adjusted_R2": ols_res.adjusted_r_squared,
                             "beta_1 (Treatment)": ols_res.coefficients.get("is_treatment", np.nan),
                             "beta_1_pval": ols_res.p_values.get("is_treatment", np.nan),
                             "beta_3 (Interaction)": ols_res.coefficients.get(

@@ -90,6 +90,9 @@ class RegressionDataset:
     treatment_col: str = "is_treatment"
     interaction_col: str | None = None
     label: str = ""
+    metadata: dict[str, Any] = field(default_factory=dict)
+    covariance: str = "HC3"
+    groups: np.ndarray | None = None
 
 
 @dataclass(frozen=True)
@@ -215,6 +218,13 @@ class OLSResult:
     r_squared: float
     diagnostics: list[DiagnosticResult]
     label: str = ""
+    adjusted_r_squared: float | None = None
+    standard_errors: dict[str, float] = field(default_factory=dict)
+    t_values: dict[str, float] = field(default_factory=dict)
+    features: list[str] = field(default_factory=list)
+    target_name: str = ""
+    n_observations: int = 0
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
