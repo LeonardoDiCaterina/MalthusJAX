@@ -212,6 +212,16 @@ class TestQDaxHLOEquivalence:
                 repertoire, emitter_state, metrics = raw_map_elites.update(
                     repertoire, emitter_state, subkey
                 )
+                from malthusjax.core.fitness.qd.metrics import archive_metrics
+                archive = archive_metrics(repertoire.fitnesses)
+                metrics = {
+                    "best_fitness": -archive["max_fitness"],
+                    "mean_fitness": -archive["mean_fitness"],
+                    "std_fitness": archive["std_fitness"],
+                    "qd_score": archive["qd_score"],
+                    "coverage": archive["coverage"],
+                    "occupied_cells": archive["occupied_cells"],
+                }
                 return (rng, repertoire, emitter_state, randkey), metrics
 
             carry = (rng, repertoire, emitter_state, randkey)

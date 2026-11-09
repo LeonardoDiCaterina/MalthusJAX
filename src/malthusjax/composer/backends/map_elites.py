@@ -50,7 +50,7 @@ def build_map_elites_engine(
         from malthusjax.core.fitness.composable.environments import TensorNEATProblemWrapper
         from malthusjax.core.fitness.composable.evaluators import TensorNeatEvaluator
         from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
-        from plugins.tensor_neat_transform import TensorNeatTransform
+        from malthusjax.core.fitness.composable.transforms.tensorneat import TensorNeatTransform
 
         problem_name = kwargs.get("tensorneat_problem", None)
         objective_fn = kwargs.get("objective_function")

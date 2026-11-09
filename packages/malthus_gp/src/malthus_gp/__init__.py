@@ -33,12 +33,6 @@ from malthus_gp.interpreters.cartesian_interpreter import CartesianInterpreter
 from malthus_gp.interpreters.differentiable_cartesian_interpreter import (
     DifferentiableCartesianInterpreter,
 )
-from malthus_gp.learn.base import BaseGPEstimator
-from malthus_gp.learn.cgp_classifier import CGPClassifier
-from malthus_gp.learn.cgp_ode_solver import CGPODESolver
-from malthus_gp.learn.cgp_regressor import CGPRegressor
-from malthus_gp.learn.dcgp_regressor import DCGPRegressor
-from malthus_gp.learn.symbolic_transformer import SymbolicFeatureTransformer
 from malthus_gp.operators.cartesian_micro_mutation import CartesianMicroMutation
 from malthus_gp.operators.differentiable_mutation import DifferentiableMicroMutation
 from malthus_gp.operators.neutral_selection import NeutralSelection
@@ -71,3 +65,26 @@ __all__ = [
     "DCGPRegressor",
     "CGPODESolver",
 ]
+
+_OPTIONAL_EXPORTS = {
+    "BaseGPEstimator": ("malthus_gp.learn.base", "BaseGPEstimator"),
+    "CGPClassifier": ("malthus_gp.learn.cgp_classifier", "CGPClassifier"),
+    "CGPODESolver": ("malthus_gp.learn.cgp_ode_solver", "CGPODESolver"),
+    "CGPRegressor": ("malthus_gp.learn.cgp_regressor", "CGPRegressor"),
+    "DCGPRegressor": ("malthus_gp.learn.dcgp_regressor", "DCGPRegressor"),
+    "SymbolicFeatureTransformer": (
+        "malthus_gp.learn.symbolic_transformer",
+        "SymbolicFeatureTransformer",
+    ),
+}
+
+
+def __getattr__(name):
+    if name not in _OPTIONAL_EXPORTS:
+        raise AttributeError(name)
+    from importlib import import_module
+
+    module, attribute = _OPTIONAL_EXPORTS[name]
+    value = getattr(import_module(module), attribute)
+    globals()[name] = value
+    return value

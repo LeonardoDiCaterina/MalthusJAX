@@ -164,6 +164,8 @@ def test_map_elites_adapter_matches_raw_qdax_scan():
         rep, e_state, rng = carry
         rng, subkey = jax.random.split(rng)
         rep, e_state, metrics = map_elites.update(rep, e_state, subkey)
+        from malthusjax.core.fitness.qd.metrics import archive_metrics
+        metrics.update(archive_metrics(rep.fitnesses))
         return (rep, e_state, rng), metrics
 
     (raw_final_rep, _, _), raw_metrics = jax.lax.scan(

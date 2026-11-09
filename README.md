@@ -3,7 +3,7 @@
 [![JAX](https://img.shields.io/badge/JAX-0.4+-blue.svg)](https://github.com/google/jax)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![mypy](https://img.shields.io/badge/type--checked-mypy-blue.svg)](http://mypy-lang.org/)
-[![Coverage](https://img.shields.io/badge/Coverage-%3E%2080%25-success.svg)](https://leonardodicaterina.github.io/MalthusJAX/coverage/)
+[Coverage scope and validation](docs/audit_remediation/P11.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 **From Raw JAX PyTrees to Declarative TOML Sweeps: A Multi-Level Evolutionary Framework.**
@@ -179,7 +179,7 @@ cd MalthusJAX
 # Install in development mode with all dependencies
 make install-dev
 ```
-*Requires Python 3.11+ and JAX 0.4+.*
+*Requires Python 3.12+ and JAX 0.11–0.12 (see validation scope).*
 
 ### Docker Deployment
 MalthusJAX includes a robust, multi-stage `Dockerfile` to simplify deployment on shared GPU clusters. Isolate optional dependencies (`qdax`, `evosax`, `tensorneat`, `rl`) during the build:

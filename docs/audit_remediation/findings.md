@@ -9,25 +9,25 @@ The original audit and probes remain at `audit/2026-11-08/` locally. [Baseline m
 | A01 Forced timing | Reproduced | Fixed in P1 | `tests/benchmarking/test_empirical.py`, `test_empirical_generator.py`: actual slowdown survives extraction and table export | Dataset 5 timing/ratio; historical impact unverified |
 | A02 Invalid statistical defaults | Reproduced | Implemented P4; publication policy pending | Shared finite-sample validity and unavailable inference | Generator statistical claims |
 | A03 Signed metrics/QD meaning | Reproduced/source | Implemented P1/P3; see P3.md | Signed objectives preserved; versioned shared archive definitions; legacy comparisons unavailable | Control returns; Dataset 5 QD/fitness |
-| A04 Placeholder ingestion | Source; baseline dry-run overwrite confirmed in disposable directory | Contained in P2; real generation deferred P10 | Paper `tests/test_ingest_cluster_results.py`: no writes on dry-run/error; no mock fallback | H1/H2/H3 ingestion; historical impact unverified |
+| A04 Placeholder ingestion | Source; baseline dry-run overwrite confirmed in disposable directory | P2 containment; P10 review rebuild implemented; historical source mapping pending | Paper `tests/test_ingest_cluster_results.py`: no writes on dry-run/error; no mock fallback | H1/H2/H3 ingestion; historical impact unverified |
 | A05 Crowding | Reproduced | Implemented P5; see P5.md | Independent front-local reference and survival invariance | MO results, if used |
-| A06 Island horizons | Reproduced | Open, P6 | Exact 0/remainder/divisible horizons | Island fitness/budgets |
-| A07 Island timing | Source | CPU measurement repaired PT2/PT3; hardware PT5 and scheduling P6 pending | Prepared outer run and full waits; unresolved horizons declare timing unavailable | Island scaling |
+| A06 Island horizons | Reproduced | Implemented P6; see P6.md | Exact 0/remainder/divisible horizons | Island fitness/budgets |
+| A07 Island timing | Source | CPU timing and P6 scheduling implemented; island hardware pending | Prepared outer run and full waits; unresolved horizons declare timing unavailable | Island scaling |
 | A08 Corrected decisions | Reproduced | Implemented P4 | Corrected p=.06 cannot pass equivalence at .05 | Suite inference |
-| A09 Duplicate pairing | Reproduced | Open, P7 | One-to-one joins/explicit replicate identity | Regression sample sizes/precision |
+| A09 Duplicate pairing | Reproduced | Implemented P7; see P7.md | One-to-one joins/explicit replicate identity | Regression sample sizes/precision |
 | A10 Decision semantics | Source | Implemented P4; publication policy pending | Hypothesis-specific conclusions, margins, uncertainty | Equivalence/zero-overhead claims |
-| A11 Optimize API limits | Source | Open, P8 | Implement or reject controls; truthful termination/covariance | Satellite optimization users/results |
-| A12 Run validity/timeout | Reproduced/source | Open, P9 | Status/finite metrics; enforce or reject requested timeout | Success counts and downstream analysis |
+| A11 Optimize API limits | Source | Implemented P8; supported API narrowed explicitly | Implement or reject controls; truthful termination/covariance | Satellite optimization users/results |
+| A12 Run validity/timeout | Reproduced/source | Implemented P9; supplied timeouts explicitly rejected | Status/finite metrics; enforce or reject requested timeout | Success counts and downstream analysis |
 | A13 Crossover inferred size | Reproduced | Implemented P5; see P5.md | Typed/legacy key/default-size contract | Fast-path callers |
 | A14 Standard deviation sign | Source | Implemented P3 | Sign-invariant standard deviations | Maximization histories/error bars |
-| A15 Gap transform | Source; H1 provenance unresolved | Open, P7/P10 | Explicit estimand/optimum/epsilon and analysis replay | H1/fitness regressions |
-| A16 Adjusted R² | Source | Open, P7 | Match fitted reference statistics | Regression reports |
-| A17 Unpackaged plugin | Source | Open, P11 | Isolated wheel backend test | Installed TensorNEAT/QD backend |
-| A18 Assurance scope | Source | Open, P11 | Include scientific paths and packages in release checks | Coverage/CI claims |
-| A19 Provenance/environment | Risk | Partial, P0; early timing records PT4; full manifests P9/P10 | Baseline captured; versioned timing observations precede full environment replay | All paper evidence |
+| A15 Gap transform | Source; H1 provenance unresolved | P7 explicit transforms implemented; P10 historical H1 provenance pending | Explicit estimand/optimum/epsilon and analysis replay | H1/fitness regressions |
+| A16 Adjusted R² | Source | Implemented P7; see P7.md | Match fitted reference statistics | Regression reports |
+| A17 Unpackaged plugin | Source | Implemented P11; see P11.md for assurance limits | Isolated wheel backend test | Installed TensorNEAT/QD backend |
+| A18 Assurance scope | Source | Implemented P11; see P11.md for assurance limits | Include scientific paths and packages in release checks | Coverage/CI claims |
+| A19 Provenance/environment | Risk | Immutable manifests P9 and inventory/rebuild P10 implemented; publication environment/source mapping pending | Baseline captured; versioned timing observations precede full environment replay | All paper evidence |
 | A20 Archive statistics | Source | Implemented P3 | Occupancy-masked mean/std | QD metrics |
 | A21 Warmup selection | Source | Implemented PT4; extended provenance P9 | Both comparator paths retain seeds and select by declared timing phase, not seed number | Timing comparisons |
-| A22 Documentation/operational promises | Source | Partial, P1/P2; remainder P11 | Output/ingestion behavior documented; verify Docker/tracing/other commands | Reproduction workflow |
+| A22 Documentation/operational promises | Source | P11 docs/CI implemented; Docker execution deferred to CI by user | Output/ingestion behavior documented; verify Docker/tracing/other commands | Reproduction workflow |
 
 ## First implementation batch
 
@@ -48,11 +48,11 @@ The revised implementation order is **PT1 → PT2 → PT3 → PT4 → PT5**, fol
 | T01 Distinct prepared/invoked JIT functions | Actual tracing and XLA compilation reproduced during execution | Codex, fixed on CPU PT1/PT3; scoped native/QDax hardware PT5 passed; other integrations not GPU-validated | Exact retained executable tested on first/reordered seeds and logging/history/key/dtype/sharding variants |
 | T02 Silently ignored preparation failures | Intentional lower failure suppressed in probe | Codex, fixed PT1; consumer checks PT4 passed on CPU | Preparation failures propagate; unsupported mode declares unavailable timing |
 | T03 Inconsistent readiness/finalization boundaries | Source plus barrier-coverage probe | Codex, fixed on CPU PT2/PT3; scoped native/QDax hardware PT5 passed; other integrations not GPU-validated | Full input/output/effect waits; seeded results and genetic finalization preserved |
-| T04 MO/island timing mixes phases | Source; separate Dataset 3 scaling path explicitly distinguished | Codex, adopted/limited explicitly in PT3; scheduling P6 pending | Actual production adapter paths prepare scans or report timing unavailable; hardware validation pending |
+| T04 MO/island timing mixes phases | Source; separate Dataset 3 scaling path explicitly distinguished | Codex, adopted in PT3; exact scheduling P6 implemented; island/MO hardware pending | Actual production adapter paths prepare scans or report timing unavailable; hardware validation pending |
 | T05 Universal helper skips PyTrees/swallows errors | Custom PyTree and nested failure probes | Codex, fixed PT2; callback refinement PT3 | Registered/custom/slots trees and nested device errors tested; callbacks explicitly drained |
 | T06 Consumers mix phases/exclude by seed | Both comparator paths and analyzer fallback reviewed | Codex, fixed/validated on CPU PT4; scoped native/QDax hardware PT5 passed; other integrations not GPU-validated | All raw observations retained; mismatched/legacy phases explicitly diagnosed; no total-as-execution fallback |
 | T07 First-use/steady/end-to-end scopes unspecified | Source; contribution to cluster durations unquantified | Codex, versioned records/policy PT4; scoped native/QDax hardware PT5 passed; other integrations not GPU-validated | Prepared first execution is not labeled steady-state; repetition/order/cache policy and full schema still required |
-| T08 Tests miss phase contamination | 29 selected tests passed alongside reproduced timing defects | Codex, maintained CPU regressions added PT1–PT3; PT5/P11 pending | Event/trace/failure regressions pass; hardware validation and CI expansion remain separate |
+| T08 Tests miss phase contamination | 29 selected tests passed alongside reproduced timing defects | Codex, maintained CPU regressions added PT1–PT3; PT5 scoped H100 passed; P11 CI gates added, hosted execution pending | Event/trace/failure regressions pass; hardware validation and CI expansion remain separate |
 
 No gate requires a favorable performance ratio. Job 1303 remains unchanged historical evidence. A small timing-only validation is prepared after CPU tests pass; another full RL-heavy/publication-sized comparison is deferred until the relevant timing and scientific gates pass.
 
@@ -79,3 +79,7 @@ PT4 CPU consumer closure: see [PT4.md](PT4.md) for schema, compatibility impact,
 PT5 preparation: timing-only native/QDax harness, frozen four-seed/six-execution schedule, reference and compilation checks, Slurm safeguards, and CPU evidence are in [PT5.md](PT5.md) and `PT5_cpu_evidence.json`. Local production-adapter validation passed (48 timed trials/eight references); 47 focused regressions passed. **Subsequent user-authorized H100 job 1516 passed the native/QDax timing gate: 48 trials, eight agreeing references, zero execution compilation events.** See `PT5_cluster_1516.json` for the user-supplied evidence and limitations.
 
 P3/P4 implementation evidence: [P3.md](P3.md) and [P4.md](P4.md). Metric contracts and corrected hypothesis-specific conclusions are implemented; no task-specific publication margin/power policy has been adopted and no manuscript or historical output was rewritten.
+
+## P6–P11 implementation checkpoint
+
+See [P6](P6.md), [P7](P7.md), [P8](P8.md), [P9](P9.md), [P10](P10.md) and [P11](P11.md) for package-level changes, regressions and limits. Historical paper claims remain unavailable until source mapping, declared inferential policy and necessary reruns are reviewed. P10 implemented a review-only rebuild, not manuscript-wide numerical validation. P11 records the completed full CPU run and subsequent targeted fixture corrections without claiming an all-green full rerun. Docker verification is assigned to CI by the user. No publication-sized rerun was launched.

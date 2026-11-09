@@ -1,5 +1,7 @@
 """Tests for the decorator-based registration API."""
 
+import pytest
+
 from malthusjax.composer import (
     register_crossover,
     register_engine,
@@ -11,6 +13,21 @@ from malthusjax.composer import (
 from malthusjax.composer._genome_registry import get_registry as get_genome_registry
 from malthusjax.composer._registry import get_registry as get_operator_registry
 from malthusjax.composer.engine_registry import get_registry as get_engine_registry
+
+
+@pytest.fixture(autouse=True)
+def restore_registries():
+    """Keep temporary decorator registrations local to each test."""
+    from malthusjax.composer._registry import _OPERATOR_REGISTRY
+    from malthusjax.composer._genome_registry import _GENOME_REGISTRY
+    from malthusjax.composer.engine_registry import _ENGINE_REGISTRY
+
+    registries = (_OPERATOR_REGISTRY, _GENOME_REGISTRY, _ENGINE_REGISTRY)
+    snapshots = [dict(registry) for registry in registries]
+    yield
+    for registry, snapshot in zip(registries, snapshots, strict=True):
+        registry.clear()
+        registry.update(snapshot)
 
 
 def test_register_selection():

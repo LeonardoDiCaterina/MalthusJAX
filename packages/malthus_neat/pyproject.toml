@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "JAX-native Neuroevolution of Augmenting Topologies (NEAT) framework with Scikit-Learn estimator APIs and Quality-Diversity"
 readme = "README.md"
 license = { text = "MIT" }
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 authors = [
     { name = "Leonardo Di Caterina" }
 ]
@@ -24,7 +24,6 @@ keywords = [
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",

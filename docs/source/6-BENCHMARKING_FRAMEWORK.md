@@ -25,7 +25,7 @@ The `BenchmarkRunner` dataclass orchestrates multi-seed experiment execution:
   - `output_dir: Optional[Path]` (default `None`).
   - `write_artifacts: bool` (default `True`).
   - `prng_impl: Optional[str]` (default `None`) — PRNG backend name (`"threefry2x32"`, `"philox4x32"`).
-  - `trace_dir: Optional[Path]` (default `None`) — Directory for optional JAX trace output.
+  - `trace_dir: Optional[Path]` (default `None`) — Legacy compatibility option; currently disabled and produces no profiler output. Use separate diagnostic profiling outside comparative timing.
   - `serialize_history: bool` (default `True`) — If `False`, drops per-generation history arrays to conserve memory during large sweeps.
 
 - **Execution (`run`)**:

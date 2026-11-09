@@ -44,7 +44,7 @@ class BenchmarkRunner:
     output_dir: Optional[Path] = None
     write_artifacts: bool = True
     prng_impl: Optional[str] = None
-    trace_dir: Optional[Path] = None  # If set, capture JAX trace for seed[0]
+    trace_dir: Optional[Path] = None  # Legacy option; profiler capture is currently disabled.
     configuration: Optional[Dict[str, Any]] = None
     serialize_history: bool = True  # If False, drops generation history to save disk space
 
@@ -205,9 +205,9 @@ class BenchmarkRunner:
     ) -> RunResult:
         """Execute the engine for one seed and package the outcome.
 
-        The method measures wall time, optionally wraps the engine invocation
-        in a JAX profiler trace, and normalizes the returned summary metrics to
-        floats.  Any exceptions raised by the engine are caught and recorded in
+        The method measures wall time and normalizes returned summary metrics.
+        The legacy trace_dir option currently produces no profiler output.
+        Any exceptions raised by the engine are caught and recorded in
         the resulting :class:`RunResult` with ``status="error"``.
         """
 

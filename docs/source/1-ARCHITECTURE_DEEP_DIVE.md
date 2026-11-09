@@ -27,7 +27,7 @@ All code is subject to:
 
 - **Type checking**: `mypy --strict` with zero tolerance for untyped code or type: ignore exceptions.
 - **Linting**: `ruff check` enforces style consistency and catches common errors.
-- **Test coverage**: ≥80% statement coverage on all modules; critical paths (operators, engine kernels) approach 100%.
+- **Test coverage**: production scientific paths, including the genetic engine, are included in measurement. The scoped scientific baseline is 48.82%; this is not full-suite coverage. See `docs/audit_remediation/P11.md` for checks and exclusions.
 
 These checks are non-negotiable preconditions for code acceptance.
 

@@ -98,11 +98,8 @@ Multi-device and layout management is handled by `ShardingManager`, which constr
 
 `BaseIslandModel` upgrades any 1D engine into a 2D multi-island model by wrapping engine methods in `jax.vmap` across an island dimension of size `num_islands`.
 
-### Host Synchronization Execution Pattern
-`BaseIslandModel.step()` executes using a hybrid JAX/Python loop:
-1. **Local Evolution**: Runs `self.engine.step` across all islands in parallel for `migration_interval` generations using `jax.vmap` over an inner `jax.lax.scan`.
-2. **Host Dropout & Migration**: Drops out of JAX execution back to the Python host to execute `migrate(key, multi_pop)`.
-3. **Re-injection**: Re-injects the migrated population PyTree into the island state and launches the next JAX execution kernel.
+### Prepared island execution
+The production adapter prepares one scan over exactly the requested number of generations, applying `jax.vmap` to local engine steps. Migration runs within the compiled schedule at completed interval boundaries. A final partial interval evolves without an extra migration; zero generations leaves state unchanged. History has leading `(generation, island)` axes. Prepared execution uses the shared timing/readiness protocol; it does not drop to the host between migration intervals. `BaseIslandModel.step()` remains a complete interval convenience operation.
 
 ### Topological Migration Policies (`topologies.py`)
 - **`RingTopologyIsland`**: Sorts fitness per island, extracts the top `num_migrants` elites, shifts elite tensors to the adjacent island via `jnp.roll(arr, shift=1, axis=0)`, and overwrites the worst `num_migrants` individuals in the destination island.

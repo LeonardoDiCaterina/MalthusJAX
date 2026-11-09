@@ -12,7 +12,7 @@ import jax.numpy as jnp
 from flax import struct
 
 from malthusjax.core.logger import StepLoggingConfig, get_logger
-from malthusjax.core.timing import TimingCapture, block_until_ready, execution_metadata
+from malthusjax.core.timing import TimingCapture, block_until_ready
 from malthusjax.engine.island_model.base import BaseIslandModel
 
 logger = get_logger("engine.island_model.adapter")
@@ -139,7 +139,6 @@ class IslandEngineAdapter:
             "total": t_end - t_start,
             "warmup": t_warmup_end - t_start,
         }
-        interval = int(self.island_model.migration_interval)
         unavailable = None
         if step_logging is not None or self.step_logging is not None:
             unavailable = "Island step logging is not implemented by this adapter"

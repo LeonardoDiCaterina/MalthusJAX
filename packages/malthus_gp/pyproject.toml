@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "JAX-native Genetic Programming framework with Cartesian GP, neutral drift, and Scikit-Learn estimator APIs"
 readme = "README.md"
 license = { text = "MIT" }
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 authors = [
     { name = "Leonardo Di Caterina" }
 ]
@@ -23,7 +23,6 @@ keywords = [
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",

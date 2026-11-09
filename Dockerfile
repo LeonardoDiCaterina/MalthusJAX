@@ -1,6 +1,6 @@
 # Default to a standard python image, but can be overridden with a CUDA base if needed
 # Example: --build-arg BASE_IMAGE=nvidia/cuda:12.2.0-base-ubuntu22.04
-ARG BASE_IMAGE=python:3.11-slim
+ARG BASE_IMAGE=python:3.12-slim
 FROM ${BASE_IMAGE}
 
 # Allow passing the extras (e.g. "[cuda12,qdax,rl,stats]") during build
@@ -27,7 +27,7 @@ WORKDIR /app
 RUN python -m pip install --upgrade pip
 
 # Copy the minimum files needed for dependency resolution to cache the layer
-COPY pyproject.toml README.md ./
+COPY pyproject.toml README.md LICENSE ./
 # We need the __init__.py so hatchling can read the version/description if configured that way
 RUN mkdir -p src/malthusjax
 COPY src/malthusjax/__init__.py ./src/malthusjax/__init__.py

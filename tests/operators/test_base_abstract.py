@@ -152,7 +152,7 @@ def test_base_vmap_calls():
     assert out_cross.shape == (10, 2)
 
     # test multiple offspring and new typed keys
-    keys_typed = jnp.zeros(20, dtype=jnp.uint32)
+    keys_typed = jax.random.split(jax.random.key(0), 20)
     mut2 = DummyMutation(num_offspring=2).set_input_length(10).set_typed_keys(True)
     out_mut2 = mut2(keys_typed, pop, config)
     assert out_mut2.shape == (20, 2)

@@ -1,0 +1,49 @@
+name: Scientific remediation gates
+on:
+  pull_request:
+  push:
+    branches: [main, codex/audit-remediation]
+  workflow_dispatch:
+jobs:
+  scientific-cpu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -e '.[dev,stats,evosax,qdax,bbobax]'
+      - run: python -m ruff check examples/generate_empirical_paper_curves.py src/malthusjax/stats src/malthusjax/benchmarking/publication.py scripts/check_wheel.py scripts/rebuild_publication.py --select F
+      - run: python -m pytest --cov=src/malthusjax --cov-report=term --cov-report=xml -q tests/stats tests/benchmarking tests/core/test_timing.py tests/core/test_timing_records.py tests/engine/test_prepared_run.py tests/engine/test_p6_horizons.py tests/test_pt5_validation.py tests/test_statistical_integrity.py tests/test_timing_isolation.py tests/composer/test_timing_contract.py tests/composer/test_metric_contract.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: scientific-cpu-coverage
+          path: coverage.xml
+      - run: python -m pip install build
+      - run: python -m build --wheel
+      - run: python scripts/check_wheel.py dist/*.whl
+  satellites:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [malthus_optimize, malthus_gp, malthus_neat]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -e '.[dev,all-integrations]' -e 'packages/${{ matrix.package }}[dev]'
+      - run: python -m pytest --no-cov -q packages/${{ matrix.package }}/tests
+      - run: python -m pip install build
+      - run: python -m build --wheel && python -m build --wheel --outdir dist packages/${{ matrix.package }}
+      - run: python scripts/check_wheel.py dist/${{ matrix.package }}-*.whl --module ${{ matrix.package }} --dependency-wheel dist/malthusjax-*.whl
+  container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t malthusjax-cpu .
+      - run: docker run --rm malthusjax-cpu --help

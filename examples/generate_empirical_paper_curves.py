@@ -1273,7 +1273,7 @@ def main() -> None:
     parser.add_argument(
         "--smoke",
         action="store_true",
-        help="Run lightweight smoke version for quick validation (~30-45s).",
+        help="Run reduced workloads for pipeline validation; runtime depends on hardware and integrations.",
     )
     parser.add_argument(
         "--heavy",
