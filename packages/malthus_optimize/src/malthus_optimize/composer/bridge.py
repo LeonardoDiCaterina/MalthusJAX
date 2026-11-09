@@ -92,13 +92,13 @@ def run_composer_optimization(
     elif hasattr(final_state, "mean"):
         raw_best_norm = np.asarray(final_state.mean)
     else:
-        raw_best_norm = np.full(bounds.num_dims, 0.5, dtype=np.float32)
+        raise RuntimeError("Backend returned no supported solution field")
 
     # 5. Denormalize from [0, 1] to physical bounds
     best_x = bounds.denormalize(np.clip(raw_best_norm, 0.0, 1.0))
     best_fun = float(final_state.best_fitness)
 
-    total_evals = pop_size * generations
+    total_evals = pop_size * (generations + 1)
     nit = generations
 
     # Build metric history

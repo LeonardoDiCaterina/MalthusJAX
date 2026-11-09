@@ -1,4 +1,4 @@
-"""SciPy drop-in curve_fit powered by global optimization and JAX residual evaluators."""
+"""Bounded global optimization API curve_fit powered by global optimization and JAX residual evaluators."""
 
 from __future__ import annotations
 
@@ -30,7 +30,7 @@ def curve_fit(
 ) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray, dict[str, Any]]]:
     """Fits a non-linear model function f to data (xdata, ydata) using global optimization.
 
-    Drop-in replacement for :func:`scipy.optimize.curve_fit`, avoiding local minima
+    Limited alternative to :func:`scipy.optimize.curve_fit`, avoiding local minima
     in peak fitting, spectroscopy, and kinetic modeling.
 
     Parameters
@@ -59,9 +59,20 @@ def curve_fit(
     pcov : 2-D array
         The estimated covariance of popt.
     """
-    x_arr = np.asarray(xdata, dtype=np.float32)
-    y_arr = np.asarray(ydata, dtype=np.float32)
+    x_arr = np.asarray(xdata, dtype=float)
+    y_arr = np.asarray(ydata, dtype=float)
 
+    if jac is not None or full_output or maxfev is not None or not check_finite:
+        raise NotImplementedError("jac, SciPy full_output, maxfev and disabled finite checks are unsupported")
+    if set(kwargs) - {"pop_size","popsize","max_generations","maxiter","seed"}:
+        raise NotImplementedError("Unsupported curve_fit options")
+    if y_arr.ndim != 1 or x_arr.shape[-1] != y_arr.size or not np.isfinite(x_arr).all() or not np.isfinite(y_arr).all():
+        raise ValueError("Fitting data must be finite with aligned one-dimensional observations")
+    if np.asarray(sigma).ndim == 2:
+        raise NotImplementedError("Covariance-matrix sigma is unsupported")
+    weights = np.ones(y_arr.size) if sigma is None else np.broadcast_to(np.asarray(sigma, dtype=float), y_arr.shape)
+    if not np.isfinite(weights).all() or np.any(weights <= 0):
+        raise ValueError("sigma must be finite and positive")
     # 1. Determine parameter dimensionality
     if p0 is not None:
         p0_arr = np.asarray(p0, dtype=np.float32)
@@ -127,37 +138,34 @@ def curve_fit(
         use_python_loop=False,
     )
 
-    # 6. Estimate parameter covariance matrix (pcov)
-    n_points = len(x_arr)
-    n_free = max(1, n_points - num_params)
-    s_sq = best_loss / n_free
-
-    # Numerical Jacobian via central differences
-    eps = 1e-4
-    J = np.zeros((n_points, num_params), dtype=np.float32)
-    for j in range(num_params):
-        p_plus = popt.copy()
-        p_minus = popt.copy()
-        p_plus[j] += eps
-        p_minus[j] -= eps
-        y_plus = np.asarray(f(x_arr, *p_plus))
-        y_minus = np.asarray(f(x_arr, *p_minus))
-        J[:, j] = (y_plus - y_minus) / (2.0 * eps)
-
-    try:
-        jtj = J.T @ J
-        pcov = np.linalg.pinv(jtj) * s_sq
-    except Exception:
-        pcov = np.full((num_params, num_params), np.inf)
-
-    if full_output:
-        infodict = {
-            "nfev": nfev,
-            "nit": nit,
-            "fvec": best_loss,
-            "history": history,
-        }
-        return popt, pcov, infodict
+    # Whiten both residuals and Jacobian before covariance estimation.
+    popt = np.asarray(popt, dtype=float)
+    if not np.isfinite(popt).all():
+        raise ValueError("Backend returned nonfinite fitted parameters")
+    steps = np.cbrt(np.finfo(float).eps) * np.maximum(1., np.abs(popt))
+    columns = []
+    for j, step in enumerate(steps):
+        plus, minus = popt.copy(), popt.copy()
+        plus[j] += step
+        minus[j] -= step
+        columns.append((np.asarray(f(x_arr,*plus),dtype=float)-np.asarray(f(x_arr,*minus),dtype=float))/(2*step))
+    if evaluator.config.is_pure_jax:
+        import jax
+        import jax.numpy as jnp
+        jacobian = np.asarray(jax.jacfwd(lambda p: f(jnp.asarray(x_arr), *p))(jnp.asarray(popt)), dtype=float)
+    else:
+        jacobian = np.column_stack(columns)
+    J = jacobian / weights[:,None]
+    residual = (np.asarray(f(x_arr,*popt),dtype=float) - y_arr) / weights
+    if not np.isfinite(J).all() or not np.isfinite(residual).all():
+        raise ValueError("Nonfinite residuals or Jacobian")
+    dof = len(y_arr) - num_params
+    if np.linalg.matrix_rank(J) < num_params or (not absolute_sigma and dof <= 0):
+        pcov = np.full((num_params,num_params),np.inf)
+    else:
+        pcov = np.linalg.pinv(J.T @ J)
+        if not absolute_sigma:
+            pcov *= float(residual @ residual) / dof
 
     return popt, pcov
 

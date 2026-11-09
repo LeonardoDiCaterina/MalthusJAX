@@ -16,6 +16,12 @@ class ParsedBounds:
     upper: np.ndarray
     num_dims: int
 
+    def __post_init__(self):
+        if self.lower.shape != (self.num_dims,) or self.upper.shape != (self.num_dims,) or self.num_dims < 1:
+            raise ValueError("Bounds must be aligned nonempty one-dimensional arrays")
+        if not np.isfinite(self.lower).all() or not np.isfinite(self.upper).all() or np.any(self.lower >= self.upper):
+            raise ValueError("Bounds must be finite and strictly increasing")
+
     def normalize(self, x: np.ndarray) -> np.ndarray:
         """Scales physical parameters x from [lower, upper] to [0.0, 1.0]."""
         span = np.maximum(self.upper - self.lower, 1e-12)

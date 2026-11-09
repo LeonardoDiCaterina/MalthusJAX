@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
 from malthus_optimize import curve_fit
 
@@ -43,18 +44,5 @@ def test_curve_fit_full_output() -> None:
     xdata = np.linspace(0, 5, 40)
     ydata = linear_decay(xdata, 0.8, 0.2)
 
-    popt, pcov, info = curve_fit(
-        linear_decay,
-        xdata,
-        ydata,
-        bounds=[(0.1, 2.0), (0.0, 1.0)],
-        full_output=True,
-        pop_size=20,
-        max_generations=30,
-        seed=42,
-    )
-
-    assert "nfev" in info
-    assert "nit" in info
-    assert "history" in info
-    assert np.allclose(popt, [0.8, 0.2], atol=0.05)
+    with pytest.raises(NotImplementedError, match="full_output"):
+        curve_fit(linear_decay,xdata,ydata,bounds=[(0.1,2.0),(0.0,1.0)],full_output=True)

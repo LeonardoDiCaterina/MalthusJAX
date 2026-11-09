@@ -23,9 +23,9 @@ def test_differential_evolution_sphere() -> None:
     )
 
     assert isinstance(res, OptimizeResult)
-    assert res.success is True
+    assert res.success is False
     assert res.nit == 40
-    assert res.nfev == 40 * (15 * 3)
+    assert res.nfev == 41 * (15 * 3)
     assert np.allclose(res.x, 0.0, atol=1e-3)
     assert res.fun < 1e-4
 
@@ -44,7 +44,7 @@ def test_differential_evolution_jax_function() -> None:
         seed=123,
     )
 
-    assert res.success is True
+    assert res.success is False
     assert np.allclose(res.x, 0.0, atol=1e-3)
 
 

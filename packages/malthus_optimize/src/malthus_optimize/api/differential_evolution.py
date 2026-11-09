@@ -1,4 +1,4 @@
-"""SciPy drop-in differential_evolution powered by JAX and MalthusJAX Composer."""
+"""Bounded global optimization API differential_evolution powered by JAX and MalthusJAX Composer."""
 
 from __future__ import annotations
 
@@ -15,19 +15,19 @@ def differential_evolution(
     func: Callable[..., Any],
     bounds: Union[Sequence[Tuple[float, float]], Any],
     args: Tuple[Any, ...] = (),
-    strategy: str = "best1bin",
+    strategy: str = "evosax",
     maxiter: int = 1000,
     popsize: int = 15,
-    tol: float = 0.01,
-    mutation: Union[float, Tuple[float, float]] = (0.5, 1.0),
+    tol: float | None = None,
+    mutation: Union[float, Tuple[float, float]] = 0.5,
     recombination: float = 0.7,
     seed: int | None = None,
     callback: Callable[..., Any] | None = None,
     disp: bool = False,
     polish: bool = False,
-    init: str = "latinhypercube",
-    atol: float = 0.0,
-    updating: str = "immediate",
+    init: str = "random",
+    atol: float | None = None,
+    updating: str = "deferred",
     workers: int = 1,
     constraints: Any = (),
     x0: Any = None,
@@ -38,7 +38,7 @@ def differential_evolution(
 ) -> OptimizeResult:
     """Finds the global minimum of a multivariate function using Differential Evolution.
 
-    Drop-in replacement for :func:`scipy.optimize.differential_evolution`, executing
+    Limited alternative to :func:`scipy.optimize.differential_evolution`, executing
     population evaluation and generational updates via JAX and MalthusJAX Composer.
 
     Parameters
@@ -74,6 +74,19 @@ def differential_evolution(
     OptimizeResult
         The optimization result represented as a :class:`scipy.optimize.OptimizeResult`.
     """
+    unsupported = {"strategy": strategy != "evosax", "tol": tol is not None,
+        "atol": atol is not None, "mutation dithering": isinstance(mutation,(tuple,list)),
+        "callback": callback is not None, "polish": polish, "init": init != "random",
+        "updating": updating != "deferred", "workers": workers != 1,
+        "constraints": constraints is not None and not (isinstance(constraints,(tuple,list)) and len(constraints)==0),
+        "x0": x0 is not None, "integrality": integrality is not None, "vectorized": vectorized,
+        "unknown options": bool(kwargs)}
+    if any(unsupported.values()):
+        raise NotImplementedError("Unsupported optimizer controls: " + ", ".join(k for k,v in unsupported.items() if v))
+    if type(maxiter) is not int or maxiter <= 0 or type(popsize) is not int or popsize <= 0:
+        raise ValueError("maxiter and popsize must be positive integers")
+    if not 0 <= recombination <= 1 or not 0 < float(mutation) < 2:
+        raise ValueError("Invalid recombination or mutation weight")
     # 1. Parse and standardize bounds
     parsed_bounds = parse_bounds(bounds)
     num_dims = parsed_bounds.num_dims
@@ -121,19 +134,12 @@ def differential_evolution(
     if disp:
         print(f"Optimization finished! Best fitness: {best_fun:.6e}")
 
-    # 5. Optional callback invocation
-    if callback is not None:
-        try:
-            callback(best_x)
-        except Exception:
-            pass
-
     return OptimizeResult(
         x=best_x,
         fun=best_fun,
-        success=True,
-        status=0,
-        message="Optimization terminated successfully.",
+        success=False,
+        status=1,
+        message="Iteration budget exhausted; convergence and feasibility are not certified.",
         nit=nit,
         nfev=nfev,
         history=history,

@@ -28,7 +28,7 @@ def test_scipy_bounds_object_support() -> None:
     bounds = ScipyBounds(lb=[-2.0, -2.0], ub=[4.0, 4.0])
     res = differential_evolution(quad, bounds=bounds, popsize=10, maxiter=25, seed=42)
 
-    assert res.success is True
+    assert res.success is False
     assert np.allclose(res.x, [1.0, 1.0], atol=1e-2)
 
 

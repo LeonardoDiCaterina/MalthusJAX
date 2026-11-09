@@ -1,6 +1,6 @@
 # User Guide 1: Zero-Code-Change SciPy Drop-In Migration
 
-`malthus-optimize` is engineered to be an immediate, drop-in replacement for the most widely used global optimization and curve fitting functions in `scipy.optimize`.
+`malthus-optimize` is engineered to be an immediate, limited alternative for the most widely used global optimization and curve fitting functions in `scipy.optimize`.
 
 ---
 

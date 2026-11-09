@@ -1,4 +1,4 @@
-"""SciPy drop-in minimize function supporting multiple global optimization strategies."""
+"""Bounded global optimization API minimize function supporting multiple global optimization strategies."""
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ def minimize(
 ) -> OptimizeResult:
     """Minimization of scalar function of one or more variables.
 
-    Drop-in replacement for :func:`scipy.optimize.minimize`, dispatching global
+    Limited alternative to :func:`scipy.optimize.minimize`, dispatching global
     evolutionary and swarm strategies through MalthusJAX Composer.
 
     Supported methods:
@@ -66,11 +66,20 @@ def minimize(
     OptimizeResult
         The optimization result represented as a :class:`scipy.optimize.OptimizeResult`.
     """
+    if any(value is not None for value in (jac,hess,hessp,tol,callback)) or (constraints is not None and not (isinstance(constraints,(tuple,list)) and len(constraints)==0)):
+        raise NotImplementedError("Derivatives, constraints, tolerance termination and callbacks are unsupported")
+    if x0 is not None and bounds is not None:
+        raise NotImplementedError("x0 with explicit bounds is unsupported; x0 only defines a finite search domain")
     opts = options or {}
+    if set(opts) - {"maxiter","max_generations","popsize","pop_size","seed","disp"}:
+        raise NotImplementedError("Unsupported minimize options")
     maxiter = int(opts.get("maxiter", opts.get("max_generations", 100)))
     pop_size = int(opts.get("popsize", opts.get("pop_size", 50)))
     seed = int(opts.get("seed", 42))
     disp = bool(opts.get("disp", False))
+
+    if maxiter <= 0 or pop_size <= 0:
+        raise ValueError("Iteration and population budgets must be positive")
 
     # 1. Resolve strategy method
     if method is None:
@@ -119,18 +128,12 @@ def minimize(
     if disp:
         print(f"Optimization finished! Best fitness: {best_fun:.6e}")
 
-    if callback is not None:
-        try:
-            callback(best_x)
-        except Exception:
-            pass
-
     return OptimizeResult(
         x=best_x,
         fun=best_fun,
-        success=True,
-        status=0,
-        message=f"Optimization terminated successfully via {method.upper()}.",
+        success=False,
+        status=1,
+        message=f"Iteration budget exhausted via {method.upper()}; convergence not certified.",
         nit=nit,
         nfev=nfev,
         history=history,

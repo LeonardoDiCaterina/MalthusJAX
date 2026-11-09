@@ -6,7 +6,7 @@
 [![Code Style: Ruff](https://img.shields.io/badge/Code%20Style-Ruff-000000.svg)](https://github.com/astral-sh/ruff)
 [![Engine: Composer](https://img.shields.io/badge/Engine-MalthusJAX%20Composer-purple.svg)](../../src/malthusjax/composer)
 
-**`malthus-optimize`** is a high-throughput, GPU/TPU-accelerated, drop-in replacement for Python's standard `scipy.optimize` package. Built on Google JAX and orchestrated directly by the **MalthusJAX Composer Engine**, it delivers up to **10–100× speedups** on continuous multimodal global optimization and non-linear curve fitting while maintaining 100% API compatibility with `scipy.optimize`.
+**`malthus-optimize`** is a high-throughput, GPU/TPU-accelerated, limited alternative for Python's standard `scipy.optimize` package. Built on Google JAX and orchestrated directly by the **MalthusJAX Composer Engine**, it delivers up to **10–100× speedups** on continuous multimodal global optimization and non-linear curve fitting while maintaining 100% API compatibility with `scipy.optimize`.
 
 ---
 
@@ -225,3 +225,17 @@ Explore comprehensive documentation and step-by-step guides in [`docs/`](docs/):
 ## License
 
 This package is licensed under the MIT License. See [LICENSE](../../LICENSE) for details.
+
+## Supported contract (audit remediation)
+
+This is a limited **bounded budget-driven global optimizer**, not full SciPy
+compatibility. Reaching maxiter does not establish convergence: results report
+success=False/status=1 while preserving the best candidate. DE defaults are the
+EvoSAX strategy, constant mutation, random initialization and deferred updates.
+Constraints/integrality, tolerance stopping, callbacks, polish, workers, custom
+initialization, mutation dithering, derivative controls and unknown options
+raise NotImplementedError. An x0-only minimize call uses x0 to construct the
+finite domain; it does not seed an exact initial point. See
+`docs/audit_remediation/P8.md` in the main repository for the complete inventory.
+Curve-fit supports positive scalar/1-D sigma and absolute_sigma covariance;
+2-D sigma and SciPy full_output are explicitly unsupported.

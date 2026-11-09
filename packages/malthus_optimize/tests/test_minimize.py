@@ -20,7 +20,7 @@ def test_minimize_cmaes() -> None:
         options={"popsize": 25, "maxiter": 40, "seed": 42},
     )
     assert isinstance(res, OptimizeResult)
-    assert res.success is True
+    assert res.success is False
     assert np.allclose(res.x, 0.0, atol=1e-3)
 
 
@@ -33,7 +33,7 @@ def test_minimize_pso() -> None:
         options={"popsize": 30, "maxiter": 50, "seed": 42},
     )
     assert isinstance(res, OptimizeResult)
-    assert res.success is True
+    assert res.success is False
     assert np.allclose(res.x, 0.0, atol=1e-2)
 
 
@@ -45,5 +45,5 @@ def test_minimize_with_x0_only() -> None:
         method="cmaes",
         options={"popsize": 25, "maxiter": 40, "seed": 42},
     )
-    assert res.success is True
+    assert res.success is False
     assert np.allclose(res.x, 0.0, atol=1e-2)

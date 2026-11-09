@@ -1,6 +1,6 @@
 # User Guide 4: Non-Linear Curve Fitting & Residual Uncertainty
 
-`malthus_optimize.curve_fit` is a drop-in replacement for `scipy.optimize.curve_fit` designed for continuous scientific parameter estimation, time-series modeling, signal processing, and experimental curve fitting.
+`malthus_optimize.curve_fit` is a limited alternative for `scipy.optimize.curve_fit` designed for continuous scientific parameter estimation, time-series modeling, signal processing, and experimental curve fitting.
 
 ---
 
