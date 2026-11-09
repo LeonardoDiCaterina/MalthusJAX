@@ -1,0 +1,11 @@
+# Frozen PT5 diagnostic, independent of the RL/paper generator.
+dimensions = 10
+population = 32
+generations = 15
+centroids = 20
+seeds = [42, 43, 44, 45]
+preconditioning = 0
+repetitions = 5
+bounds = [-5.12, 5.12]
+mutation_sigma = 0.1
+initial_population_seed = 0

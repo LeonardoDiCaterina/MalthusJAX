@@ -75,3 +75,5 @@ python scripts/ingest_cluster_results.py --results-dir /path/to/results --dry-ru
 This validates only the current H2 CSV schema and finite model coefficients. It does not validate H1/H3, scientific conclusions, or provenance, and never writes a table.
 
 PT4 CPU consumer closure: see [PT4.md](PT4.md) for schema, compatibility impact, preserved first/repeated trials, and the 60-test boundary and 228-test consumer selections (overlapping). Hardware gate B remains open.
+
+PT5 preparation: timing-only native/QDax harness, frozen four-seed/six-execution schedule, reference and compilation checks, Slurm safeguards, and CPU evidence are in [PT5.md](PT5.md) and `PT5_cpu_evidence.json`. Local production-adapter validation passed (48 timed trials/eight references); 47 focused regressions passed. **No H100 job has been launched; timing gate B remains pending authorization and cluster evidence.**

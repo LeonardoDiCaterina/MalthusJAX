@@ -3,9 +3,9 @@
 # Slurm Submission Script: Generate Empirical Paper Curves on GPU Cluster
 #
 # Usage:
-#   sbatch scripts/submit_empirical_curves.sh
-#   sbatch scripts/submit_empirical_curves.sh --smoke   (quick validation run)
-#   bash scripts/submit_empirical_curves.sh             (interactive / tmux)
+#   sbatch scripts/submit_empirical_curves.sh --out results/NEW_RUN/curves.json
+#   sbatch scripts/submit_empirical_curves.sh --smoke --out results/NEW_SMOKE/curves.json
+#   bash scripts/submit_empirical_curves.sh --out results/NEW_RUN/curves.json
 # =============================================================================
 
 #SBATCH --job-name=mjx_paper_curves
@@ -53,47 +53,18 @@ export XLA_PYTHON_CLIENT_MEM_FRACTION=0.60
 # Offscreen GPU accelerated rendering for MuJoCo
 export MUJOCO_GL="egl"
 
-# 3. GPU Sanity Check & Clean Device Auto-Selection
+# 3. Preserve the scheduler/user GPU assignment. Never choose a GPU by free memory.
 if command -v nvidia-smi &> /dev/null; then
-    echo "--- GPU Hardware Detected ---"
     nvidia-smi --query-gpu=index,name,memory.used,memory.total,utilization.gpu --format=csv,noheader
-    
-    # If CUDA_VISIBLE_DEVICES is not explicitly passed, auto-select the cleanest GPU by free VRAM
-    if [[ -z "${CUDA_VISIBLE_DEVICES:-}" ]]; then
-        CLEAN_GPU=$(nvidia-smi --query-gpu=index,memory.free --format=csv,noheader,nounits | sort -k2 -n -r | head -n1 | awk -F',' '{print $1}' | tr -d ' ')
-        if [[ -n "${CLEAN_GPU}" ]]; then
-            export CUDA_VISIBLE_DEVICES="${CLEAN_GPU}"
-            echo ">>> Auto-selected cleanest GPU: index ${CUDA_VISIBLE_DEVICES}"
-        fi
-    else
-        echo ">>> Using user-specified CUDA_VISIBLE_DEVICES: ${CUDA_VISIBLE_DEVICES}"
-    fi
 fi
+echo "CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-scheduler-unset}"
+export PYTHONPATH="$(pwd)/src${PYTHONPATH:+:$PYTHONPATH}"
+echo "Checkout=$(pwd) Revision=$(git rev-parse HEAD) Python=$(command -v python)"
 
 python -c "import jax; print('JAX Version:', jax.__version__, '| Default Backend:', jax.default_backend(), '| Devices:', jax.devices())"
 
-# 4. Run the Empirical Paper Curves Generator
-MODE_FLAG=""
-if [[ "${1:-}" == "--smoke" ]]; then
-    MODE_FLAG="--smoke"
-    echo ">>> Running in --smoke mode for quick validation..."
-elif [[ "${1:-}" == "--publication" ]]; then
-    MODE_FLAG="--publication"
-    echo ">>> Running in --publication mode for maximum scientific rigor..."
-elif [[ "${1:-}" == "--heavy" ]]; then
-    MODE_FLAG="--publication"
-    echo ">>> Running in --heavy (publication) mode for maximum H100 stress benchmark..."
-else
-    MODE_FLAG="${*:-}"
-    echo ">>> Running empirical benchmark with arguments: ${MODE_FLAG:-standard}..."
-fi
+# 4. Forward every argument unchanged, including quoted output paths.
+# The generator requires a fresh explicit --out destination.
+python -u examples/generate_empirical_paper_curves.py "$@"
 
-python examples/generate_empirical_paper_curves.py ${MODE_FLAG}
-
-echo ""
-echo "=========================================================="
 echo "Empirical curve generation complete at $(date)."
-echo "Results exported to:"
-echo "  - results/empirical_curves.json"
-echo "  - /Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper/figures/data/empirical_curves.json (if present)"
-echo "=========================================================="

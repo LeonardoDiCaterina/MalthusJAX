@@ -1,0 +1,3487 @@
+{
+  "status": "passed",
+  "started_at": "2026-11-09T06:27:54.138670+00:00",
+  "finished_at": "2026-11-09T06:28:56.972744+00:00",
+  "entrypoint_sha256": "93f81a47a33ce75424bc27dffed8475ca0c425ce8646ce2c4c04e95f03d45df4",
+  "config_sha256": "cab8e6848f1f4203523e767fa8464406aab97111ad147a92d9ff1fe384ffb55e",
+  "config": {
+    "dimensions": 10,
+    "population": 32,
+    "generations": 15,
+    "centroids": 20,
+    "seeds": [
+      42,
+      43,
+      44,
+      45
+    ],
+    "preconditioning": 0,
+    "repetitions": 5,
+    "bounds": [
+      -5.12,
+      5.12
+    ],
+    "mutation_sigma": 0.1,
+    "initial_population_seed": 0
+  },
+  "schedule": [
+    {
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 0,
+      "backend": "malthusjax_native",
+      "run_order": 0
+    },
+    {
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 0,
+      "backend": "qdax_baseline",
+      "run_order": 1
+    },
+    {
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 1,
+      "backend": "qdax_baseline",
+      "run_order": 2
+    },
+    {
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 1,
+      "backend": "malthusjax_native",
+      "run_order": 3
+    },
+    {
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 2,
+      "backend": "malthusjax_native",
+      "run_order": 4
+    },
+    {
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 2,
+      "backend": "qdax_baseline",
+      "run_order": 5
+    },
+    {
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 3,
+      "backend": "qdax_baseline",
+      "run_order": 6
+    },
+    {
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 3,
+      "backend": "malthusjax_native",
+      "run_order": 7
+    },
+    {
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 4,
+      "backend": "malthusjax_native",
+      "run_order": 8
+    },
+    {
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 4,
+      "backend": "qdax_baseline",
+      "run_order": 9
+    },
+    {
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 5,
+      "backend": "qdax_baseline",
+      "run_order": 10
+    },
+    {
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 5,
+      "backend": "malthusjax_native",
+      "run_order": 11
+    },
+    {
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 0,
+      "backend": "qdax_baseline",
+      "run_order": 12
+    },
+    {
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 0,
+      "backend": "malthusjax_native",
+      "run_order": 13
+    },
+    {
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 1,
+      "backend": "malthusjax_native",
+      "run_order": 14
+    },
+    {
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 1,
+      "backend": "qdax_baseline",
+      "run_order": 15
+    },
+    {
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 2,
+      "backend": "qdax_baseline",
+      "run_order": 16
+    },
+    {
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 2,
+      "backend": "malthusjax_native",
+      "run_order": 17
+    },
+    {
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 3,
+      "backend": "malthusjax_native",
+      "run_order": 18
+    },
+    {
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 3,
+      "backend": "qdax_baseline",
+      "run_order": 19
+    },
+    {
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 4,
+      "backend": "qdax_baseline",
+      "run_order": 20
+    },
+    {
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 4,
+      "backend": "malthusjax_native",
+      "run_order": 21
+    },
+    {
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 5,
+      "backend": "malthusjax_native",
+      "run_order": 22
+    },
+    {
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 5,
+      "backend": "qdax_baseline",
+      "run_order": 23
+    },
+    {
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 0,
+      "backend": "malthusjax_native",
+      "run_order": 24
+    },
+    {
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 0,
+      "backend": "qdax_baseline",
+      "run_order": 25
+    },
+    {
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 1,
+      "backend": "qdax_baseline",
+      "run_order": 26
+    },
+    {
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 1,
+      "backend": "malthusjax_native",
+      "run_order": 27
+    },
+    {
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 2,
+      "backend": "malthusjax_native",
+      "run_order": 28
+    },
+    {
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 2,
+      "backend": "qdax_baseline",
+      "run_order": 29
+    },
+    {
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 3,
+      "backend": "qdax_baseline",
+      "run_order": 30
+    },
+    {
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 3,
+      "backend": "malthusjax_native",
+      "run_order": 31
+    },
+    {
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 4,
+      "backend": "malthusjax_native",
+      "run_order": 32
+    },
+    {
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 4,
+      "backend": "qdax_baseline",
+      "run_order": 33
+    },
+    {
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 5,
+      "backend": "qdax_baseline",
+      "run_order": 34
+    },
+    {
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 5,
+      "backend": "malthusjax_native",
+      "run_order": 35
+    },
+    {
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 0,
+      "backend": "qdax_baseline",
+      "run_order": 36
+    },
+    {
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 0,
+      "backend": "malthusjax_native",
+      "run_order": 37
+    },
+    {
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 1,
+      "backend": "malthusjax_native",
+      "run_order": 38
+    },
+    {
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 1,
+      "backend": "qdax_baseline",
+      "run_order": 39
+    },
+    {
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 2,
+      "backend": "qdax_baseline",
+      "run_order": 40
+    },
+    {
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 2,
+      "backend": "malthusjax_native",
+      "run_order": 41
+    },
+    {
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 3,
+      "backend": "malthusjax_native",
+      "run_order": 42
+    },
+    {
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 3,
+      "backend": "qdax_baseline",
+      "run_order": 43
+    },
+    {
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 4,
+      "backend": "qdax_baseline",
+      "run_order": 44
+    },
+    {
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 4,
+      "backend": "malthusjax_native",
+      "run_order": 45
+    },
+    {
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 5,
+      "backend": "malthusjax_native",
+      "run_order": 46
+    },
+    {
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 5,
+      "backend": "qdax_baseline",
+      "run_order": 47
+    }
+  ],
+  "environment": {
+    "python": "3.12.5",
+    "jax": "0.11.0",
+    "jaxlib": "0.11.0",
+    "numpy": "2.5.1",
+    "platform": "macOS-27.2-arm64-arm-64bit",
+    "source_path": "/Users/leonardodicaterina/Documents/GitHub/MalthusJAX/src/malthusjax/core/timing_records.py",
+    "backend": "cpu",
+    "devices": [
+      "cpu"
+    ],
+    "revision": "7e79d98b926455571375acbc8a263897287aa5e9",
+    "dirty": true,
+    "diff_identity": "3e908cd27988539ce7e60ad0f05fe8b9b186c875a86e9d6014a5b292c0a3c189"
+  },
+  "packages": {
+    "qdax": "0.5.0",
+    "jax": "0.11.0",
+    "jaxlib": "0.11.0"
+  },
+  "accelerator_packages": {
+    "jax-tqdm": "0.4.0",
+    "jaxtyping": "0.3.11",
+    "jaxlib": "0.11.0",
+    "jax": "0.11.0",
+    "jaxopt": "0.8.5"
+  },
+  "compilation_log_summary": {
+    "records": 353,
+    "compilation_signals": 258
+  },
+  "timing_summary": {
+    "status": "valid",
+    "phase": "prepared_execution_repeat",
+    "estimator": "median_across_seeds",
+    "count": 4,
+    "left_values": [
+      0.00891658297041431,
+      0.0021280840155668557,
+      0.0015848339535295963,
+      0.0015907500055618584
+    ],
+    "right_values": [
+      0.00737995799863711,
+      0.0016627919976599514,
+      0.0014588749618269503,
+      0.0012246250407770276
+    ],
+    "left_median": 0.001859417010564357,
+    "right_median": 0.0015608334797434509
+  },
+  "qdax_native_time_ratio": 0.8394208888460786,
+  "limitations": [
+    "No cross-backend trajectory equality assumed.",
+    "Device contention cannot be excluded by this diagnostic.",
+    "EvoSAX, TensorNEAT, MO and island integrations are outside this GPU workload.",
+    "Prepared repeats do not establish a general steady-state throughput claim."
+  ],
+  "scope": "CPU diagnostic only; candidate working tree on PT4 parent. GPU gate B remains open.",
+  "report_sha256": "b81b35d7208031704dd6bd77fa8000dac6719361659db7942a05fcecf0b1e2b8",
+  "regressions": {
+    "command": "/opt/anaconda3/bin/python3 -m pytest --no-cov -q tests/test_pt5_validation.py tests/core/test_timing_records.py tests/composer/test_timing_contract.py",
+    "passed": 47,
+    "warnings": 2,
+    "elapsed_seconds": 28.66
+  },
+  "execution_compilation_events": [],
+  "phase_event_count": 168,
+  "phase_events": [
+    {
+      "phase": "preparation",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 0,
+      "backend": "malthusjax_native",
+      "run_order": 0,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313200.028009625
+    },
+    {
+      "phase": "execution",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 0,
+      "backend": "malthusjax_native",
+      "run_order": 0,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313201.792817416
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 0,
+      "backend": "malthusjax_native",
+      "run_order": 0,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313201.800569916
+    },
+    {
+      "phase": "preparation",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 0,
+      "backend": "qdax_baseline",
+      "run_order": 1,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313202.519469041
+    },
+    {
+      "phase": "execution",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 0,
+      "backend": "qdax_baseline",
+      "run_order": 1,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313203.7138965
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 0,
+      "backend": "qdax_baseline",
+      "run_order": 1,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313203.717680458
+    },
+    {
+      "phase": "preparation",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 1,
+      "backend": "qdax_baseline",
+      "run_order": 2,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313203.738685541
+    },
+    {
+      "phase": "execution",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 1,
+      "backend": "qdax_baseline",
+      "run_order": 2,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313203.739034666
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 1,
+      "backend": "qdax_baseline",
+      "run_order": 2,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313203.746426708
+    },
+    {
+      "phase": "preparation",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 1,
+      "backend": "malthusjax_native",
+      "run_order": 3,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313203.767172375
+    },
+    {
+      "phase": "execution",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 1,
+      "backend": "malthusjax_native",
+      "run_order": 3,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313203.767797166
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 1,
+      "backend": "malthusjax_native",
+      "run_order": 3,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313203.771016916
+    },
+    {
+      "phase": "preparation",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 2,
+      "backend": "malthusjax_native",
+      "run_order": 4,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313203.793640583
+    },
+    {
+      "phase": "execution",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 2,
+      "backend": "malthusjax_native",
+      "run_order": 4,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313203.794006125
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 2,
+      "backend": "malthusjax_native",
+      "run_order": 4,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313203.802937333
+    },
+    {
+      "phase": "preparation",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 2,
+      "backend": "qdax_baseline",
+      "run_order": 5,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313203.819964916
+    },
+    {
+      "phase": "execution",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 2,
+      "backend": "qdax_baseline",
+      "run_order": 5,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313203.820222375
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 2,
+      "backend": "qdax_baseline",
+      "run_order": 5,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313203.82443725
+    },
+    {
+      "phase": "preparation",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 3,
+      "backend": "qdax_baseline",
+      "run_order": 6,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313203.845095666
+    },
+    {
+      "phase": "execution",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 3,
+      "backend": "qdax_baseline",
+      "run_order": 6,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313203.845345583
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 3,
+      "backend": "qdax_baseline",
+      "run_order": 6,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313203.8558685
+    },
+    {
+      "phase": "preparation",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 3,
+      "backend": "malthusjax_native",
+      "run_order": 7,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313203.893576625
+    },
+    {
+      "phase": "execution",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 3,
+      "backend": "malthusjax_native",
+      "run_order": 7,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313203.894024458
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 3,
+      "backend": "malthusjax_native",
+      "run_order": 7,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313203.912639458
+    },
+    {
+      "phase": "preparation",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 4,
+      "backend": "malthusjax_native",
+      "run_order": 8,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313203.950992583
+    },
+    {
+      "phase": "execution",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 4,
+      "backend": "malthusjax_native",
+      "run_order": 8,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313203.951415041
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 4,
+      "backend": "malthusjax_native",
+      "run_order": 8,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313203.966891083
+    },
+    {
+      "phase": "preparation",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 4,
+      "backend": "qdax_baseline",
+      "run_order": 9,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313203.999606916
+    },
+    {
+      "phase": "execution",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 4,
+      "backend": "qdax_baseline",
+      "run_order": 9,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313203.999925708
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 4,
+      "backend": "qdax_baseline",
+      "run_order": 9,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.009132541
+    },
+    {
+      "phase": "preparation",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 5,
+      "backend": "qdax_baseline",
+      "run_order": 10,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.028653333
+    },
+    {
+      "phase": "execution",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 5,
+      "backend": "qdax_baseline",
+      "run_order": 10,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.028948166
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 5,
+      "backend": "qdax_baseline",
+      "run_order": 10,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.030751875
+    },
+    {
+      "phase": "preparation",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 5,
+      "backend": "malthusjax_native",
+      "run_order": 11,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.051000458
+    },
+    {
+      "phase": "execution",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 5,
+      "backend": "malthusjax_native",
+      "run_order": 11,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.051371791
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 5,
+      "backend": "malthusjax_native",
+      "run_order": 11,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.05384675
+    },
+    {
+      "phase": "preparation",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 0,
+      "backend": "qdax_baseline",
+      "run_order": 12,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.079199583
+    },
+    {
+      "phase": "execution",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 0,
+      "backend": "qdax_baseline",
+      "run_order": 12,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.079460041
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 0,
+      "backend": "qdax_baseline",
+      "run_order": 12,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.081481083
+    },
+    {
+      "phase": "preparation",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 0,
+      "backend": "malthusjax_native",
+      "run_order": 13,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.097715458
+    },
+    {
+      "phase": "execution",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 0,
+      "backend": "malthusjax_native",
+      "run_order": 13,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.098270666
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 0,
+      "backend": "malthusjax_native",
+      "run_order": 13,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.100655458
+    },
+    {
+      "phase": "preparation",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 1,
+      "backend": "malthusjax_native",
+      "run_order": 14,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.123205833
+    },
+    {
+      "phase": "execution",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 1,
+      "backend": "malthusjax_native",
+      "run_order": 14,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.123595416
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 1,
+      "backend": "malthusjax_native",
+      "run_order": 14,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.12622625
+    },
+    {
+      "phase": "preparation",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 1,
+      "backend": "qdax_baseline",
+      "run_order": 15,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.14555125
+    },
+    {
+      "phase": "execution",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 1,
+      "backend": "qdax_baseline",
+      "run_order": 15,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.145887333
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 1,
+      "backend": "qdax_baseline",
+      "run_order": 15,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.147763208
+    },
+    {
+      "phase": "preparation",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 2,
+      "backend": "qdax_baseline",
+      "run_order": 16,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.162921083
+    },
+    {
+      "phase": "execution",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 2,
+      "backend": "qdax_baseline",
+      "run_order": 16,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.163130958
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 2,
+      "backend": "qdax_baseline",
+      "run_order": 16,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.164780166
+    },
+    {
+      "phase": "preparation",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 2,
+      "backend": "malthusjax_native",
+      "run_order": 17,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.177778083
+    },
+    {
+      "phase": "execution",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 2,
+      "backend": "malthusjax_native",
+      "run_order": 17,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.17809325
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 2,
+      "backend": "malthusjax_native",
+      "run_order": 17,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.180225416
+    },
+    {
+      "phase": "preparation",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 3,
+      "backend": "malthusjax_native",
+      "run_order": 18,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.201273208
+    },
+    {
+      "phase": "execution",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 3,
+      "backend": "malthusjax_native",
+      "run_order": 18,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.201665875
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 3,
+      "backend": "malthusjax_native",
+      "run_order": 18,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.204117375
+    },
+    {
+      "phase": "preparation",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 3,
+      "backend": "qdax_baseline",
+      "run_order": 19,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.224678583
+    },
+    {
+      "phase": "execution",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 3,
+      "backend": "qdax_baseline",
+      "run_order": 19,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.224947083
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 3,
+      "backend": "qdax_baseline",
+      "run_order": 19,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.226664875
+    },
+    {
+      "phase": "preparation",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 4,
+      "backend": "qdax_baseline",
+      "run_order": 20,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.240650125
+    },
+    {
+      "phase": "execution",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 4,
+      "backend": "qdax_baseline",
+      "run_order": 20,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.240860958
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 4,
+      "backend": "qdax_baseline",
+      "run_order": 20,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.242444333
+    },
+    {
+      "phase": "preparation",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 4,
+      "backend": "malthusjax_native",
+      "run_order": 21,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.257034666
+    },
+    {
+      "phase": "execution",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 4,
+      "backend": "malthusjax_native",
+      "run_order": 21,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.257367208
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 4,
+      "backend": "malthusjax_native",
+      "run_order": 21,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.259392291
+    },
+    {
+      "phase": "preparation",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 5,
+      "backend": "malthusjax_native",
+      "run_order": 22,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.271729208
+    },
+    {
+      "phase": "execution",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 5,
+      "backend": "malthusjax_native",
+      "run_order": 22,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.272013291
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 5,
+      "backend": "malthusjax_native",
+      "run_order": 22,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.273818
+    },
+    {
+      "phase": "preparation",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 5,
+      "backend": "qdax_baseline",
+      "run_order": 23,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.286703208
+    },
+    {
+      "phase": "execution",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 5,
+      "backend": "qdax_baseline",
+      "run_order": 23,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.286914041
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 5,
+      "backend": "qdax_baseline",
+      "run_order": 23,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.288581375
+    },
+    {
+      "phase": "preparation",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 0,
+      "backend": "malthusjax_native",
+      "run_order": 24,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.304582625
+    },
+    {
+      "phase": "execution",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 0,
+      "backend": "malthusjax_native",
+      "run_order": 24,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.30485775
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 0,
+      "backend": "malthusjax_native",
+      "run_order": 24,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.306939625
+    },
+    {
+      "phase": "preparation",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 0,
+      "backend": "qdax_baseline",
+      "run_order": 25,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.317897
+    },
+    {
+      "phase": "execution",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 0,
+      "backend": "qdax_baseline",
+      "run_order": 25,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.318057
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 0,
+      "backend": "qdax_baseline",
+      "run_order": 25,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.319145041
+    },
+    {
+      "phase": "preparation",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 1,
+      "backend": "qdax_baseline",
+      "run_order": 26,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.33134625
+    },
+    {
+      "phase": "execution",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 1,
+      "backend": "qdax_baseline",
+      "run_order": 26,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.331631125
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 1,
+      "backend": "qdax_baseline",
+      "run_order": 26,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.333108333
+    },
+    {
+      "phase": "preparation",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 1,
+      "backend": "malthusjax_native",
+      "run_order": 27,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.343871208
+    },
+    {
+      "phase": "execution",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 1,
+      "backend": "malthusjax_native",
+      "run_order": 27,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.34412475
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 1,
+      "backend": "malthusjax_native",
+      "run_order": 27,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.345556083
+    },
+    {
+      "phase": "preparation",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 2,
+      "backend": "malthusjax_native",
+      "run_order": 28,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.355487041
+    },
+    {
+      "phase": "execution",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 2,
+      "backend": "malthusjax_native",
+      "run_order": 28,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.355733666
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 2,
+      "backend": "malthusjax_native",
+      "run_order": 28,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.357324458
+    },
+    {
+      "phase": "preparation",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 2,
+      "backend": "qdax_baseline",
+      "run_order": 29,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.371552791
+    },
+    {
+      "phase": "execution",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 2,
+      "backend": "qdax_baseline",
+      "run_order": 29,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.3717555
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 2,
+      "backend": "qdax_baseline",
+      "run_order": 29,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.373703541
+    },
+    {
+      "phase": "preparation",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 3,
+      "backend": "qdax_baseline",
+      "run_order": 30,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.386911791
+    },
+    {
+      "phase": "execution",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 3,
+      "backend": "qdax_baseline",
+      "run_order": 30,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.387099583
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 3,
+      "backend": "qdax_baseline",
+      "run_order": 30,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.388332833
+    },
+    {
+      "phase": "preparation",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 3,
+      "backend": "malthusjax_native",
+      "run_order": 31,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.399553375
+    },
+    {
+      "phase": "execution",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 3,
+      "backend": "malthusjax_native",
+      "run_order": 31,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.399835125
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 3,
+      "backend": "malthusjax_native",
+      "run_order": 31,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.401423083
+    },
+    {
+      "phase": "preparation",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 4,
+      "backend": "malthusjax_native",
+      "run_order": 32,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.41197525
+    },
+    {
+      "phase": "execution",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 4,
+      "backend": "malthusjax_native",
+      "run_order": 32,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.412251666
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 4,
+      "backend": "malthusjax_native",
+      "run_order": 32,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.413840916
+    },
+    {
+      "phase": "preparation",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 4,
+      "backend": "qdax_baseline",
+      "run_order": 33,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.425455
+    },
+    {
+      "phase": "execution",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 4,
+      "backend": "qdax_baseline",
+      "run_order": 33,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.425624083
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 4,
+      "backend": "qdax_baseline",
+      "run_order": 33,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.426826541
+    },
+    {
+      "phase": "preparation",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 5,
+      "backend": "qdax_baseline",
+      "run_order": 34,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.438322791
+    },
+    {
+      "phase": "execution",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 5,
+      "backend": "qdax_baseline",
+      "run_order": 34,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.438504958
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 5,
+      "backend": "qdax_baseline",
+      "run_order": 34,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.440060333
+    },
+    {
+      "phase": "preparation",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 5,
+      "backend": "malthusjax_native",
+      "run_order": 35,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.451018875
+    },
+    {
+      "phase": "execution",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 5,
+      "backend": "malthusjax_native",
+      "run_order": 35,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.451283625
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 5,
+      "backend": "malthusjax_native",
+      "run_order": 35,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.452889416
+    },
+    {
+      "phase": "preparation",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 0,
+      "backend": "qdax_baseline",
+      "run_order": 36,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.465227166
+    },
+    {
+      "phase": "execution",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 0,
+      "backend": "qdax_baseline",
+      "run_order": 36,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.4654115
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 0,
+      "backend": "qdax_baseline",
+      "run_order": 36,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.466668375
+    },
+    {
+      "phase": "preparation",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 0,
+      "backend": "malthusjax_native",
+      "run_order": 37,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.476474791
+    },
+    {
+      "phase": "execution",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 0,
+      "backend": "malthusjax_native",
+      "run_order": 37,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.476708166
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 0,
+      "backend": "malthusjax_native",
+      "run_order": 37,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.47804175
+    },
+    {
+      "phase": "preparation",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 1,
+      "backend": "malthusjax_native",
+      "run_order": 38,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.48704525
+    },
+    {
+      "phase": "execution",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 1,
+      "backend": "malthusjax_native",
+      "run_order": 38,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.487270583
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 1,
+      "backend": "malthusjax_native",
+      "run_order": 38,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.48861575
+    },
+    {
+      "phase": "preparation",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 1,
+      "backend": "qdax_baseline",
+      "run_order": 39,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.50018475
+    },
+    {
+      "phase": "execution",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 1,
+      "backend": "qdax_baseline",
+      "run_order": 39,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.5003985
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 1,
+      "backend": "qdax_baseline",
+      "run_order": 39,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.50161175
+    },
+    {
+      "phase": "preparation",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 2,
+      "backend": "qdax_baseline",
+      "run_order": 40,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.515969958
+    },
+    {
+      "phase": "execution",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 2,
+      "backend": "qdax_baseline",
+      "run_order": 40,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.516202833
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 2,
+      "backend": "qdax_baseline",
+      "run_order": 40,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.517832
+    },
+    {
+      "phase": "preparation",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 2,
+      "backend": "malthusjax_native",
+      "run_order": 41,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.530232375
+    },
+    {
+      "phase": "execution",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 2,
+      "backend": "malthusjax_native",
+      "run_order": 41,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.530510833
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 2,
+      "backend": "malthusjax_native",
+      "run_order": 41,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.53239125
+    },
+    {
+      "phase": "preparation",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 3,
+      "backend": "malthusjax_native",
+      "run_order": 42,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.543479875
+    },
+    {
+      "phase": "execution",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 3,
+      "backend": "malthusjax_native",
+      "run_order": 42,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.543741833
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 3,
+      "backend": "malthusjax_native",
+      "run_order": 42,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.545282333
+    },
+    {
+      "phase": "preparation",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 3,
+      "backend": "qdax_baseline",
+      "run_order": 43,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.557248
+    },
+    {
+      "phase": "execution",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 3,
+      "backend": "qdax_baseline",
+      "run_order": 43,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.557478583
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 3,
+      "backend": "qdax_baseline",
+      "run_order": 43,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.558930125
+    },
+    {
+      "phase": "preparation",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 4,
+      "backend": "qdax_baseline",
+      "run_order": 44,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.57059625
+    },
+    {
+      "phase": "execution",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 4,
+      "backend": "qdax_baseline",
+      "run_order": 44,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.570786166
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 4,
+      "backend": "qdax_baseline",
+      "run_order": 44,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.572013958
+    },
+    {
+      "phase": "preparation",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 4,
+      "backend": "malthusjax_native",
+      "run_order": 45,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.583295833
+    },
+    {
+      "phase": "execution",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 4,
+      "backend": "malthusjax_native",
+      "run_order": 45,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.583565083
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 4,
+      "backend": "malthusjax_native",
+      "run_order": 45,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.585159958
+    },
+    {
+      "phase": "preparation",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 5,
+      "backend": "malthusjax_native",
+      "run_order": 46,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.596869083
+    },
+    {
+      "phase": "execution",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 5,
+      "backend": "malthusjax_native",
+      "run_order": 46,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.597128708
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 5,
+      "backend": "malthusjax_native",
+      "run_order": 46,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.5989575
+    },
+    {
+      "phase": "preparation",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 5,
+      "backend": "qdax_baseline",
+      "run_order": 47,
+      "purpose": "measurement",
+      "event": "initialized",
+      "timestamp": 313204.610130625
+    },
+    {
+      "phase": "execution",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 5,
+      "backend": "qdax_baseline",
+      "run_order": 47,
+      "purpose": "measurement",
+      "event": "prepared",
+      "timestamp": 313204.610284333
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 5,
+      "backend": "qdax_baseline",
+      "run_order": 47,
+      "purpose": "measurement",
+      "event": "executed",
+      "timestamp": 313204.611352625
+    },
+    {
+      "phase": "preparation",
+      "seed": 42,
+      "seed_order": 3,
+      "trial_id": null,
+      "backend": "malthusjax_native",
+      "run_order": null,
+      "purpose": "reference",
+      "event": "initialized",
+      "timestamp": 313204.620836416
+    },
+    {
+      "phase": "execution",
+      "seed": 42,
+      "seed_order": 3,
+      "trial_id": null,
+      "backend": "malthusjax_native",
+      "run_order": null,
+      "purpose": "reference",
+      "event": "prepared",
+      "timestamp": 313204.621062541
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 42,
+      "seed_order": 3,
+      "trial_id": null,
+      "backend": "malthusjax_native",
+      "run_order": null,
+      "purpose": "reference",
+      "event": "executed",
+      "timestamp": 313204.622458083
+    },
+    {
+      "phase": "preparation",
+      "seed": 43,
+      "seed_order": 3,
+      "trial_id": null,
+      "backend": "malthusjax_native",
+      "run_order": null,
+      "purpose": "reference",
+      "event": "initialized",
+      "timestamp": 313204.649709375
+    },
+    {
+      "phase": "execution",
+      "seed": 43,
+      "seed_order": 3,
+      "trial_id": null,
+      "backend": "malthusjax_native",
+      "run_order": null,
+      "purpose": "reference",
+      "event": "prepared",
+      "timestamp": 313204.649998125
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 43,
+      "seed_order": 3,
+      "trial_id": null,
+      "backend": "malthusjax_native",
+      "run_order": null,
+      "purpose": "reference",
+      "event": "executed",
+      "timestamp": 313204.651368666
+    },
+    {
+      "phase": "preparation",
+      "seed": 44,
+      "seed_order": 3,
+      "trial_id": null,
+      "backend": "malthusjax_native",
+      "run_order": null,
+      "purpose": "reference",
+      "event": "initialized",
+      "timestamp": 313204.675785833
+    },
+    {
+      "phase": "execution",
+      "seed": 44,
+      "seed_order": 3,
+      "trial_id": null,
+      "backend": "malthusjax_native",
+      "run_order": null,
+      "purpose": "reference",
+      "event": "prepared",
+      "timestamp": 313204.676044791
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 44,
+      "seed_order": 3,
+      "trial_id": null,
+      "backend": "malthusjax_native",
+      "run_order": null,
+      "purpose": "reference",
+      "event": "executed",
+      "timestamp": 313204.677407041
+    },
+    {
+      "phase": "preparation",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": null,
+      "backend": "malthusjax_native",
+      "run_order": null,
+      "purpose": "reference",
+      "event": "initialized",
+      "timestamp": 313204.702401583
+    },
+    {
+      "phase": "execution",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": null,
+      "backend": "malthusjax_native",
+      "run_order": null,
+      "purpose": "reference",
+      "event": "prepared",
+      "timestamp": 313204.7026665
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": null,
+      "backend": "malthusjax_native",
+      "run_order": null,
+      "purpose": "reference",
+      "event": "executed",
+      "timestamp": 313204.703981708
+    },
+    {
+      "phase": "preparation",
+      "seed": 42,
+      "seed_order": 3,
+      "trial_id": null,
+      "backend": "qdax_baseline",
+      "run_order": null,
+      "purpose": "reference",
+      "event": "initialized",
+      "timestamp": 313204.733213
+    },
+    {
+      "phase": "execution",
+      "seed": 42,
+      "seed_order": 3,
+      "trial_id": null,
+      "backend": "qdax_baseline",
+      "run_order": null,
+      "purpose": "reference",
+      "event": "prepared",
+      "timestamp": 313204.733225583
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 42,
+      "seed_order": 3,
+      "trial_id": null,
+      "backend": "qdax_baseline",
+      "run_order": null,
+      "purpose": "reference",
+      "event": "executed",
+      "timestamp": 313204.73467875
+    },
+    {
+      "phase": "preparation",
+      "seed": 43,
+      "seed_order": 3,
+      "trial_id": null,
+      "backend": "qdax_baseline",
+      "run_order": null,
+      "purpose": "reference",
+      "event": "initialized",
+      "timestamp": 313204.76161725
+    },
+    {
+      "phase": "execution",
+      "seed": 43,
+      "seed_order": 3,
+      "trial_id": null,
+      "backend": "qdax_baseline",
+      "run_order": null,
+      "purpose": "reference",
+      "event": "prepared",
+      "timestamp": 313204.761629375
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 43,
+      "seed_order": 3,
+      "trial_id": null,
+      "backend": "qdax_baseline",
+      "run_order": null,
+      "purpose": "reference",
+      "event": "executed",
+      "timestamp": 313204.762884708
+    },
+    {
+      "phase": "preparation",
+      "seed": 44,
+      "seed_order": 3,
+      "trial_id": null,
+      "backend": "qdax_baseline",
+      "run_order": null,
+      "purpose": "reference",
+      "event": "initialized",
+      "timestamp": 313204.789321291
+    },
+    {
+      "phase": "execution",
+      "seed": 44,
+      "seed_order": 3,
+      "trial_id": null,
+      "backend": "qdax_baseline",
+      "run_order": null,
+      "purpose": "reference",
+      "event": "prepared",
+      "timestamp": 313204.789333166
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 44,
+      "seed_order": 3,
+      "trial_id": null,
+      "backend": "qdax_baseline",
+      "run_order": null,
+      "purpose": "reference",
+      "event": "executed",
+      "timestamp": 313204.7909665
+    },
+    {
+      "phase": "preparation",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": null,
+      "backend": "qdax_baseline",
+      "run_order": null,
+      "purpose": "reference",
+      "event": "initialized",
+      "timestamp": 313204.8206945
+    },
+    {
+      "phase": "execution",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": null,
+      "backend": "qdax_baseline",
+      "run_order": null,
+      "purpose": "reference",
+      "event": "prepared",
+      "timestamp": 313204.820708833
+    },
+    {
+      "phase": "host_postprocessing",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": null,
+      "backend": "qdax_baseline",
+      "run_order": null,
+      "purpose": "reference",
+      "event": "executed",
+      "timestamp": 313204.822077833
+    }
+  ],
+  "raw_trials": [
+    {
+      "backend": "malthusjax_native",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 0,
+      "run_order": 0,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 5.691098292008974,
+        "execution": 0.007719332992564887,
+        "total": 5.698817875003442
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 3.925995208963286,
+        "compilation": 1.7647900829906575,
+        "host_postprocessing": 0.09943083295365795,
+        "runner_end_to_end": 5.79878104099771,
+        "initialization_and_compilation": 5.691098292008974,
+        "adapter_through_execution": 5.698817875003442
+      },
+      "signature_sha256": "19a074e685b4cd1913f155d9fd1b4e5194277c8963bb4bb2abed32f17e3c9d5f"
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 0,
+      "run_order": 1,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 1.8110346249886788,
+        "total": 1.814790082979016,
+        "execution": 0.003755291982088238
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.6147006250103004,
+        "compilation": 1.1944269589730538,
+        "host_postprocessing": 0.005057666974607855,
+        "runner_end_to_end": 1.8206752080004662,
+        "initialization_and_compilation": 1.8110346249886788,
+        "adapter_through_execution": 1.814790082979016
+      },
+      "signature_sha256": "115ec491e466b7d5367d14d1198d59932e1ab517fcb712045ff83e57626bae47"
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 1,
+      "run_order": 2,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.013659249991178513,
+        "total": 0.021039457991719246,
+        "execution": 0.00737995799863711
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.011283083003945649,
+        "compilation": 0.0003510420210659504,
+        "host_postprocessing": 0.00538404198596254,
+        "runner_end_to_end": 0.026774584024678916,
+        "initialization_and_compilation": 0.013659249991178513,
+        "adapter_through_execution": 0.021039457991719246
+      },
+      "signature_sha256": "115ec491e466b7d5367d14d1198d59932e1ab517fcb712045ff83e57626bae47"
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 1,
+      "run_order": 3,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.01458570797694847,
+        "execution": 0.003206541994586587,
+        "total": 0.01779254199936986
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.013769749959465116,
+        "compilation": 0.0006253329920582473,
+        "host_postprocessing": 0.007252792012877762,
+        "runner_end_to_end": 0.025503165961708874,
+        "initialization_and_compilation": 0.01458570797694847,
+        "adapter_through_execution": 0.01779254199936986
+      },
+      "signature_sha256": "19a074e685b4cd1913f155d9fd1b4e5194277c8963bb4bb2abed32f17e3c9d5f"
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 2,
+      "run_order": 4,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.01423937501385808,
+        "execution": 0.00891658297041431,
+        "total": 0.023156083014328033
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.013705416000448167,
+        "compilation": 0.0003665830008685589,
+        "host_postprocessing": 0.006401749968063086,
+        "runner_end_to_end": 0.02992608305066824,
+        "initialization_and_compilation": 0.01423937501385808,
+        "adapter_through_execution": 0.023156083014328033
+      },
+      "signature_sha256": "19a074e685b4cd1913f155d9fd1b4e5194277c8963bb4bb2abed32f17e3c9d5f"
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 2,
+      "run_order": 5,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.009534166019875556,
+        "total": 0.013730541046243161,
+        "execution": 0.004196249996311963
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.007122167036868632,
+        "compilation": 0.0002583750174380839,
+        "host_postprocessing": 0.006065582972951233,
+        "runner_end_to_end": 0.020075791981071234,
+        "initialization_and_compilation": 0.009534166019875556,
+        "adapter_through_execution": 0.013730541046243161
+      },
+      "signature_sha256": "115ec491e466b7d5367d14d1198d59932e1ab517fcb712045ff83e57626bae47"
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 3,
+      "run_order": 6,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.013250166026409715,
+        "total": 0.02375958301126957,
+        "execution": 0.010509332991205156
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.010943874949589372,
+        "compilation": 0.0002518339897505939,
+        "host_postprocessing": 0.008057791972532868,
+        "runner_end_to_end": 0.03218620800180361,
+        "initialization_and_compilation": 0.013250166026409715,
+        "adapter_through_execution": 0.02375958301126957
+      },
+      "signature_sha256": "115ec491e466b7d5367d14d1198d59932e1ab517fcb712045ff83e57626bae47"
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 3,
+      "run_order": 7,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.028480792010668665,
+        "execution": 0.018605333985760808,
+        "total": 0.0470862920046784
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.02785024995682761,
+        "compilation": 0.00044883397640660405,
+        "host_postprocessing": 0.012529750005342066,
+        "runner_end_to_end": 0.0600198750034906,
+        "initialization_and_compilation": 0.028480792010668665,
+        "adapter_through_execution": 0.0470862920046784
+      },
+      "signature_sha256": "19a074e685b4cd1913f155d9fd1b4e5194277c8963bb4bb2abed32f17e3c9d5f"
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 4,
+      "run_order": 8,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.02497466595377773,
+        "execution": 0.015461041999515146,
+        "total": 0.0404359579551965
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.02436104096705094,
+        "compilation": 0.00042379199294373393,
+        "host_postprocessing": 0.008459458011202514,
+        "runner_end_to_end": 0.04922933300258592,
+        "initialization_and_compilation": 0.02497466595377773,
+        "adapter_through_execution": 0.0404359579551965
+      },
+      "signature_sha256": "19a074e685b4cd1913f155d9fd1b4e5194277c8963bb4bb2abed32f17e3c9d5f"
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 4,
+      "run_order": 9,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.023370665963739157,
+        "total": 0.032558957987930626,
+        "execution": 0.009188042022287846
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.020800083002541214,
+        "compilation": 0.00032112497137859464,
+        "host_postprocessing": 0.006257415981963277,
+        "runner_end_to_end": 0.03913370898226276,
+        "initialization_and_compilation": 0.023370665963739157,
+        "adapter_through_execution": 0.032558957987930626
+      },
+      "signature_sha256": "115ec491e466b7d5367d14d1198d59932e1ab517fcb712045ff83e57626bae47"
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 5,
+      "run_order": 10,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.011594707961194217,
+        "total": 0.013390666979830712,
+        "execution": 0.0017957920208573341
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.009109584032557905,
+        "compilation": 0.00029670802177861333,
+        "host_postprocessing": 0.0077342920121736825,
+        "runner_end_to_end": 0.022019333962816745,
+        "initialization_and_compilation": 0.011594707961194217,
+        "adapter_through_execution": 0.013390666979830712
+      },
+      "signature_sha256": "115ec491e466b7d5367d14d1198d59932e1ab517fcb712045ff83e57626bae47"
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 42,
+      "seed_order": 0,
+      "trial_id": 5,
+      "run_order": 11,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.011533792014233768,
+        "execution": 0.0024648329708725214,
+        "total": 0.013998750015161932
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.01099141698796302,
+        "compilation": 0.0003719999804161489,
+        "host_postprocessing": 0.011706958001013845,
+        "runner_end_to_end": 0.026115541986655444,
+        "initialization_and_compilation": 0.011533792014233768,
+        "adapter_through_execution": 0.013998750015161932
+      },
+      "signature_sha256": "19a074e685b4cd1913f155d9fd1b4e5194277c8963bb4bb2abed32f17e3c9d5f"
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 0,
+      "run_order": 12,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.012523208046332002,
+        "total": 0.014530875021591783,
+        "execution": 0.0020075420034117997
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.010095541016198695,
+        "compilation": 0.00026112498017027974,
+        "host_postprocessing": 0.005550375033635646,
+        "runner_end_to_end": 0.020436958002392203,
+        "initialization_and_compilation": 0.012523208046332002,
+        "adapter_through_execution": 0.014530875021591783
+      },
+      "signature_sha256": "115ec491e466b7d5367d14d1198d59932e1ab517fcb712045ff83e57626bae47"
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 0,
+      "run_order": 13,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.01009629195323214,
+        "execution": 0.0023795829620212317,
+        "total": 0.012475999945309013
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.009234750003088266,
+        "compilation": 0.000555959006305784,
+        "host_postprocessing": 0.009984540985897183,
+        "runner_end_to_end": 0.022778125014156103,
+        "initialization_and_compilation": 0.01009629195323214,
+        "adapter_through_execution": 0.012475999945309013
+      },
+      "signature_sha256": "19a074e685b4cd1913f155d9fd1b4e5194277c8963bb4bb2abed32f17e3c9d5f"
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 1,
+      "run_order": 14,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.011637582967523485,
+        "execution": 0.002622749947477132,
+        "total": 0.014260416966862977
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.010973958997055888,
+        "compilation": 0.0003910830128006637,
+        "host_postprocessing": 0.006044125009793788,
+        "runner_end_to_end": 0.020682959002442658,
+        "initialization_and_compilation": 0.011637582967523485,
+        "adapter_through_execution": 0.014260416966862977
+      },
+      "signature_sha256": "19a074e685b4cd1913f155d9fd1b4e5194277c8963bb4bb2abed32f17e3c9d5f"
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 1,
+      "run_order": 15,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.01231879199622199,
+        "total": 0.014189375040587038,
+        "execution": 0.001870333042461425
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.00978899997426197,
+        "compilation": 0.0003375410451553762,
+        "host_postprocessing": 0.005352000007405877,
+        "runner_end_to_end": 0.01982104202033952,
+        "initialization_and_compilation": 0.01231879199622199,
+        "adapter_through_execution": 0.014189375040587038
+      },
+      "signature_sha256": "115ec491e466b7d5367d14d1198d59932e1ab517fcb712045ff83e57626bae47"
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 2,
+      "run_order": 16,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.008910792006645352,
+        "total": 0.010555875021964312,
+        "execution": 0.0016448330134153366
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.00694666599156335,
+        "compilation": 0.00021087494678795338,
+        "host_postprocessing": 0.004472417000215501,
+        "runner_end_to_end": 0.015260124986525625,
+        "initialization_and_compilation": 0.008910792006645352,
+        "adapter_through_execution": 0.010555875021964312
+      },
+      "signature_sha256": "115ec491e466b7d5367d14d1198d59932e1ab517fcb712045ff83e57626bae47"
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 2,
+      "run_order": 17,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.007926374964881688,
+        "execution": 0.0021280840155668557,
+        "total": 0.010054541984573007
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.00746012496529147,
+        "compilation": 0.000316042045596987,
+        "host_postprocessing": 0.006914708006661385,
+        "runner_end_to_end": 0.01728825003374368,
+        "initialization_and_compilation": 0.007926374964881688,
+        "adapter_through_execution": 0.010054541984573007
+      },
+      "signature_sha256": "19a074e685b4cd1913f155d9fd1b4e5194277c8963bb4bb2abed32f17e3c9d5f"
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 3,
+      "run_order": 18,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.013150457991287112,
+        "execution": 0.0024442909634672105,
+        "total": 0.015594957978464663
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.012578291993122548,
+        "compilation": 0.0003935829736292362,
+        "host_postprocessing": 0.007710208010394126,
+        "runner_end_to_end": 0.023650124960113317,
+        "initialization_and_compilation": 0.013150457991287112,
+        "adapter_through_execution": 0.015594957978464663
+      },
+      "signature_sha256": "19a074e685b4cd1913f155d9fd1b4e5194277c8963bb4bb2abed32f17e3c9d5f"
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 3,
+      "run_order": 19,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.011991791019681841,
+        "total": 0.013704875018447638,
+        "execution": 0.0017129590269178152
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.009539499995298684,
+        "compilation": 0.00027020799461752176,
+        "host_postprocessing": 0.004231375001836568,
+        "runner_end_to_end": 0.01820370799396187,
+        "initialization_and_compilation": 0.011991791019681841,
+        "adapter_through_execution": 0.013704875018447638
+      },
+      "signature_sha256": "115ec491e466b7d5367d14d1198d59932e1ab517fcb712045ff83e57626bae47"
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 4,
+      "run_order": 20,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.00881304097129032,
+        "total": 0.01038579101441428,
+        "execution": 0.0015725830453447998
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.006626750051509589,
+        "compilation": 0.0002121669822372496,
+        "host_postprocessing": 0.005620290990918875,
+        "runner_end_to_end": 0.01627454103436321,
+        "initialization_and_compilation": 0.00881304097129032,
+        "adapter_through_execution": 0.01038579101441428
+      },
+      "signature_sha256": "115ec491e466b7d5367d14d1198d59932e1ab517fcb712045ff83e57626bae47"
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 4,
+      "run_order": 21,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.00798375002341345,
+        "execution": 0.0020199170103296638,
+        "total": 0.010003833041992038
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.007493750017601997,
+        "compilation": 0.0003338750102557242,
+        "host_postprocessing": 0.004392084025312215,
+        "runner_end_to_end": 0.014709416020195931,
+        "initialization_and_compilation": 0.00798375002341345,
+        "adapter_through_execution": 0.010003833041992038
+      },
+      "signature_sha256": "19a074e685b4cd1913f155d9fd1b4e5194277c8963bb4bb2abed32f17e3c9d5f"
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 5,
+      "run_order": 22,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.007183542009443045,
+        "execution": 0.001800375001039356,
+        "total": 0.008984042040538043
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.006771041953470558,
+        "compilation": 0.00028445798670873046,
+        "host_postprocessing": 0.003736999991815537,
+        "runner_end_to_end": 0.013051415968220681,
+        "initialization_and_compilation": 0.007183542009443045,
+        "adapter_through_execution": 0.008984042040538043
+      },
+      "signature_sha256": "19a074e685b4cd1913f155d9fd1b4e5194277c8963bb4bb2abed32f17e3c9d5f"
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 43,
+      "seed_order": 1,
+      "trial_id": 5,
+      "run_order": 23,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.008469416992738843,
+        "total": 0.0101324170245789,
+        "execution": 0.0016627919976599514
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.006693500035908073,
+        "compilation": 0.00021158403251320124,
+        "host_postprocessing": 0.006409207999240607,
+        "runner_end_to_end": 0.016755125019699335,
+        "initialization_and_compilation": 0.008469416992738843,
+        "adapter_through_execution": 0.0101324170245789
+      },
+      "signature_sha256": "115ec491e466b7d5367d14d1198d59932e1ab517fcb712045ff83e57626bae47"
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 0,
+      "run_order": 24,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.008693541050888598,
+        "execution": 0.002052041993010789,
+        "total": 0.010745750041678548
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.00829249998787418,
+        "compilation": 0.00027608301024883986,
+        "host_postprocessing": 0.0034124170197173953,
+        "runner_end_to_end": 0.014551542000845075,
+        "initialization_and_compilation": 0.008693541050888598,
+        "adapter_through_execution": 0.010745750041678548
+      },
+      "signature_sha256": "19a074e685b4cd1913f155d9fd1b4e5194277c8963bb4bb2abed32f17e3c9d5f"
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 0,
+      "run_order": 25,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.006844124989584088,
+        "total": 0.007926833000965416,
+        "execution": 0.001082542003132403
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.00535079202381894,
+        "compilation": 0.00016070896526798606,
+        "host_postprocessing": 0.003383916977327317,
+        "runner_end_to_end": 0.011507959046866745,
+        "initialization_and_compilation": 0.006844124989584088,
+        "adapter_through_execution": 0.007926833000965416
+      },
+      "signature_sha256": "115ec491e466b7d5367d14d1198d59932e1ab517fcb712045ff83e57626bae47"
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 1,
+      "run_order": 26,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.007657999987713993,
+        "total": 0.009117082983721048,
+        "execution": 0.0014588749618269503
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.005896166025195271,
+        "compilation": 0.0002703749923966825,
+        "host_postprocessing": 0.0033331249724142253,
+        "runner_end_to_end": 0.012718292011413723,
+        "initialization_and_compilation": 0.007657999987713993,
+        "adapter_through_execution": 0.009117082983721048
+      },
+      "signature_sha256": "115ec491e466b7d5367d14d1198d59932e1ab517fcb712045ff83e57626bae47"
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 1,
+      "run_order": 27,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.006803041964303702,
+        "execution": 0.0014274590066634119,
+        "total": 0.008230542007368058
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.006423374987207353,
+        "compilation": 0.0002542500151321292,
+        "host_postprocessing": 0.003528708009980619,
+        "runner_end_to_end": 0.011974958993960172,
+        "initialization_and_compilation": 0.006803041964303702,
+        "adapter_through_execution": 0.008230542007368058
+      },
+      "signature_sha256": "19a074e685b4cd1913f155d9fd1b4e5194277c8963bb4bb2abed32f17e3c9d5f"
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 2,
+      "run_order": 28,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.005819416022859514,
+        "execution": 0.0015869580092839897,
+        "total": 0.007406541029922664
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.005467041046358645,
+        "compilation": 0.0002471249899826944,
+        "host_postprocessing": 0.004303916008211672,
+        "runner_end_to_end": 0.011907625012099743,
+        "initialization_and_compilation": 0.005819416022859514,
+        "adapter_through_execution": 0.007406541029922664
+      },
+      "signature_sha256": "19a074e685b4cd1913f155d9fd1b4e5194277c8963bb4bb2abed32f17e3c9d5f"
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 2,
+      "run_order": 29,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.008926250040531158,
+        "total": 0.010854499996639788,
+        "execution": 0.0019281659624539316
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.007368290971498936,
+        "compilation": 0.00020370795391499996,
+        "host_postprocessing": 0.004172542016021907,
+        "runner_end_to_end": 0.015253040997777134,
+        "initialization_and_compilation": 0.008926250040531158,
+        "adapter_through_execution": 0.010854499996639788
+      },
+      "signature_sha256": "115ec491e466b7d5367d14d1198d59932e1ab517fcb712045ff83e57626bae47"
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 3,
+      "run_order": 30,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.008301459020003676,
+        "total": 0.009530750045087188,
+        "execution": 0.00122916599502787
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.006541166978422552,
+        "compilation": 0.00018866697791963816,
+        "host_postprocessing": 0.0037805840256623924,
+        "runner_end_to_end": 0.013519958010874689,
+        "initialization_and_compilation": 0.008301459020003676,
+        "adapter_through_execution": 0.009530750045087188
+      },
+      "signature_sha256": "115ec491e466b7d5367d14d1198d59932e1ab517fcb712045ff83e57626bae47"
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 3,
+      "run_order": 31,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.006817042012698948,
+        "execution": 0.001584292040206492,
+        "total": 0.008401459024753422
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.006409624998923391,
+        "compilation": 0.0002825839910656214,
+        "host_postprocessing": 0.0035774169955402613,
+        "runner_end_to_end": 0.012169707973953336,
+        "initialization_and_compilation": 0.006817042012698948,
+        "adapter_through_execution": 0.008401459024753422
+      },
+      "signature_sha256": "19a074e685b4cd1913f155d9fd1b4e5194277c8963bb4bb2abed32f17e3c9d5f"
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 4,
+      "run_order": 32,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.006430207984521985,
+        "execution": 0.0015848339535295963,
+        "total": 0.008015166968107224
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.006038458028342575,
+        "compilation": 0.0002767089754343033,
+        "host_postprocessing": 0.0040835829568095505,
+        "runner_end_to_end": 0.01229520799824968,
+        "initialization_and_compilation": 0.006430207984521985,
+        "adapter_through_execution": 0.008015166968107224
+      },
+      "signature_sha256": "19a074e685b4cd1913f155d9fd1b4e5194277c8963bb4bb2abed32f17e3c9d5f"
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 4,
+      "run_order": 33,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.006882707995828241,
+        "total": 0.008081790991127491,
+        "execution": 0.0011989580234512687
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.005250665999483317,
+        "compilation": 0.00016974995378404856,
+        "host_postprocessing": 0.0035969580058008432,
+        "runner_end_to_end": 0.011841625033412129,
+        "initialization_and_compilation": 0.006882707995828241,
+        "adapter_through_execution": 0.008081790991127491
+      },
+      "signature_sha256": "115ec491e466b7d5367d14d1198d59932e1ab517fcb712045ff83e57626bae47"
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 5,
+      "run_order": 34,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.007191999990027398,
+        "total": 0.008741000026930124,
+        "execution": 0.0015488340286538005
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.005541292019188404,
+        "compilation": 0.0001829999964684248,
+        "host_postprocessing": 0.0035080419620499015,
+        "runner_end_to_end": 0.01247875002445653,
+        "initialization_and_compilation": 0.007191999990027398,
+        "adapter_through_execution": 0.008741000026930124
+      },
+      "signature_sha256": "115ec491e466b7d5367d14d1198d59932e1ab517fcb712045ff83e57626bae47"
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 44,
+      "seed_order": 2,
+      "trial_id": 5,
+      "run_order": 35,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.006764457968529314,
+        "execution": 0.001602041011210531,
+        "total": 0.008366582973394543
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.006379541999194771,
+        "compilation": 0.0002652080147527158,
+        "host_postprocessing": 0.003845208033453673,
+        "runner_end_to_end": 0.01244416699046269,
+        "initialization_and_compilation": 0.006764457968529314,
+        "adapter_through_execution": 0.008366582973394543
+      },
+      "signature_sha256": "19a074e685b4cd1913f155d9fd1b4e5194277c8963bb4bb2abed32f17e3c9d5f"
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 0,
+      "run_order": 36,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.007751624973025173,
+        "total": 0.009005374973639846,
+        "execution": 0.0012535830028355122
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.005868999985978007,
+        "compilation": 0.000185334007255733,
+        "host_postprocessing": 0.003438499988988042,
+        "runner_end_to_end": 0.012650791963096708,
+        "initialization_and_compilation": 0.007751624973025173,
+        "adapter_through_execution": 0.009005374973639846
+      },
+      "signature_sha256": "115ec491e466b7d5367d14d1198d59932e1ab517fcb712045ff83e57626bae47"
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 0,
+      "run_order": 37,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.005765417008660734,
+        "execution": 0.0013309160131029785,
+        "total": 0.007096457993611693
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.005425166978966445,
+        "compilation": 0.00023379095364362001,
+        "host_postprocessing": 0.00308270804816857,
+        "runner_end_to_end": 0.010377999977208674,
+        "initialization_and_compilation": 0.005765417008660734,
+        "adapter_through_execution": 0.007096457993611693
+      },
+      "signature_sha256": "19a074e685b4cd1913f155d9fd1b4e5194277c8963bb4bb2abed32f17e3c9d5f"
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 1,
+      "run_order": 38,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.005334375018719584,
+        "execution": 0.0013420420000329614,
+        "total": 0.006676459044683725
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.005005291954148561,
+        "compilation": 0.0002257500309497118,
+        "host_postprocessing": 0.0034928329987451434,
+        "runner_end_to_end": 0.010364041954744607,
+        "initialization_and_compilation": 0.005334375018719584,
+        "adapter_through_execution": 0.006676459044683725
+      },
+      "signature_sha256": "19a074e685b4cd1913f155d9fd1b4e5194277c8963bb4bb2abed32f17e3c9d5f"
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 1,
+      "run_order": 39,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.0073278750060126185,
+        "total": 0.008537500048987567,
+        "execution": 0.0012095000129193068
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.005452332959976047,
+        "compilation": 0.00021495798137038946,
+        "host_postprocessing": 0.005953707965090871,
+        "runner_end_to_end": 0.014732707990333438,
+        "initialization_and_compilation": 0.0073278750060126185,
+        "adapter_through_execution": 0.008537500048987567
+      },
+      "signature_sha256": "115ec491e466b7d5367d14d1198d59932e1ab517fcb712045ff83e57626bae47"
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 2,
+      "run_order": 40,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.0075276250136084855,
+        "total": 0.009151624981313944,
+        "execution": 0.0016238749958574772
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.005547375010792166,
+        "compilation": 0.00023387500550597906,
+        "host_postprocessing": 0.003932584018912166,
+        "runner_end_to_end": 0.01331241597654298,
+        "initialization_and_compilation": 0.0075276250136084855,
+        "adapter_through_execution": 0.009151624981313944
+      },
+      "signature_sha256": "115ec491e466b7d5367d14d1198d59932e1ab517fcb712045ff83e57626bae47"
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 2,
+      "run_order": 41,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.007663291005883366,
+        "execution": 0.0018754590419121087,
+        "total": 0.009538875019643456
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.007246291963383555,
+        "compilation": 0.00027891702484339476,
+        "host_postprocessing": 0.0035591659834608436,
+        "runner_end_to_end": 0.013365125050768256,
+        "initialization_and_compilation": 0.007663291005883366,
+        "adapter_through_execution": 0.009538875019643456
+      },
+      "signature_sha256": "19a074e685b4cd1913f155d9fd1b4e5194277c8963bb4bb2abed32f17e3c9d5f"
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 3,
+      "run_order": 42,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.006873458973132074,
+        "execution": 0.0015374579816125333,
+        "total": 0.00841104198480025
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.006496207963209599,
+        "compilation": 0.0002621249877847731,
+        "host_postprocessing": 0.00395670800935477,
+        "runner_end_to_end": 0.012579709000419825,
+        "initialization_and_compilation": 0.006873458973132074,
+        "adapter_through_execution": 0.00841104198480025
+      },
+      "signature_sha256": "19a074e685b4cd1913f155d9fd1b4e5194277c8963bb4bb2abed32f17e3c9d5f"
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 3,
+      "run_order": 43,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.007384833006653935,
+        "total": 0.0088313749874942,
+        "execution": 0.0014464579871855676
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.005295999988447875,
+        "compilation": 0.0002316670143045485,
+        "host_postprocessing": 0.00356066704262048,
+        "runner_end_to_end": 0.01257150003220886,
+        "initialization_and_compilation": 0.007384833006653935,
+        "adapter_through_execution": 0.0088313749874942
+      },
+      "signature_sha256": "115ec491e466b7d5367d14d1198d59932e1ab517fcb712045ff83e57626bae47"
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 4,
+      "run_order": 44,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.007424708979669958,
+        "total": 0.008649458992294967,
+        "execution": 0.0012246250407770276
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.005753625009674579,
+        "compilation": 0.0001908330013975501,
+        "host_postprocessing": 0.003759250044822693,
+        "runner_end_to_end": 0.012598624976817518,
+        "initialization_and_compilation": 0.007424708979669958,
+        "adapter_through_execution": 0.008649458992294967
+      },
+      "signature_sha256": "115ec491e466b7d5367d14d1198d59932e1ab517fcb712045ff83e57626bae47"
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 4,
+      "run_order": 45,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.006939625018276274,
+        "execution": 0.0015907500055618584,
+        "total": 0.008530499995686114
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.0065503339865244925,
+        "compilation": 0.0002698339521884918,
+        "host_postprocessing": 0.00412287499057129,
+        "runner_end_to_end": 0.01284929201938212,
+        "initialization_and_compilation": 0.006939625018276274,
+        "adapter_through_execution": 0.008530499995686114
+      },
+      "signature_sha256": "19a074e685b4cd1913f155d9fd1b4e5194277c8963bb4bb2abed32f17e3c9d5f"
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 5,
+      "run_order": 46,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.006822333030868322,
+        "execution": 0.0018236670293845236,
+        "total": 0.008646125032100827
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.006444625032600015,
+        "compilation": 0.00025991699658334255,
+        "host_postprocessing": 0.003645709017291665,
+        "runner_end_to_end": 0.012517582974396646,
+        "initialization_and_compilation": 0.006822333030868322,
+        "adapter_through_execution": 0.008646125032100827
+      },
+      "signature_sha256": "19a074e685b4cd1913f155d9fd1b4e5194277c8963bb4bb2abed32f17e3c9d5f"
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 45,
+      "seed_order": 3,
+      "trial_id": 5,
+      "run_order": 47,
+      "validation_problems": [],
+      "timings": {
+        "warmup": 0.006771791959181428,
+        "total": 0.007837417011614889,
+        "execution": 0.0010655000223778188
+      },
+      "timing_status": "valid",
+      "phases": {
+        "initialization": 0.0052444160101003945,
+        "compilation": 0.00015425001038238406,
+        "host_postprocessing": 0.0029469580040313303,
+        "runner_end_to_end": 0.01096058398252353,
+        "initialization_and_compilation": 0.006771791959181428,
+        "adapter_through_execution": 0.007837417011614889
+      },
+      "signature_sha256": "115ec491e466b7d5367d14d1198d59932e1ab517fcb712045ff83e57626bae47"
+    }
+  ],
+  "references": [
+    {
+      "backend": "malthusjax_native",
+      "seed": 42,
+      "agreement_by_trial": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 43,
+      "agreement_by_trial": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 44,
+      "agreement_by_trial": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "backend": "malthusjax_native",
+      "seed": 45,
+      "agreement_by_trial": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 42,
+      "agreement_by_trial": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 43,
+      "agreement_by_trial": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 44,
+      "agreement_by_trial": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "backend": "qdax_baseline",
+      "seed": 45,
+      "agreement_by_trial": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    }
+  ]
+}
