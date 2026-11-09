@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Quantified RL feasibility, not an algorithm leaderboard.
+"""RL feasibility and optional preregistered task-scoped ranking collection.
 
 Run from the checkout root with PYTHONPATH=src. --smoke uses the genuine
 requested environment, P=4/G=1/H=2 and one seed unless explicitly supplied.
@@ -21,7 +21,8 @@ import time
 import traceback
 from pathlib import Path
 
-CONDITIONS = ("native_ga", "evosax_open_es", "qdax_map_elites")
+BASE_CONDITIONS = ("native_ga", "evosax_open_es", "qdax_map_elites")
+CONDITIONS = ("native_ga", "native_ga_cosine", "evosax_open_es", "qdax_map_elites")
 
 
 def jsonable(value):
@@ -54,7 +55,8 @@ def parser():
     p.add_argument("--smoke", action="store_true")
     p.add_argument("--output", type=Path, required=True, help="New exclusive output directory")
     p.add_argument("--seeds", type=int, nargs="+", help="Distinct training-block seeds")
-    p.add_argument("--conditions", choices=CONDITIONS, nargs="+", default=list(CONDITIONS))
+    p.add_argument("--conditions", choices=CONDITIONS, nargs="+")
+    p.add_argument("--study-mode", choices=["feasibility", "ranking"], default="feasibility")
     p.add_argument("--environment", choices=("hopper", "gymnax-cartpole"), default="hopper")
     p.add_argument("--population", type=int)
     p.add_argument("--generations", type=int)
@@ -94,7 +96,7 @@ def execute(engine, key, initial, population_config, condition):
     from malthusjax.core.timing import block_until_ready
 
     started = time.perf_counter()
-    if condition == "native_ga":
+    if condition in ("native_ga", "native_ga_cosine"):
         local = engine.genetic_engine
         state = local.init_state(key)
         pop = RealPopulation.from_array(initial, population_config, RealGenome, axis=0)
@@ -178,7 +180,9 @@ def run(args):
             actions = step_infos["action"]  # (evaluation episodes, time, action dimension)
             mask = step_infos["valid_step"][..., None]
             axes = tuple(range(actions.ndim - 1))
-            means = jnp.sum(jnp.where(mask, actions, 0.0), axis=axes) / jnp.maximum(jnp.sum(mask, axis=axes), 1)
+            means = jnp.sum(jnp.where(mask, actions, 0.0), axis=axes) / jnp.maximum(
+                jnp.sum(mask, axis=axes), 1
+            )
             features = jnp.pad(means, (0, max(0, 2 - means.shape[0])))[:2]
             if args.environment == "gymnax-cartpole":
                 return features  # empirical frequencies of the two discrete actions
@@ -241,6 +245,13 @@ def run(args):
             row = {
                 "seed": seed,
                 "condition": condition,
+                "study_mode": args.study_mode,
+                "configuration": {
+                    "population": args.population,
+                    "generations": args.generations,
+                    "horizon": args.horizon,
+                    "heldout_episodes": args.eval_episodes,
+                },
                 "status": "failure",
                 "initial_population_sha256": initial_digest,
                 "centroids_sha256": array_hash(centroids),
@@ -250,7 +261,9 @@ def run(args):
                     else "shared initial candidate array"
                 ),
                 "objective_encoding": "internal fitness=-episodic_return; lower is better",
-                "interpretation": "feasibility only; no algorithm superiority claim",
+                "interpretation": "task-scoped ranking collection; inference is separate"
+                if args.study_mode == "ranking"
+                else "feasibility only; no algorithm superiority claim",
             }
             write_json(cond_dir / "result.json", row)
             try:
@@ -264,14 +277,52 @@ def run(args):
                     seeds=(seed,),
                     initial_population=initial,
                 )
-                if condition == "native_ga":
+                if condition in ("native_ga", "native_ga_cosine"):
+                    from malthusjax.engine.schedules import (
+                        ScheduleType,
+                        TrackBest,
+                        compute_scheduled_strength,
+                    )
+                    from malthusjax.operators.mutation.real import GaussianMutation
+
+                    cosine = condition == "native_ga_cosine"
+                    mutation = GaussianMutation(
+                        mutation_rate=0.2,
+                        mutation_strength=0.2,
+                        schedule_type=ScheduleType.COSINE_ANNEAL
+                        if cosine
+                        else ScheduleType.CONSTANT,
+                        final_strength=0.01 if cosine else 0.2,
+                        max_generations=args.generations,
+                    )
+                    row["mutation_protocol"] = {
+                        "type": "cosine" if cosine else "constant",
+                        "rate": 0.2,
+                        "initial_strength": 0.2,
+                        "final_strength": 0.01 if cosine else 0.2,
+                        "generation_strengths": [
+                            float(
+                                compute_scheduled_strength(
+                                    mutation.schedule_type,
+                                    g,
+                                    args.generations,
+                                    mutation.mutation_strength,
+                                    mutation.final_strength,
+                                )
+                            )
+                            for g in range(args.generations)
+                        ],
+                    }
                     config_kwargs.update(
                         backend="malthusjax",
                         elitism=0,
                         selection=f"tournament:num_selections={args.population},tournament_size=2",
                         crossover="simulated_binary:eta=15.0",
-                        mutation="gaussian:mutation_rate=0.2,mutation_strength=0.2",
+                        mutation=mutation,
                     )
+                    if args.study_mode == "ranking":
+                        # Historical best policy, not LIGHT's final-population approximation.
+                        config_kwargs["track_best"] = TrackBest.FULL
                 elif condition == "evosax_open_es":
                     config_kwargs.update(backend="evosax", evosax_strategy="Open_ES")
                 else:
@@ -393,6 +444,9 @@ def run(args):
 def main(argv=None):
     p = parser()
     args = p.parse_args(argv)
+    args.conditions = args.conditions or list(
+        CONDITIONS if args.study_mode == "ranking" else BASE_CONDITIONS
+    )
     if not args.smoke and not args.seeds:
         p.error("Non-smoke runs require an explicit --seeds list")
     args.seeds = args.seeds or [17]
@@ -440,11 +494,17 @@ def main(argv=None):
         "packages": packages,
         "revision": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
         "script_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-        "rollout_instrumentation_sha256": hashlib.sha256(Path(__file__).with_name("publication_rl.py").read_bytes()).hexdigest(),
+        "rollout_instrumentation_sha256": hashlib.sha256(
+            Path(__file__).with_name("publication_rl.py").read_bytes()
+        ).hexdigest(),
         "device_environment": {
             k: os.environ.get(k) for k in ("JAX_PLATFORMS", "CUDA_VISIBLE_DEVICES", "SLURM_JOB_ID")
         },
-        "claim": "quantified feasibility, not benchmark/superiority",
+        "claim": "Hopper configuration ranking by held-out mean return; task/budget scoped"
+        if args.study_mode == "ranking"
+        else "quantified feasibility, not benchmark/superiority",
+        "primary_metric": "mean return across fresh held-out episodes per independent training run",
+        "analysis_unit": "independent training seed block, not episodes or policies",
         "limitations": [
             "Open_ES shares evaluated initial candidates but starts its distribution at their mean",
             "Rollout diagnostics retain invalid/reset/termination counts; inspect them before interpreting task results",
