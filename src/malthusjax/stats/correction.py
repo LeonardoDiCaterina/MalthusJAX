@@ -6,6 +6,8 @@ from malthusjax.stats.core import MultipleTestingPolicy
 def holm_bonferroni(p_values: list[float]) -> list[float]:
     """Apply Holm-Bonferroni correction to a list of p-values."""
     p = np.asarray(p_values, dtype=float)
+    if p.ndim != 1 or np.any(np.isfinite(p) & ((p < 0) | (p > 1))):
+        raise ValueError("P-values must be one-dimensional and in [0,1]")
     n = int(p.size)
     if n == 0:
         return []
@@ -17,14 +19,14 @@ def holm_bonferroni(p_values: list[float]) -> list[float]:
         return adjusted.tolist()
 
     pf = p[idx]
-    m = int(pf.size)
+    m = n
 
     order = np.argsort(pf)
     inv_order = np.empty_like(order)
-    inv_order[order] = np.arange(m)
+    inv_order[order] = np.arange(pf.size)
     p_sorted = pf[order]
 
-    raw = np.array([(m - i) * p_sorted[i] for i in range(m)], dtype=float)
+    raw = np.array([(m - i) * p_sorted[i] for i in range(pf.size)], dtype=float)
     adj_sorted = np.maximum.accumulate(raw)
     adj_sorted = np.clip(adj_sorted, 0.0, 1.0)
 
@@ -36,6 +38,8 @@ def holm_bonferroni(p_values: list[float]) -> list[float]:
 def fdr_bh(p_values: list[float]) -> list[float]:
     """Apply False Discovery Rate (Benjamini-Hochberg) correction to a list of p-values."""
     p = np.asarray(p_values, dtype=float)
+    if p.ndim != 1 or np.any(np.isfinite(p) & ((p < 0) | (p > 1))):
+        raise ValueError("P-values must be one-dimensional and in [0,1]")
     n = int(p.size)
     if n == 0:
         return []
@@ -47,14 +51,14 @@ def fdr_bh(p_values: list[float]) -> list[float]:
         return adjusted.tolist()
 
     pf = p[idx]
-    m = int(pf.size)
+    m = n
 
     order = np.argsort(pf)
     inv_order = np.empty_like(order)
-    inv_order[order] = np.arange(m)
+    inv_order[order] = np.arange(pf.size)
     p_sorted = pf[order]
 
-    raw = np.array([m * p_sorted[i] / (i + 1) for i in range(m)], dtype=float)
+    raw = np.array([m * p_sorted[i] / (i + 1) for i in range(pf.size)], dtype=float)
     adj_sorted = np.minimum.accumulate(raw[::-1])[::-1]
     adj_sorted = np.clip(adj_sorted, 0.0, 1.0)
 

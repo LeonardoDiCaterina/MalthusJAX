@@ -30,9 +30,9 @@ def test_holm_clipped_to_one():
 def test_holm_with_nan():
     pvals = [0.01, np.nan, 0.05]
     adj = holm_bonferroni(pvals)
-    assert adj[0] == 0.02
+    assert adj[0] == 0.03
     assert np.isnan(adj[1])
-    assert adj[2] == 0.05
+    assert adj[2] == 0.1
 
 
 def test_fdr_bh_basic():

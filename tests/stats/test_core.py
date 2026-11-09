@@ -47,8 +47,8 @@ def test_paired_sample_n1():
 
 def test_test_result_passes_alpha():
     res = TestResult("test", statistic=1.0, p_value=0.04, alternative="two-sided")
-    assert res.passes(0.05) is False
-    assert res.passes(0.01) is True
+    assert res.passes(0.05) is True
+    assert res.passes(0.01) is False
 
 
 def test_test_result_passes_none_pvalue():

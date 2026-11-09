@@ -17,9 +17,11 @@ def suite_to_dict(suite: StatisticalSuiteResult) -> dict[str, Any]:
             "statistic": test.statistic,
             "p_value": test.p_value,
             "alternative": test.alternative,
+            "status": test.status,
+            "reason": test.reason,
         }
 
-    def _tost_to_dict(tost: TOSTResult | None) -> dict[str, Any] | None:
+    def _tost_to_dict(tost: TOSTResult | None, selected_decision=None) -> dict[str, Any] | None:
         if tost is None:
             return None
         return {
@@ -31,7 +33,11 @@ def suite_to_dict(suite: StatisticalSuiteResult) -> dict[str, Any]:
             "p_value_lower": tost.p_value_lower,
             "p_value_upper": tost.p_value_upper,
             "p_value_max": tost.p_value_max,
-            "equivalent": tost.equivalent,
+            "equivalent": selected_decision,
+            "raw_equivalent": tost.equivalent,
+            "equivalent_scope": "selected_policy",
+            "status": tost.status,
+            "reason": tost.reason,
         }
 
     def _result_to_dict(result: StatisticalComparisonResult) -> dict[str, Any]:
@@ -54,7 +60,7 @@ def suite_to_dict(suite: StatisticalSuiteResult) -> dict[str, Any]:
             "mean_diff_left_minus_right": result.mean_diff_left_minus_right,
             "median_diff_left_minus_right": result.median_diff_left_minus_right,
             "tests": {k: _annotate_test(k, v) for k, v in result.tests.items()},
-            "tost": _tost_to_dict(result.tost),
+            "tost": _tost_to_dict(result.tost, result.decision_pass),
             "effects": {
                 "cohen_dz": result.effects.cohen_dz,
                 "rank_biserial": result.effects.rank_biserial,
@@ -63,12 +69,22 @@ def suite_to_dict(suite: StatisticalSuiteResult) -> dict[str, Any]:
             "decision_pass": result.decision_pass,
             "decision_reliable": result.decision_reliable,
             "decision_basis": result.decision_basis,
+            "status": result.status,
+            "reason": result.reason,
+            "conclusion": result.conclusion,
+            "raw_decision_pass": result.raw_decision_pass,
+            "raw_conclusion": result.raw_conclusion,
+            "adjusted_p_value": result.adjusted_p_value,
+            "decision_scope": result.decision_scope,
             "metadata": result.metadata,
         }
 
     return {
+        "schema_version": 2,
+        "decision_semantics": "conclusion is authoritative; decision_pass means selected hypothesis detected/established, never non-rejection parity",
         "spec": {
             "metric_name": suite.spec.metric_name,
+            "metric_orientation": suite.spec.metric_orientation,
             "hypothesis_kind": suite.spec.hypothesis_kind.value,
             "sidedness": suite.spec.sidedness.value,
             "expected_direction": suite.spec.expected_direction.value,
@@ -98,6 +114,9 @@ def suite_to_markdown(suite: StatisticalSuiteResult) -> str:
 
     lines: list[str] = []
     lines.append("# Statistical Suite Summary")
+    lines.append(
+        f"\nMultiplicity: {suite.spec.multiple_testing.value}. Conclusions use the selected policy; raw inference remains in JSON. Non-rejection is not equivalence."
+    )
     lines.append("")
 
     if any(r.decision_reliable is False for r in suite.results):
@@ -114,32 +133,23 @@ def suite_to_markdown(suite: StatisticalSuiteResult) -> str:
         lines.append(
             "| Label | n | Left Start | Right Start | Left End | Right End | "
             "Diff End (L-R) | Left Delta | Right Delta | Delta Diff (L-R) | "
-            "Cohen dz | Primary p | Decision | Basis |"
+            "Cohen dz | Selected p | Conclusion | Basis |"
         )
         lines.append("|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---|")
     else:
-        lines.append("| Label | n | Cohen dz | Primary p | Decision | Basis |")
+        lines.append("| Label | n | Cohen dz | Selected p | Conclusion | Basis |")
         lines.append("|---|---:|---:|---:|---|---|")
 
     for r in suite.results:
-        primary_p = None
-        if r.decision_basis == "tost" and r.tost is not None:
-            primary_p = r.tost.p_value_max
-        elif r.decision_basis.startswith("wilcoxon") and "wilcoxon" in r.tests:
-            primary_p = r.tests["wilcoxon"].p_value
-        elif r.decision_basis.startswith("paired_t") and "paired_t" in r.tests:
-            primary_p = r.tests["paired_t"].p_value
+        from malthusjax.stats.comparator import primary_p_value
 
-        p_text = "n/a" if primary_p is None else f"{primary_p:.6g}"
-        if r.decision_reliable is False:
-            p_text += " ⚠"
-
-        if r.decision_pass is True:
-            decision = "pass"
-        elif r.decision_pass is False:
-            decision = "fail"
-        else:
-            decision = "n/a"
+        result_p = primary_p_value(r)
+        if r.decision_scope == "family_corrected":
+            result_p = r.adjusted_p_value
+        p_text = "n/a" if result_p is None else f"{result_p:.6g}"
+        decision = r.conclusion
+        if r.status != "valid":
+            decision += f" ({r.status}: {r.reason})"
 
         left_start = r.metadata.get("left_start_mean")
         right_start = r.metadata.get("right_start_mean")

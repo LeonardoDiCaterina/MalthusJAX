@@ -49,6 +49,12 @@ class MetricVector:
     values: np.ndarray
     metadata: dict[str, Any] = field(default_factory=dict)
 
+    def __post_init__(self):
+        values = np.asarray(self.values, dtype=float)
+        if values.ndim != 1 or not np.isfinite(values).all():
+            raise ValueError("Metric samples must be finite one-dimensional arrays")
+        object.__setattr__(self, "values", values)
+
     @property
     def n(self) -> int:
         return int(self.values.shape[0])
@@ -104,6 +110,7 @@ class StatisticalComparisonSpec:
     include_timing_stats: bool = True
     include_mean_summary: bool = False
     timing_phase: str = "prepared_first_execution"
+    metric_orientation: str = "lower_is_better"
 
 
 @dataclass
@@ -132,10 +139,31 @@ class TestResult:
     p_value: float | None
     alternative: str
 
-    def passes(self, alpha: float = 0.05) -> bool | None:
+    status: str = "valid"
+    reason: str | None = None
+
+    def __post_init__(self):
+        if (
+            self.p_value is None
+            or not np.isfinite(self.p_value)
+            or not 0 <= self.p_value <= 1
+            or (self.statistic is not None and not np.isfinite(self.statistic))
+        ):
+            object.__setattr__(self, "statistic", None)
+            object.__setattr__(self, "p_value", None)
+            if self.status == "valid":
+                object.__setattr__(self, "status", "unavailable")
+            object.__setattr__(self, "reason", self.reason or "No finite valid p-value")
+
+    def rejects_null(self, alpha: float = 0.05) -> bool | None:
+        """Whether a valid p-value is below alpha; says nothing about equivalence."""
         if self.p_value is None:
             return None
-        return self.p_value > alpha
+        return self.p_value < alpha
+
+    def passes(self, alpha: float = 0.05) -> bool | None:
+        """Legacy alias for rejects_null, with schema-2 rejection semantics."""
+        return self.rejects_null(alpha)
 
 
 @dataclass(frozen=True)
@@ -151,6 +179,8 @@ class TOSTResult:
     p_value_upper: float | None
     p_value_max: float | None
     equivalent: bool | None
+    status: str = "valid"
+    reason: str | None = None
 
 
 @dataclass(frozen=True)
@@ -209,6 +239,13 @@ class StatisticalComparisonResult:
     decision_reliable: bool | None
     decision_basis: str
     metadata: dict[str, Any] = field(default_factory=dict)
+    status: str = "valid"
+    reason: str | None = None
+    conclusion: str = "unavailable"
+    raw_decision_pass: bool | None = None
+    raw_conclusion: str = "unavailable"
+    adjusted_p_value: float | None = None
+    decision_scope: str = "raw"
 
 
 @dataclass
@@ -238,15 +275,19 @@ def validate_spec(spec: StatisticalComparisonSpec) -> None:
     StatisticalSpecError
         If required fields are missing or inconsistent.
     """
+    if spec.metric_orientation not in {"lower_is_better", "higher_is_better"}:
+        raise StatisticalSpecError("Unknown metric orientation")
     if not spec.metric_name:
         raise StatisticalSpecError("metric_name must be non-empty")
 
-    if spec.min_paired_seeds < 1:
-        raise StatisticalSpecError("min_paired_seeds must be >= 1")
+    if type(spec.min_paired_seeds) is not int or spec.min_paired_seeds < 2:
+        raise StatisticalSpecError("min_paired_seeds must be >= 2 (not a power guarantee)")
 
     if not (0.0 < spec.alpha < 1.0):
         raise StatisticalSpecError("alpha must be in (0, 1)")
 
+    if set(spec.include_tests) - {"wilcoxon", "paired_t", "sign"}:
+        raise StatisticalSpecError("Unknown statistical test")
     if not spec.include_tests:
         raise StatisticalSpecError("include_tests must contain at least one test")
 
@@ -256,7 +297,7 @@ def validate_spec(spec: StatisticalComparisonSpec) -> None:
     if spec.hypothesis_kind == HypothesisKind.EQUIVALENCE:
         if spec.equivalence_margin is None:
             raise StatisticalSpecError("equivalence_margin is required for EQUIVALENCE")
-        if spec.equivalence_margin <= 0.0:
+        if not np.isfinite(spec.equivalence_margin) or spec.equivalence_margin <= 0.0:
             raise StatisticalSpecError("equivalence_margin must be > 0 for EQUIVALENCE")
 
 

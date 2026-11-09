@@ -101,7 +101,7 @@ def test_empirical_family_wise_error_rate():
                     break
         else:
             for result in suite_res.results:
-                if not result.decision_pass:
+                if result.decision_pass is True:
                     suite_rejected = True
                     break
 

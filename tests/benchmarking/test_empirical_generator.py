@@ -184,3 +184,46 @@ def test_main_requires_output_before_loading_benchmark_dependencies(monkeypatch)
     with pytest.raises(SystemExit) as exc:
         generator.main()
     assert exc.value.code == 2
+
+
+def test_corrected_inference_is_preserved_in_generated_table(measured_qd, tmp_path, monkeypatch):
+    import malthusjax.stats.comparator as comparator
+    from malthusjax.stats.core import TOSTResult
+    from malthusjax.stats.paper import analyze_archive_records
+
+    monkeypatch.setattr(
+        comparator,
+        "compute_tost_paired",
+        lambda *a, **k: TOSTResult(1.0, -1.0, 1.0, 2.0, -2.0, 0.03, 0.03, 0.03, True),
+    )
+    hypotheses = [
+        {
+            "label": label,
+            "metric": "best_fitness",
+            "kind": "equivalence",
+            "primary_test": "paired_t",
+            "metric_orientation": "lower_is_better",
+            "estimand": "mean_paired_difference",
+            "margin": 1.0,
+            "sidedness": "two_sided",
+            "expected_direction": "left_lt_right",
+        }
+        for label in ("eq1", "eq2")
+    ]
+    policy = {
+        "family": "synthetic family",
+        "sample_size_rationale": "Regression fixture, not a power claim",
+        "alpha": 0.05,
+        "minimum_pairs": 2,
+        "multiplicity": "holm",
+        "hypotheses": hypotheses,
+    }
+    measured_qd["statistical_analysis"] = analyze_archive_records(
+        measured_qd["per_seed"]["malthusjax_native"],
+        measured_qd["per_seed"]["qdax_baseline"],
+        policy,
+    )
+    generator.export_latex_appendix_tables(payload(measured_qd), tmp_path)
+    table = (tmp_path / "table_showcase3_qdax_speedup.tex").read_text()
+    assert "equivalence not established; p=0.06 (family corrected)" in table
+    assert "p=0.03" not in table

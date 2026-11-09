@@ -15,12 +15,12 @@ def test_cohens_dz_no_shift(paired_equal):
 
 def test_cohens_dz_zero_variance(paired_identical):
     dz = cohens_dz(paired_identical)
-    assert dz == 0.0
+    assert dz is None
 
 
 def test_cohens_dz_n1(paired_single):
     dz = cohens_dz(paired_single)
-    assert np.isnan(dz)
+    assert dz is None
 
 
 def test_rank_biserial_all_positive():
@@ -56,4 +56,4 @@ def test_glass_delta_zero_variance():
         MetricVector("r", np.array([1.0, 1.0, 1.0])),  # std is 0
     )
     gd = glass_delta(ps)
-    assert gd == 0.0
+    assert gd is None

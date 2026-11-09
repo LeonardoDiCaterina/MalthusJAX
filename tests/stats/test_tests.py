@@ -19,13 +19,13 @@ def test_wilcoxon_shift_detected(paired_shifted):
 
 def test_wilcoxon_identical_arrays(paired_identical):
     res = wilcoxon(paired_identical)
-    assert res.p_value == 1.0
-    assert res.statistic == 0.0
+    assert res.p_value is None
+    assert res.statistic is None
 
 
 def test_wilcoxon_n1(paired_single):
     res = wilcoxon(paired_single)
-    assert res.p_value == 1.0
+    assert res.p_value is None
 
 
 def test_wilcoxon_empty(paired_empty):
@@ -39,8 +39,8 @@ def test_tests_with_nans(paired_equal, test_fn):
     arr[0] = np.nan
     from malthusjax.stats.core import MetricVector, PairedSample
 
-    ps = PairedSample(MetricVector("l", arr), paired_equal.right)
     with pytest.raises(ValueError, match="finite"):
+        ps = PairedSample(MetricVector("l", arr), paired_equal.right)
         test_fn(ps)
 
 
@@ -111,7 +111,7 @@ def test_sign_all_ties(paired_identical):
 
 def test_sign_n1(paired_single):
     res = sign_test(paired_single)
-    assert res.p_value == 1.0
+    assert res.p_value is None
 
 
 def test_tost_equivalent_small_diff(paired_equal):
@@ -138,4 +138,5 @@ def test_tost_n1(paired_single):
 
 def test_tost_identical_arrays(paired_identical):
     res = tost(paired_identical, margin=1.0)
-    assert res.equivalent is True
+    assert res.equivalent is None
+    assert res.status == "unavailable"

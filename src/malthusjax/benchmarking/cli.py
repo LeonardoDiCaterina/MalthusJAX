@@ -144,7 +144,7 @@ def handle_analyze(args: argparse.Namespace) -> int:
             return 1
 
         left, right = pipe_names[0], pipe_names[1]
-        logger.info("Running statistical parity analysis for %s vs %s...", left, right)
+        logger.info("Running paired difference analysis for %s vs %s...", left, right)
         spec = StatisticalComparisonSpec(
             metric_name="best_fitness",
             hypothesis_kind=HypothesisKind("location_shift"),
@@ -164,7 +164,7 @@ def handle_analyze(args: argparse.Namespace) -> int:
         with open(analysis_dir / "parity_summary.md", "w") as f:
             f.write(md_text)
 
-        print("\n--- Parity Summary ---")
+        print("\n--- Paired Difference Summary ---")
         print(md_text)
         print("----------------------\n")
         logger.info("Analysis generated in %s", analysis_dir)

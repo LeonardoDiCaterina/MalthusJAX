@@ -81,7 +81,6 @@ if "MUJOCO_GL" not in os.environ:
 import jax
 import jax.numpy as jnp
 import numpy as np
-from scipy import stats
 
 from malthusjax.benchmarking.empirical import (
     extract_control_runs,
@@ -240,36 +239,23 @@ def get_tier_config(
         }
 
 
-def compute_tost_pvalue(x: np.ndarray, y: np.ndarray, rel_margin: float = 0.02) -> float:
-    """Computes Two One-Sided Tests (TOST) equivalence p-value on paired samples."""
-    diffs = np.asarray(x, dtype=np.float64) - np.asarray(y, dtype=np.float64)
-    n = len(diffs)
-    if n < 2:
-        return 1e-5
-    scale = max(float(np.mean(np.abs(y))), 1.0)
-    delta = rel_margin * scale
-    mean_d = float(np.mean(diffs))
-    std_d = float(np.std(diffs, ddof=1))
-    if std_d < 1e-12:
-        return 1e-16 if abs(mean_d) < delta else 1.0
-    se = std_d / np.sqrt(n)
-    t_upper = (mean_d - delta) / se
-    t_lower = (mean_d + delta) / se
-    p_upper = float(stats.t.cdf(t_upper, df=n - 1))
-    p_lower = float(1.0 - stats.t.cdf(t_lower, df=n - 1))
-    return max(p_upper, p_lower)
-
-
-def compute_wilcoxon_pvalue(x: np.ndarray, y: np.ndarray) -> float:
-    """Computes safe two-sided Wilcoxon signed-rank p-value."""
-    diffs = np.asarray(x, dtype=np.float64) - np.asarray(y, dtype=np.float64)
-    if len(diffs) < 2 or np.allclose(diffs, 0.0):
-        return 1.0
+def compute_tost_pvalue(x, y, rel_margin=None, *, margin=None):
+    """Compatibility adapter: only an explicit absolute margin permits inference."""
+    if margin is None or rel_margin is not None:
+        return None
+    from malthusjax.stats.tests import compute_tost_paired
     try:
-        _, pval = stats.wilcoxon(diffs, zero_method="zsplit", alternative="two-sided")
-        return float(pval) if not np.isnan(pval) else 1.0
-    except Exception:
-        return 1.0
+        return compute_tost_paired(x, y, margin=margin, alpha=0.05).p_value_max
+    except ValueError:
+        return None
+
+
+def compute_wilcoxon_pvalue(x, y):
+    from malthusjax.stats.tests import compute_standard_tests
+    try:
+        return compute_standard_tests(x, y, "two-sided", ("wilcoxon",))["wilcoxon"].p_value
+    except ValueError:
+        return None
 
 
 # =============================================================================
@@ -1063,9 +1049,10 @@ def generate_dataset_5a_parity_and_speedup(cfg: Dict[str, Any]) -> Dict[str, Any
     qd_mjx_final = mjx_data["qd_arr"][:, -1]
     qd_qdax_final = qdax_data["qd_arr"][:, -1]
 
-    p_wilcox_fit = compute_wilcoxon_pvalue(fit_mjx_final, fit_qdax_final)
-    p_tost_fit = compute_tost_pvalue(fit_mjx_final, fit_qdax_final, rel_margin=0.05)
-    p_wilcox_cov = compute_wilcoxon_pvalue(cov_mjx_final, cov_qdax_final)
+    from malthusjax.stats.paper import analyze_archive_records
+    qd_contract = qd_comparison_status(mjx_data["per_seed"], qdax_data["per_seed"])
+    analysis = analyze_archive_records(mjx_data["per_seed"], qdax_data["per_seed"],
+        cfg.get("d5_statistical_policy"), comparable_qd=qd_contract["status"] == "comparable")
 
     return {
         "generations": gens.tolist(),
@@ -1084,6 +1071,7 @@ def generate_dataset_5a_parity_and_speedup(cfg: Dict[str, Any]) -> Dict[str, Any
         },
         "qd_score_comparison": qd_comparison_status(
             mjx_data["per_seed"], qdax_data["per_seed"]),
+        "statistical_analysis": analysis,
         "stats": {
             "ms_per_gen_malthusjax": ms_mjx,
             "ms_per_gen_qdax": ms_qdax,
@@ -1093,9 +1081,9 @@ def generate_dataset_5a_parity_and_speedup(cfg: Dict[str, Any]) -> Dict[str, Any
             "cov_std_qdax": float(np.std(cov_qdax_final)),
             "qd_std_malthusjax": float(np.std(qd_mjx_final)),
             "qd_std_qdax": float(np.std(qd_qdax_final)),
-            "p_wilcoxon_fit": p_wilcox_fit,
-            "p_tost_fit": p_tost_fit,
-            "p_wilcoxon_cov": p_wilcox_cov,
+            "p_wilcoxon_fit": None,  # Legacy alias: see labeled statistical_analysis instead.
+            "p_tost_fit": None,
+            "p_wilcoxon_cov": None,
             "p_wilcoxon_qd": None,
             "pop_size": pop_size,
             "generations": n_gens,
@@ -1181,23 +1169,30 @@ Standalone \textsc{{QDax}} MAP-Elites (Fixed MLP) & ${min(100.0, tm2["standalone
     qd_mj = d5["qd_score_malthusjax"][-1]
     speedup = d5["speedup_ratio"]
     s5 = d5["stats"]
+    from malthusjax.stats.paper import inference_text
+    analysis = d5.get("statistical_analysis", {})
+    inference_caption = (rf"$\alpha={analysis['policy']['alpha']}$"
+                         if analysis.get("policy") else "descriptive only")
+    fit_inference = inference_text(analysis, "best_fitness")
+    cov_inference = inference_text(analysis, "coverage")
+    qd_inference = inference_text(analysis, "qd_score") if d5["qd_score_comparison"]["status"] == "comparable" else "Not comparable (missing metric contract)"
 
     t3_content = rf"""\begin{{table}}[t]
 \centering
-\caption{{Showcase 3: \textsc{{MalthusJAX}} Native vs. Upstream \textsc{{QDax}} MAP-Elites on 10D Rastrigin ($P={s5["pop_size"]}, G={s5["generations"]}$, {s5["num_seeds"]} seeds, $\alpha=0.05$).}}
+\caption{{Showcase 3: \textsc{{MalthusJAX}} Native vs. Upstream \textsc{{QDax}} MAP-Elites on 10D Rastrigin ($P={s5["pop_size"]}, G={s5["generations"]}$, {s5["num_seeds"]} seeds; {inference_caption}).}}
 \label{{tab:showcase3_qdax_speedup}}
 \resizebox{{\columnwidth}}{{!}}{{%
 \begin{{tabular}}{{lccc}}
 \toprule
 \textbf{{Evaluation Metric}} & \textbf{{\textsc{{QDax}} Baseline}} & \textbf{{\textsc{{MalthusJAX}} Native}} & \textbf{{Statistical Test / Speedup}} \\
 \midrule
-Best Solution Fitness ($f_{{\text{{best}}}}$) & ${fit_qd:.3f} \pm {s5["fit_std_qdax"]:.3f}$ & ${fit_mj:.3f} \pm {s5["fit_std_malthusjax"]:.3f}$ & $p = {s5["p_wilcoxon_fit"]:.3f}$ (unadjusted; inference pending P4) \\
-Archive Coverage (\%)                     & ${cov_qd:.1f}\% \pm {s5["cov_std_qdax"]:.1f}\%$ & ${cov_mj:.1f}\% \pm {s5["cov_std_malthusjax"]:.1f}\%$ & $p = {s5["p_wilcoxon_cov"]:.3f}$ (unadjusted; inference pending P4) \\
-Backend-native aggregate (signed)        & ${qd_qd:.1f} \pm {s5["qd_std_qdax"]:.1f}$    & ${qd_mj:.1f} \pm {s5["qd_std_malthusjax"]:.1f}$    & Not comparable (definition pending P3) \\
+Best Solution Fitness ($f_{{\text{{best}}}}$) & ${fit_qd:.3f} \pm {s5["fit_std_qdax"]:.3f}$ & ${fit_mj:.3f} \pm {s5["fit_std_malthusjax"]:.3f}$ & {fit_inference} \\
+Archive Coverage (\%)                     & ${cov_qd:.1f}\% \pm {s5["cov_std_qdax"]:.1f}\%$ & ${cov_mj:.1f}\% \pm {s5["cov_std_malthusjax"]:.1f}\%$ & {cov_inference} \\
+Archive quality sum (offset zero)        & ${qd_qd:.1f} \pm {s5["qd_std_qdax"]:.1f}$    & ${qd_mj:.1f} \pm {s5["qd_std_malthusjax"]:.1f}$    & {qd_inference} \\
 Per-Generation Step Time ($t_{{\text{{step}}}}$) & ${s5["ms_per_gen_qdax"]:.2f}\text{{ ms}}$ & $\mathbf{{{s5["ms_per_gen_malthusjax"]:.2f}\text{{ ms}}}}$ & ${speedup:.2f}\times$ (QDax/native time ratio) \\
 \bottomrule
-\multicolumn{{4}}{{l}}{{\scriptsize Ratios below one indicate slower native execution. QD aggregates retain each backend's signed definition.}} \\
-\multicolumn{{4}}{{l}}{{\scriptsize Statistical validity and metric harmonization remain under remediation; no equivalence claim is made here.}}
+\multicolumn{{4}}{{l}}{{\scriptsize Ratios below one indicate slower native execution. QD aggregates require matching signed quality-sum definitions.}} \\
+\multicolumn{{4}}{{l}}{{\scriptsize Inference requires a predeclared family, estimand, margin, and sample-size policy.}}
 \end{{tabular}}%
 }}
 \end{{table}}
@@ -1297,6 +1292,8 @@ def main() -> None:
         choices=["smoke", "standard", "heavy", "publication"],
         help="Workload scaling tier (smoke, standard, publication, heavy).",
     )
+    parser.add_argument("--d5-statistical-policy", type=Path,
+                        help="Predeclared JSON inference policy; omitted means descriptive only")
     parser.add_argument(
         "--out",
         type=str,
@@ -1372,6 +1369,11 @@ def main() -> None:
     if args.d5_seeds is not None:
         cfg["d5_seeds"] = tuple(range(42, 42 + args.d5_seeds))
 
+    if args.d5_statistical_policy is not None:
+        cfg["d5_statistical_policy"] = json.loads(args.d5_statistical_policy.read_text())
+        from malthusjax.stats.paper import validate_policy
+        validate_policy(cfg["d5_statistical_policy"])
+
     local_out_path = Path(args.out)
     local_tables_path, scratch_path = prepare_output_paths(local_out_path)
     global BENCH_SCRATCH_DIR
@@ -1392,7 +1394,7 @@ def main() -> None:
         "metadata": {
             "schema_version": 2,
             "audit_limitations": [
-                "Statistical validity and decisions await P4 (A02/A08/A10).",
+                "Inference is unavailable without an explicit predeclared statistical policy.",
                 "QD scores require matching versioned metric contracts; no publication offset has been adopted.",
                 "Historical H100 results have not been regenerated by this code change.",
             ],

@@ -36,19 +36,43 @@ def apply_decision_rule(
 ) -> tuple[bool | None, str, str | None]:
     """Return decision tuple: (pass, basis, error)."""
     if spec.hypothesis_kind == HypothesisKind.EQUIVALENCE:
-        if tost is None or tost.p_value_max is None:
+        if (
+            tost is None
+            or tost.status != "valid"
+            or tost.p_value_max is None
+            or not np.isfinite(tost.p_value_max)
+            or not 0 <= tost.p_value_max <= 1
+        ):
             return None, "tost", "TOST result unavailable"
         return bool(tost.p_value_max < spec.alpha), "tost", None
 
-    wilcoxon = tests.get("wilcoxon")
-    if wilcoxon is not None and wilcoxon.p_value is not None:
-        return bool(wilcoxon.p_value > spec.alpha), f"wilcoxon_{wilcoxon.alternative}", None
+    primary = tests.get(spec.include_tests[0])
+    if primary is not None and primary.status == "valid" and primary.p_value is not None:
+        return bool(primary.p_value < spec.alpha), f"{primary.name}_{primary.alternative}", None
+    return None, "none", "Predeclared primary test unavailable"
 
-    paired_t = tests.get("paired_t")
-    if paired_t is not None and paired_t.p_value is not None:
-        return bool(paired_t.p_value > spec.alpha), f"paired_t_{paired_t.alternative}", None
 
-    return None, "none", "No decision-eligible p-value available"
+def conclusion_for(
+    kind, sidedness, decision, orientation="lower_is_better", direction="left_lt_right"
+):
+    if decision is None:
+        return "unavailable"
+    if kind == HypothesisKind.EQUIVALENCE:
+        return "equivalent" if decision else "equivalence_not_established"
+    if sidedness == "one_sided":
+        beneficial = (orientation == "lower_is_better") == (direction == "left_lt_right")
+        noun = "improvement" if beneficial else "deterioration"
+        return f"{noun}_detected" if decision else f"{noun}_not_detected"
+    return "difference_detected" if decision else "difference_not_detected"
+
+
+def primary_p_value(result):
+    if result.decision_basis == "tost" and result.tost:
+        return result.tost.p_value_max
+    for name, test in result.tests.items():
+        if result.decision_basis.startswith(name + "_"):
+            return test.p_value
+    return None
 
 
 def compare_paired_arrays(
@@ -66,13 +90,19 @@ def compare_paired_arrays(
 
     left_arr = np.asarray(left, dtype=float)
     right_arr = np.asarray(right, dtype=float)
+    if (
+        left_arr.ndim != 1
+        or right_arr.ndim != 1
+        or not np.isfinite(left_arr).all()
+        or not np.isfinite(right_arr).all()
+    ):
+        raise ValueError("Samples must be finite one-dimensional paired arrays")
     if left_arr.shape != right_arr.shape:
         raise ValueError(f"left/right shape mismatch: {left_arr.shape} vs {right_arr.shape}")
 
-    if left_arr.size < spec.min_paired_seeds:
-        raise StatisticalSpecError(
-            f"paired sample size {left_arr.size} is below min_paired_seeds={spec.min_paired_seeds}"
-        )
+    if left_arr.size == 0:
+        raise StatisticalSpecError("Cannot compare empty samples")
+    insufficient = left_arr.size < spec.min_paired_seeds
 
     alternative = infer_scipy_alternative(spec.sidedness, spec.expected_direction)
 
@@ -101,42 +131,41 @@ def compare_paired_arrays(
 
     diffs = left_arr - right_arr
 
-    # Shapiro-Wilk normality check on paired differences
-    # Note: Shapiro-Wilk has known low statistical power at small sample sizes (tens of seeds).
-    # A result of "fails to reject normality" (p >= 0.05) is a weak confirmation at small N.
-    import warnings
+    # Normality non-rejection is not proof of assumptions or adequate power.
+    shapiro_p = None
+    if diffs.size >= 3 and np.var(diffs) > 0:
+        import scipy.stats as scipy_stats
 
-    import scipy.stats as scipy_stats
-
-    if float(np.var(diffs)) == 0.0:
-        shapiro_p = 1.0
-        shapiro_stat = 1.0
-    else:
-        try:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                shapiro_res = scipy_stats.shapiro(diffs)
-                shapiro_p = float(shapiro_res.pvalue)
-                shapiro_stat = float(shapiro_res.statistic)
-        except ValueError:
-            shapiro_p = None
-            shapiro_stat = None
-
-    if shapiro_p is not None:
-        tests = dict(tests)
-        tests["shapiro_wilk"] = TestResult(
-            name="shapiro_wilk",
-            statistic=shapiro_stat,
-            p_value=shapiro_p,
-            alternative="two-sided",
+        normality = scipy_stats.shapiro(diffs)
+        if np.isfinite(normality.pvalue):
+            shapiro_p = float(normality.pvalue)
+            tests["shapiro_wilk"] = TestResult(
+                "shapiro_wilk", float(normality.statistic), shapiro_p, "two-sided"
+            )
+    decision_reliable = None
+    if (
+        (decision_basis.startswith("paired_t") or decision_basis == "tost")
+        and shapiro_p is not None
+        and shapiro_p < spec.alpha
+    ):
+        decision_reliable = False
+    if insufficient:
+        decision_pass = None
+        decision_error = f"Insufficient paired seeds: {left_arr.size} < {spec.min_paired_seeds}"
+    wins_left = int(
+        np.sum(
+            left_arr < right_arr
+            if spec.metric_orientation == "lower_is_better"
+            else left_arr > right_arr
         )
-
-    decision_reliable = True
-    if decision_basis.startswith("paired_t") or decision_basis == "tost":
-        if shapiro_p is not None and shapiro_p < 0.05:
-            decision_reliable = False
-    wins_left = int(np.sum(left_arr < right_arr))
-    wins_right = int(np.sum(right_arr < left_arr))
+    )
+    wins_right = int(
+        np.sum(
+            right_arr < left_arr
+            if spec.metric_orientation == "lower_is_better"
+            else right_arr > left_arr
+        )
+    )
     ties = int(np.sum(left_arr == right_arr))
 
     hypothesis_text = {
@@ -151,7 +180,18 @@ def compare_paired_arrays(
             "left_name": left_name,
             "right_name": right_name,
             "metric_name": spec.metric_name,
+            "metric_orientation": spec.metric_orientation,
             "alternative": alternative,
+            "hypothesis_kind": spec.hypothesis_kind.value,
+            "sidedness": spec.sidedness.value,
+            "expected_direction": spec.expected_direction.value,
+            "min_paired_seeds": spec.min_paired_seeds,
+            "estimand": "mean paired difference"
+            if spec.hypothesis_kind == HypothesisKind.EQUIVALENCE
+            else "paired signed-rank location"
+            if spec.include_tests[0] == "wilcoxon"
+            else "paired difference",
+            "power_policy": "not certified by a mechanical sample-count minimum",
         }
     )
     if decision_error is not None:
@@ -213,7 +253,8 @@ def compare_paired_arrays(
                 "tost_p_lower": tost.p_value_lower,
                 "tost_p_upper": tost.p_value_upper,
                 "tost_p_max": tost.p_value_max,
-                "tost_equivalent": tost.equivalent,
+                "tost_equivalent_raw": tost.equivalent,
+                "tost_equivalent": decision_pass,
             }
         )
 
@@ -249,6 +290,27 @@ def compare_paired_arrays(
         decision_reliable=decision_reliable,
         decision_basis=decision_basis,
         metadata=out_metadata,
+        status="insufficient"
+        if insufficient
+        else "valid"
+        if decision_pass is not None
+        else "unavailable",
+        reason=decision_error,
+        conclusion=conclusion_for(
+            spec.hypothesis_kind,
+            spec.sidedness,
+            decision_pass,
+            spec.metric_orientation,
+            spec.expected_direction,
+        ),
+        raw_decision_pass=decision_pass,
+        raw_conclusion=conclusion_for(
+            spec.hypothesis_kind,
+            spec.sidedness,
+            decision_pass,
+            spec.metric_orientation,
+            spec.expected_direction,
+        ),
     )
 
 
@@ -261,6 +323,12 @@ class StatisticalComparator:
         spec: StatisticalComparisonSpec,
     ) -> StatisticalComparisonResult:
         """Run a single paired comparison for one aligned dataset."""
+        if len(dataset.seeds) != len(set(dataset.seeds)) or len(dataset.seeds) != len(
+            dataset.left_values
+        ):
+            raise StatisticalSpecError(
+                "Paired seed IDs must be unique and aligned with observations"
+            )
         return compare_paired_arrays(
             label=dataset.label,
             left_name=dataset.left_name,
@@ -282,6 +350,8 @@ class StatisticalComparator:
         spec: StatisticalComparisonSpec,
     ) -> StatisticalSuiteResult:
         """Run a suite of paired comparisons under one common spec."""
+        if len({ds.label for ds in datasets}) != len(datasets):
+            raise StatisticalSpecError("Comparison labels must be unique within a family")
         results: list[StatisticalComparisonResult] = [
             self.compare_paired(ds, spec) for ds in datasets
         ]
@@ -295,28 +365,36 @@ class StatisticalComparator:
         if suite.spec.multiple_testing == MultipleTestingPolicy.NONE:
             return suite
 
-        primary_pvals: list[float] = []
-        labels: list[str] = []
-        for result in suite.results:
-            pval: float | None = None
-            if result.decision_basis == "tost" and result.tost is not None:
-                pval = result.tost.p_value_max
-            elif result.decision_basis.startswith("wilcoxon") and "wilcoxon" in result.tests:
-                pval = result.tests["wilcoxon"].p_value
-            elif result.decision_basis.startswith("paired_t") and "paired_t" in result.tests:
-                pval = result.tests["paired_t"].p_value
-
-            if pval is None:
-                continue
-            primary_pvals.append(float(pval))
-            labels.append(result.label)
-
-        adjusted = adjust_pvalues(primary_pvals, suite.spec.multiple_testing)
-        suite.adjusted_p_values = {
-            label: {"primary": float(adj)}
-            for label, adj in zip(labels, adjusted)
-            if np.isfinite(adj)
-        }
+        if len({r.label for r in suite.results}) != len(suite.results):
+            raise StatisticalSpecError("Comparison labels must be unique within a family")
+        pvals = [primary_p_value(r) if r.status == "valid" else None for r in suite.results]
+        # Unavailable planned hypotheses retain their place in the family.
+        adjusted = adjust_pvalues(
+            [p if p is not None else np.nan for p in pvals], suite.spec.multiple_testing
+        )
+        suite.adjusted_p_values = {}
+        for result, raw, p in zip(suite.results, pvals, adjusted):
+            result.decision_scope = "family_corrected"
+            result.adjusted_p_value = float(p) if raw is not None and np.isfinite(p) else None
+            result.decision_pass = (
+                bool(p < suite.spec.alpha) if result.adjusted_p_value is not None else None
+            )
+            result.conclusion = conclusion_for(
+                result.metadata.get("hypothesis_kind", suite.spec.hypothesis_kind),
+                result.metadata.get("sidedness", suite.spec.sidedness),
+                result.decision_pass,
+                result.metadata.get("metric_orientation", suite.spec.metric_orientation),
+                result.metadata.get("expected_direction", suite.spec.expected_direction),
+            )
+            if result.decision_basis == "tost":
+                result.metadata["tost_equivalent_raw"] = result.tost.equivalent
+                result.metadata["tost_equivalent"] = result.decision_pass
+            result.metadata.update(
+                comparison_family_size=len(suite.results),
+                multiplicity_policy=suite.spec.multiple_testing.value,
+            )
+            if result.adjusted_p_value is not None:
+                suite.adjusted_p_values[result.label] = {"primary": result.adjusted_p_value}
         return suite
 
 
@@ -483,10 +561,8 @@ def paired_dataset_from_experiments(
         raise StatisticalSpecError("Duplicate seeds in timing/objective records")
     common = [int(run.seed) for run in left.runs if int(run.seed) in right_by_seed]
 
-    if len(common) < spec.min_paired_seeds:
-        raise StatisticalSpecError(
-            f"paired seed count {len(common)} below min_paired_seeds={spec.min_paired_seeds}"
-        )
+    if not common:
+        raise StatisticalSpecError("No paired seeds available")
 
     from ..core.timing_records import ALIASES, timing_values
 
@@ -736,10 +812,8 @@ def paired_dataset_from_artifacts(
     )
     common = sorted(set(left_final) & set(right_final))
 
-    if len(common) < spec.min_paired_seeds:
-        raise StatisticalSpecError(
-            f"paired seed count {len(common)} below min_paired_seeds={spec.min_paired_seeds}"
-        )
+    if not common:
+        raise StatisticalSpecError("No paired seeds available")
 
     source = "histories_combined"
     if spec.hypothesis_kind == HypothesisKind.CLOSER_TO_OPTIMUM:

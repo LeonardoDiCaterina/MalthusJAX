@@ -47,7 +47,7 @@ def test_comparator_other_tests():
 
     from malthusjax.stats.core import StatisticalComparisonSpec
 
-    spec = StatisticalComparisonSpec(include_tests=("wilcoxon", "paired_t", "tost", "sign"))
+    spec = StatisticalComparisonSpec(include_tests=("wilcoxon", "paired_t", "sign"))
     metrics = compare_paired_arrays(
         label="test", left_name="left", right_name="right", left=arr1, right=arr2, spec=spec
     )
@@ -102,17 +102,13 @@ def test_comparator_small_sample_error():
 
     from malthusjax.stats.core import StatisticalComparisonSpec, StatisticalSpecError
 
-    spec = StatisticalComparisonSpec(min_paired_seeds=10)
+    spec = StatisticalComparisonSpec(min_paired_seeds=20)
 
-    with pytest.raises(StatisticalSpecError):
-        compare_paired_arrays(
-            label="test",
-            left_name="left",
-            right_name="right",
-            left=arr1,
-            right=arr2,
-            spec=spec,
-        )
+    result = compare_paired_arrays(
+        label="test", left_name="left", right_name="right", left=arr1, right=arr2, spec=spec
+    )
+    assert result.status == "insufficient"
+    assert result.decision_pass is None
 
 
 def test_comparator_internal_helpers():
@@ -263,9 +259,9 @@ def test_comparator_extra_branches():
     )
     comp_res = ComparisonResult(pipelines={"p1": exp_l, "p2": exp_r})
 
-    spec = StatisticalComparisonSpec(min_paired_seeds=1)
+    spec = StatisticalComparisonSpec(min_paired_seeds=2)
     ds = paired_dataset_from_comparison(comp_res, "p1", "p2", spec)
-    assert ds is not None
+    assert ds.seeds == [0]
 
     # Invalid pipeline keys
     with pytest.raises(KeyError):
@@ -273,7 +269,7 @@ def test_comparator_extra_branches():
 
     # 3. adjust_suite_pvalues with FDR_BH
     spec_bonf = StatisticalComparisonSpec(
-        min_paired_seeds=1, multiple_testing=MultipleTestingPolicy.FDR_BH
+        min_paired_seeds=2, multiple_testing=MultipleTestingPolicy.FDR_BH
     )
     comparator = StatisticalComparator()
     ds1 = PairedMetricDataset(
@@ -287,16 +283,16 @@ def test_comparator_decision_error():
     from malthusjax.stats.comparator import compare_paired_arrays
     from malthusjax.stats.core import StatisticalComparisonSpec
 
-    spec = StatisticalComparisonSpec(min_paired_seeds=1, include_tests=("unknown_test",))
-    res = compare_paired_arrays(
-        label="err_test",
-        left_name="L",
-        right_name="R",
-        left=np.array([1.0]),
-        right=np.array([2.0]),
-        spec=spec,
-    )
-    assert "decision_error" in res.metadata
+    spec = StatisticalComparisonSpec(min_paired_seeds=2, include_tests=("unknown_test",))
+    with pytest.raises(ValueError, match="Unknown statistical test"):
+        res = compare_paired_arrays(
+            label="err_test",
+            left_name="L",
+            right_name="R",
+            left=np.array([1.0]),
+            right=np.array([2.0]),
+            spec=spec,
+        )
 
 
 def test_comparator_shapiro_normality():
@@ -310,7 +306,7 @@ def test_comparator_shapiro_normality():
     left[0] = 100.0  # Outlier to break normality
 
     spec_parametric = StatisticalComparisonSpec(
-        min_paired_seeds=10, include_tests=("paired_t",), alpha=0.05
+        min_paired_seeds=20, include_tests=("paired_t",), alpha=0.05
     )
     # The default decision_basis for this spec would be "paired_t_two-sided"
 
@@ -330,7 +326,7 @@ def test_comparator_shapiro_normality():
 
     # Non-parametric decision basis should still be reliable even if non-normal
     spec_nonparametric = StatisticalComparisonSpec(
-        min_paired_seeds=10, include_tests=("wilcoxon",), alpha=0.05
+        min_paired_seeds=20, include_tests=("wilcoxon",), alpha=0.05
     )
     res_np = compare_paired_arrays(
         label="test_normality_np",
@@ -340,7 +336,7 @@ def test_comparator_shapiro_normality():
         right=right,
         spec=spec_nonparametric,
     )
-    assert res_np.decision_reliable is True
+    assert res_np.decision_reliable is None
 
 
 def test_comparator_shapiro_zero_variance():
@@ -353,7 +349,7 @@ def test_comparator_shapiro_zero_variance():
     right = np.zeros(20)
 
     spec_parametric = StatisticalComparisonSpec(
-        min_paired_seeds=10, include_tests=("paired_t",), alpha=0.05
+        min_paired_seeds=20, include_tests=("paired_t",), alpha=0.05
     )
 
     res = compare_paired_arrays(
@@ -365,9 +361,7 @@ def test_comparator_shapiro_zero_variance():
         spec=spec_parametric,
     )
 
-    # Shapiro-Wilk should not crash on zero variance; p-value should be forced to 1.0
-    assert "shapiro_wilk" in res.tests
-    shapiro_p = res.tests["shapiro_wilk"].p_value
-    assert shapiro_p == 1.0
-    # Because shapiro_p >= 0.05, the decision basis remains reliable
-    assert res.decision_reliable is True
+    assert "shapiro_wilk" not in res.tests
+    assert res.status == "unavailable"
+    assert res.decision_pass is None
+    assert res.decision_reliable is None

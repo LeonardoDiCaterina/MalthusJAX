@@ -7,15 +7,15 @@ The original audit and probes remain at `audit/2026-11-08/` locally. [Baseline m
 | Finding | Evidence at audit | Status / package | Regression / closure requirement | Potentially affected evidence |
 |---|---|---|---|---|
 | A01 Forced timing | Reproduced | Fixed in P1 | `tests/benchmarking/test_empirical.py`, `test_empirical_generator.py`: actual slowdown survives extraction and table export | Dataset 5 timing/ratio; historical impact unverified |
-| A02 Invalid statistical defaults | Reproduced | Open, P4 | Shared finite-sample validity and unavailable inference | Generator statistical claims |
-| A03 Signed metrics/QD meaning | Reproduced/source | Implemented P1/P3; see P3.md | Signed observations preserved; QD comparisons marked unavailable; shared definitions still needed | Control returns; Dataset 5 QD/fitness |
+| A02 Invalid statistical defaults | Reproduced | Implemented P4; publication policy pending | Shared finite-sample validity and unavailable inference | Generator statistical claims |
+| A03 Signed metrics/QD meaning | Reproduced/source | Implemented P1/P3; see P3.md | Signed objectives preserved; versioned shared archive definitions; legacy comparisons unavailable | Control returns; Dataset 5 QD/fitness |
 | A04 Placeholder ingestion | Source; baseline dry-run overwrite confirmed in disposable directory | Contained in P2; real generation deferred P10 | Paper `tests/test_ingest_cluster_results.py`: no writes on dry-run/error; no mock fallback | H1/H2/H3 ingestion; historical impact unverified |
 | A05 Crowding | Reproduced | Open, P5 | Independent front-local reference and survival invariance | MO results, if used |
 | A06 Island horizons | Reproduced | Open, P6 | Exact 0/remainder/divisible horizons | Island fitness/budgets |
 | A07 Island timing | Source | CPU measurement repaired PT2/PT3; hardware PT5 and scheduling P6 pending | Prepared outer run and full waits; unresolved horizons declare timing unavailable | Island scaling |
-| A08 Corrected decisions | Reproduced | Open, P4 | Corrected p=.06 cannot pass equivalence at .05 | Suite inference |
+| A08 Corrected decisions | Reproduced | Implemented P4 | Corrected p=.06 cannot pass equivalence at .05 | Suite inference |
 | A09 Duplicate pairing | Reproduced | Open, P7 | One-to-one joins/explicit replicate identity | Regression sample sizes/precision |
-| A10 Decision semantics | Source | Open, P4 | Hypothesis-specific conclusions, margins, uncertainty | Equivalence/zero-overhead claims |
+| A10 Decision semantics | Source | Implemented P4; publication policy pending | Hypothesis-specific conclusions, margins, uncertainty | Equivalence/zero-overhead claims |
 | A11 Optimize API limits | Source | Open, P8 | Implement or reject controls; truthful termination/covariance | Satellite optimization users/results |
 | A12 Run validity/timeout | Reproduced/source | Open, P9 | Status/finite metrics; enforce or reject requested timeout | Success counts and downstream analysis |
 | A13 Crossover inferred size | Reproduced | Open, P5 | Typed/legacy key/default-size contract | Fast-path callers |
@@ -26,7 +26,7 @@ The original audit and probes remain at `audit/2026-11-08/` locally. [Baseline m
 | A18 Assurance scope | Source | Open, P11 | Include scientific paths and packages in release checks | Coverage/CI claims |
 | A19 Provenance/environment | Risk | Partial, P0; early timing records PT4; full manifests P9/P10 | Baseline captured; versioned timing observations precede full environment replay | All paper evidence |
 | A20 Archive statistics | Source | Implemented P3 | Occupancy-masked mean/std | QD metrics |
-| A21 Warmup selection | Source | Open, PT4; extended provenance P9 | Both comparator paths retain seeds and select by declared timing phase, not seed number | Timing comparisons |
+| A21 Warmup selection | Source | Implemented PT4; extended provenance P9 | Both comparator paths retain seeds and select by declared timing phase, not seed number | Timing comparisons |
 | A22 Documentation/operational promises | Source | Partial, P1/P2; remainder P11 | Output/ingestion behavior documented; verify Docker/tracing/other commands | Reproduction workflow |
 
 ## First implementation batch
@@ -35,23 +35,23 @@ The original audit and probes remain at `audit/2026-11-08/` locally. [Baseline m
 - P1: extraction moved to `src/malthusjax/benchmarking/empirical.py`; live optional integrations are loaded only when running experiments. No forced timing, invented missing measurements, absolute-value objective conversions, or automatic manuscript synchronization. JSON uses an explicit schema version and records unresolved audit limitations. Per-seed measurements remain available.
 - P2: paper ingestion now validates H2 CSV structure/finite coefficients read-only. Missing input and unsupported real generation produce errors, with no placeholder fallback. Full publication table regeneration is deliberately unavailable until P10.
 
-The main generator's existing statistical helpers remain unresolved under A02/P4. Its metadata and Dataset 5 table state that inference is pending. Other legacy table narratives are still subject to P10/A22 review. These intermediate outputs must not be treated as submission-ready evidence.
+P4 replaced the generator's statistical shortcuts with shared validated functions and policy-gated analysis. Without a predeclared policy, Dataset 5 remains descriptive only. Other legacy table narratives are still subject to P10/A22 review. These intermediate outputs must not be treated as submission-ready evidence.
 
 ## Follow-up timing audit after cluster smoke job 1303
 
-[The timing audit](timing_audit.md) reproduces tracing and XLA compilation inside native MAP-Elites execution timing. It documents eight timing findings (T01–T08), the scope across other adapters, [local diagnostic evidence](timing_probe_evidence.json), and [user-reported cluster observations](timing_cluster_observations.json). No production timing fix has been applied by this audit. A01's measurement-overwrite fix remains valid; the adapter's definition of the supplied execution measurement is a separate unresolved defect. Pull the timing portions of P6/P9 forward before another expensive comparison run.
+[The timing audit](timing_audit.md) reproduces tracing and XLA compilation inside native MAP-Elites execution timing. It documents eight timing findings (T01–T08), the scope across other adapters, [local diagnostic evidence](timing_probe_evidence.json), and [user-reported cluster observations](timing_cluster_observations.json). The original audit preceded production timing fixes. PT1–PT5 subsequently repaired and validated the scoped native/QDax measurement contract; the original probe and job 1303 remain historical evidence.
 
-The revised implementation order is **PT1 → PT2 → PT3 → PT4 → PT5**, followed by P3/P4 and the remaining original packages. PT1 is committed as `f32415c1` ([evidence](PT1.md)); PT2 is committed as `d27b2241` ([evidence](PT2.md)); PT3 adapter adoption and its [regression evidence](PT3.md) are implemented in the subsequent dedicated commit. PT4/PT5 remain pending. See [the revised plan](../audit_remediation_plan.md) for the remaining consumer and hardware gates.
+The revised implementation order is **PT1 → PT2 → PT3 → PT4 → PT5**, followed by P3/P4 and the remaining original packages. PT1 is committed as `f32415c1` ([evidence](PT1.md)); PT2 is committed as `d27b2241` ([evidence](PT2.md)); PT3 adapter adoption and its [regression evidence](PT3.md) are implemented in the subsequent dedicated commit. PT4 records/consumer checks and scoped PT5 hardware validation in job 1516 are complete. See [the revised plan](../audit_remediation_plan.md) for the remaining consumer and hardware gates.
 
 | Timing finding | Evidence | Owner / work package | Closure evidence required |
 |---|---|---|---|
-| T01 Distinct prepared/invoked JIT functions | Actual tracing and XLA compilation reproduced during execution | Codex, fixed on CPU PT1/PT3; hardware PT5 pending | Exact retained executable tested on first/reordered seeds and logging/history/key/dtype/sharding variants |
+| T01 Distinct prepared/invoked JIT functions | Actual tracing and XLA compilation reproduced during execution | Codex, fixed on CPU PT1/PT3; scoped native/QDax hardware PT5 passed; other integrations not GPU-validated | Exact retained executable tested on first/reordered seeds and logging/history/key/dtype/sharding variants |
 | T02 Silently ignored preparation failures | Intentional lower failure suppressed in probe | Codex, fixed PT1; consumer checks PT4 passed on CPU | Preparation failures propagate; unsupported mode declares unavailable timing |
-| T03 Inconsistent readiness/finalization boundaries | Source plus barrier-coverage probe | Codex, fixed on CPU PT2/PT3; hardware PT5 pending | Full input/output/effect waits; seeded results and genetic finalization preserved |
+| T03 Inconsistent readiness/finalization boundaries | Source plus barrier-coverage probe | Codex, fixed on CPU PT2/PT3; scoped native/QDax hardware PT5 passed; other integrations not GPU-validated | Full input/output/effect waits; seeded results and genetic finalization preserved |
 | T04 MO/island timing mixes phases | Source; separate Dataset 3 scaling path explicitly distinguished | Codex, adopted/limited explicitly in PT3; scheduling P6 pending | Actual production adapter paths prepare scans or report timing unavailable; hardware validation pending |
 | T05 Universal helper skips PyTrees/swallows errors | Custom PyTree and nested failure probes | Codex, fixed PT2; callback refinement PT3 | Registered/custom/slots trees and nested device errors tested; callbacks explicitly drained |
-| T06 Consumers mix phases/exclude by seed | Both comparator paths and analyzer fallback reviewed | Codex, fixed/validated on CPU PT4; hardware PT5 pending | All raw observations retained; mismatched/legacy phases explicitly diagnosed; no total-as-execution fallback |
-| T07 First-use/steady/end-to-end scopes unspecified | Source; contribution to cluster durations unquantified | Codex, versioned records/policy PT4; hardware PT5 pending | Prepared first execution is not labeled steady-state; repetition/order/cache policy and full schema still required |
+| T06 Consumers mix phases/exclude by seed | Both comparator paths and analyzer fallback reviewed | Codex, fixed/validated on CPU PT4; scoped native/QDax hardware PT5 passed; other integrations not GPU-validated | All raw observations retained; mismatched/legacy phases explicitly diagnosed; no total-as-execution fallback |
+| T07 First-use/steady/end-to-end scopes unspecified | Source; contribution to cluster durations unquantified | Codex, versioned records/policy PT4; scoped native/QDax hardware PT5 passed; other integrations not GPU-validated | Prepared first execution is not labeled steady-state; repetition/order/cache policy and full schema still required |
 | T08 Tests miss phase contamination | 29 selected tests passed alongside reproduced timing defects | Codex, maintained CPU regressions added PT1–PT3; PT5/P11 pending | Event/trace/failure regressions pass; hardware validation and CI expansion remain separate |
 
 No gate requires a favorable performance ratio. Job 1303 remains unchanged historical evidence. A small timing-only validation is prepared after CPU tests pass; another full RL-heavy/publication-sized comparison is deferred until the relevant timing and scientific gates pass.
@@ -77,3 +77,5 @@ This validates only the current H2 CSV schema and finite model coefficients. It 
 PT4 CPU consumer closure: see [PT4.md](PT4.md) for schema, compatibility impact, preserved first/repeated trials, and the 60-test boundary and 228-test consumer selections (overlapping). Hardware gate B subsequently passed for the native/QDax workload in job 1516; see PT5 evidence.
 
 PT5 preparation: timing-only native/QDax harness, frozen four-seed/six-execution schedule, reference and compilation checks, Slurm safeguards, and CPU evidence are in [PT5.md](PT5.md) and `PT5_cpu_evidence.json`. Local production-adapter validation passed (48 timed trials/eight references); 47 focused regressions passed. **Subsequent user-authorized H100 job 1516 passed the native/QDax timing gate: 48 trials, eight agreeing references, zero execution compilation events.** See `PT5_cluster_1516.json` for the user-supplied evidence and limitations.
+
+P3/P4 implementation evidence: [P3.md](P3.md) and [P4.md](P4.md). Metric contracts and corrected hypothesis-specific conclusions are implemented; no task-specific publication margin/power policy has been adopted and no manuscript or historical output was rewritten.
