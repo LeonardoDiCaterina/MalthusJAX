@@ -1,0 +1,32 @@
+{
+  "family": "publication_native_qdax_10d_rastrigin_quality_v1",
+  "design_status": "BLOCKED: user requested discussion of tolerances; null margins deliberately prevent inferential execution; confirmation n not selected",
+  "alpha": 0.05,
+  "minimum_pairs": 30,
+  "multiplicity": "holm",
+  "sample_size_rationale": "Draft mechanical minimum only, not a power guarantee. Independent paired seeds with fresh within-pair shared initial population and centroids. Use separate 30-pair variance pilot; freeze n in [30,200] before confirmation, targeting >=90% modeled power per endpoint at true difference half the margin. No pilot pairs enter confirmation. If infeasible, report budget-limited precision and equivalence not established; do not widen margins.",
+  "hypotheses": [
+    {
+      "label": "best_objective_equivalence",
+      "metric": "best_fitness",
+      "kind": "equivalence",
+      "primary_test": "paired_t",
+      "estimand": "mean_paired_difference",
+      "metric_orientation": "lower_is_better",
+      "sidedness": "two_sided",
+      "expected_direction": "left_lt_right",
+      "margin": null
+    },
+    {
+      "label": "coverage_equivalence",
+      "metric": "coverage",
+      "kind": "equivalence",
+      "primary_test": "paired_t",
+      "estimand": "mean_paired_difference",
+      "metric_orientation": "higher_is_better",
+      "sidedness": "two_sided",
+      "expected_direction": "left_gt_right",
+      "margin": null
+    }
+  ]
+}

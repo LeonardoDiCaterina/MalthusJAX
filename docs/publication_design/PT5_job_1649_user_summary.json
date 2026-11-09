@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "evidence_origin": "User-supplied cluster stdout; original report/raw trials not available locally",
+  "job_id": 1649,
+  "revision": "0e1752f24c36b08d149210b6a503f8545effcb99",
+  "checkout": "/home/20240485/post_submission",
+  "python": "/home/20240485/.conda/envs/post_sub/bin/python",
+  "slurm_job_gpus": "1",
+  "cuda_visible_devices": "0",
+  "reported_status": "passed",
+  "output": "results/pt5-0e1752f24c36-1649",
+  "error": null,
+  "timing_summary": {
+    "status": "valid",
+    "phase": "prepared_execution_repeat",
+    "estimator": "median_across_seeds",
+    "count": 4,
+    "left_values": [
+      0.001540238969027996,
+      0.001557069830596447,
+      0.0015225820243358612,
+      0.0015255040489137173
+    ],
+    "right_values": [
+      0.00186226237565279,
+      0.0018393881618976593,
+      0.001856695394963026,
+      0.001853977795690298
+    ],
+    "left_median": 0.0015328715089708567,
+    "right_median": 0.001855336595326662
+  },
+  "scope": "Scoped native/QDax protocol gate; not publication-sized performance or all-backend validation. No repeat of this gate proposed."
+}

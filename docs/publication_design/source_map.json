@@ -1,0 +1,220 @@
+{
+  "schema_version": 1,
+  "scope": "Substantive empirical groups and shared headline consumers; complete line-level inventory remains P10",
+  "validation_status": "candidate_associations_not_publication_validation",
+  "items": [
+    {
+      "id": "H1_adapter_and_mimic_regression",
+      "paper_consumers": [
+        {
+          "path": "/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper/tables/table_h1_parity.tex",
+          "sha256": "6731a21923c29937f7ec871937acf8e149556cd1d7ab5204fdaf39d14578ef77"
+        },
+        {
+          "path": "/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper/sections/appendix_c_benchmarks.tex",
+          "sha256": "0ed09c66b7c3d62c9fd2cc10adc6506f2ddf45aab9e3d951279c8cbac8ee7fe9"
+        }
+      ],
+      "source_candidates": [
+        {
+          "path": "configs/h1_parity_lhs.toml",
+          "sha256": "9d37b6511bc3b1fbefb2358c6f5f4bc350ee380c0521536a85f330ca994ef072"
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/analysis/ols_regression_table.csv",
+          "sha256": "0330ffea588b1f5f69cdb72b9870183fca6e1df9fc52ee5efabac34130088be1"
+        }
+      ],
+      "candidate_producer": "scripts/benchmark_runner.py + scripts/benchmark_analyzer.py",
+      "disposition": "historical_quality_reanalysis_conditional_and_new_timing_required",
+      "limitations": "240 raw coordinate files hashed in source_census.json; candidate coefficient association established, but optimum/transform/BCa/TOST/adjustment provenance not established. New adapter panel differs from custom mimic claim."
+    },
+    {
+      "id": "H2_operator_ablation",
+      "paper_consumers": [
+        {
+          "path": "/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper/tables/table_h2_ablation_ols.tex",
+          "sha256": "b51c6c5c24ac01fe8eae334bc7764309ed8fa3fb05cd000f9c5ceffec93f1142"
+        },
+        {
+          "path": "/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper/sections/appendix_d_acceleration.tex",
+          "sha256": "1f5105efe818af280964f8c110faa47694451f1a2461a9f016d0a3aa3281c6cd"
+        }
+      ],
+      "source_candidates": [
+        {
+          "path": "configs/h2_ablation_final_lhs.toml",
+          "sha256": "c2e01e618a06f992572534564d81e8c95dfd01b55936e6016f4637f39281a435"
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/analysis/ols_regression_table.csv",
+          "sha256": "db5c897b97380e8383c7f9ee9125bd4ba585c974f969ea26fea7eb6f7d32bf61"
+        }
+      ],
+      "candidate_producer": "scripts/benchmark_runner.py + scripts/benchmark_analyzer.py",
+      "disposition": "CPU_source_review_first_GPU_rerun_deferred",
+      "limitations": "180 coordinate files hashed in census; pressure/distribution/elitism confounding and interaction-model interpretation unresolved. No new 2.70x claim accepted."
+    },
+    {
+      "id": "D1_control",
+      "paper_consumers": [
+        {
+          "path": "/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper/tables/table_showcase1_mujoco.tex",
+          "sha256": "972b52389ef7c31a8bd3cbbae46464d76057d94168c52962f34be7f3e5d72f00"
+        },
+        {
+          "path": "/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper/sections/appendix_c_benchmarks.tex",
+          "sha256": "0ed09c66b7c3d62c9fd2cc10adc6506f2ddf45aab9e3d951279c8cbac8ee7fe9"
+        }
+      ],
+      "source_candidates": [
+        {
+          "path": "results/empirical_curves.json",
+          "sha256": "75e1fabbaddf2463faec4f54bea85a69cbf25f5a0baefb48ab05237355e6d86c"
+        }
+      ],
+      "candidate_producer": "examples/generate_empirical_paper_curves.py:dataset_1a",
+      "disposition": "deferred_demonstration_correct_signed_rewards_if_retained",
+      "limitations": "Legacy aggregates are not sufficient per-seed corrected inferential inputs. Direct table production is a candidate association; content/provenance review still required."
+    },
+    {
+      "id": "D2_xor",
+      "paper_consumers": [
+        {
+          "path": "/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper/tables/table_showcase2_dissection.tex",
+          "sha256": "e0b79fc2a3375a61f550fcb343e3e5a8d64f282bc438e6748e0f38e591e530f3"
+        },
+        {
+          "path": "/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper/sections/appendix_c_benchmarks.tex",
+          "sha256": "0ed09c66b7c3d62c9fd2cc10adc6506f2ddf45aab9e3d951279c8cbac8ee7fe9"
+        }
+      ],
+      "source_candidates": [
+        {
+          "path": "results/empirical_curves.json",
+          "sha256": "75e1fabbaddf2463faec4f54bea85a69cbf25f5a0baefb48ab05237355e6d86c"
+        }
+      ],
+      "candidate_producer": "examples/generate_empirical_paper_curves.py:dataset_2a",
+      "disposition": "deferred_demonstration_preserve_actual_archive_metrics",
+      "limitations": "Legacy aggregates are not sufficient per-seed corrected inferential inputs. Direct table production is a candidate association; content/provenance review still required."
+    },
+    {
+      "id": "D3_islands_D4_schedule",
+      "paper_consumers": [
+        {
+          "path": "/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper/tables/table_showcase4_islands_ablation.tex",
+          "sha256": "93e80ac308f602e05bca5ee4eefa1eb476d9947ace2034c7c507860386fa69e4"
+        },
+        {
+          "path": "/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper/sections/appendix_c_benchmarks.tex",
+          "sha256": "0ed09c66b7c3d62c9fd2cc10adc6506f2ddf45aab9e3d951279c8cbac8ee7fe9"
+        }
+      ],
+      "source_candidates": [
+        {
+          "path": "results/empirical_curves.json",
+          "sha256": "75e1fabbaddf2463faec4f54bea85a69cbf25f5a0baefb48ab05237355e6d86c"
+        }
+      ],
+      "candidate_producer": "examples/generate_empirical_paper_curves.py:dataset_3a and dataset_4a",
+      "disposition": "D3_new_exact_path_run_required_D4_deferred",
+      "limitations": "Legacy aggregates are not sufficient per-seed corrected inferential inputs. Direct table production is a candidate association; content/provenance review still required."
+    },
+    {
+      "id": "D5_qd",
+      "paper_consumers": [
+        {
+          "path": "/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper/tables/table_showcase3_qdax_speedup.tex",
+          "sha256": "9c3ede3d9d650c8458c11d6e87900106ba675e9f7ffa2d7e3a69d60aefc5ffcd"
+        },
+        {
+          "path": "/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper/sections/appendix_c_benchmarks.tex",
+          "sha256": "0ed09c66b7c3d62c9fd2cc10adc6506f2ddf45aab9e3d951279c8cbac8ee7fe9"
+        }
+      ],
+      "source_candidates": [
+        {
+          "path": "results/empirical_curves.json",
+          "sha256": "75e1fabbaddf2463faec4f54bea85a69cbf25f5a0baefb48ab05237355e6d86c"
+        }
+      ],
+      "candidate_producer": "examples/generate_empirical_paper_curves.py:dataset_5a",
+      "disposition": "new_run_required_under_agreed_quality_policy",
+      "limitations": "Legacy aggregates are not sufficient per-seed corrected inferential inputs. Direct table production is a candidate association; content/provenance review still required."
+    },
+    {
+      "id": "FIG3",
+      "paper_consumers": [
+        {
+          "path": "/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper/figures/fig3_showcases_control_and_dissection.pdf",
+          "sha256": "0938b9aded260a210e93d888712752088aa0127c6f206b1b728e247ebeede4b0"
+        },
+        {
+          "path": "/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper/scripts/generate_paper_schemas.py",
+          "sha256": "362282be85c5ef923cf1720415eee6afa8c7cad75700d5a145a20d8a93745b8d"
+        },
+        {
+          "path": "/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper/figures/data/empirical_curves.json",
+          "sha256": "75e1fabbaddf2463faec4f54bea85a69cbf25f5a0baefb48ab05237355e6d86c"
+        }
+      ],
+      "source_candidates": [
+        {
+          "path": "results/empirical_curves.json",
+          "sha256": "75e1fabbaddf2463faec4f54bea85a69cbf25f5a0baefb48ab05237355e6d86c"
+        }
+      ],
+      "candidate_producer": "paper/scripts/generate_paper_schemas.py; explicit figures/data JSON dependency",
+      "disposition": "regenerate_after_underlying_datasets_validated",
+      "limitations": "Producer reads ['dataset_1a', 'dataset_2a', 'dataset_3a']; file dependency demonstrated, exact numerical claim validity not established. Regenerate to separate review directory; current producer requires adaptation for new input and output contract."
+    },
+    {
+      "id": "FIG6",
+      "paper_consumers": [
+        {
+          "path": "/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper/figures/fig6_qdax_parity_quad_plot.pdf",
+          "sha256": "ae7d60f8533d64c21413e153645a8ffecf9607149a719804ff5d4f3dd0a84d61"
+        },
+        {
+          "path": "/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper/scripts/generate_paper_schemas.py",
+          "sha256": "362282be85c5ef923cf1720415eee6afa8c7cad75700d5a145a20d8a93745b8d"
+        },
+        {
+          "path": "/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper/figures/data/empirical_curves.json",
+          "sha256": "75e1fabbaddf2463faec4f54bea85a69cbf25f5a0baefb48ab05237355e6d86c"
+        }
+      ],
+      "source_candidates": [
+        {
+          "path": "results/empirical_curves.json",
+          "sha256": "75e1fabbaddf2463faec4f54bea85a69cbf25f5a0baefb48ab05237355e6d86c"
+        }
+      ],
+      "candidate_producer": "paper/scripts/generate_paper_schemas.py; explicit figures/data JSON dependency",
+      "disposition": "regenerate_after_underlying_datasets_validated",
+      "limitations": "Producer reads ['dataset_4a', 'dataset_5a']; file dependency demonstrated, exact numerical claim validity not established. Regenerate to separate review directory; current producer requires adaptation for new input and output contract."
+    },
+    {
+      "id": "HEADLINE_consumers",
+      "paper_consumers": [
+        {
+          "path": "/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper/main.tex",
+          "sha256": "2ced274fe2e80ba4685efe1a478cb24b4b7967ff93683215a48ad5490f76081b"
+        },
+        {
+          "path": "/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper/sections/01_introduction.tex",
+          "sha256": "fbb1bd80f1ae164fb4ddbc3fa811dca08b315ce60e15fa79fa85a2a0741583d9"
+        },
+        {
+          "path": "/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper/sections/05_conclusion.tex",
+          "sha256": "f99e6bb601be9c7cb8189f74abbadd139ae0fe67416349e970b4d4f1d4f0b4a0"
+        }
+      ],
+      "source_candidates": [],
+      "candidate_producer": "H1/H2/D5 and their tables/figures",
+      "disposition": "withhold_legacy_performance_and_equivalence_headlines_until_supported",
+      "limitations": "Shared consumers of multiple empirical families; no additional independent evidence. Numerical-line hashes remain in P10_evidence_inventory.json."
+    }
+  ]
+}

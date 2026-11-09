@@ -1,0 +1,4790 @@
+{
+  "schema_version": 1,
+  "purpose": "Read-only source census; candidate association is not verified scientific provenance",
+  "framework_revision": "0e1752f24c36b08d149210b6a503f8545effcb99",
+  "paper_revision": "07700c6efef35f0a89643216b2efc11271ad1fc5",
+  "suites": [
+    {
+      "name": "h1_parity_lhs",
+      "coordinate_files": 240,
+      "pipelines": {
+        "evosax_baseline": {
+          "records": 24000,
+          "success": 24000,
+          "duplicate_seed_within_coordinate": 0,
+          "nonfinite_or_missing_best": 0,
+          "versioned_timing_records": 0,
+          "versioned_metric_metadata": 0
+        },
+        "malthusjax_wrapper": {
+          "records": 24000,
+          "success": 24000,
+          "duplicate_seed_within_coordinate": 0,
+          "nonfinite_or_missing_best": 0,
+          "versioned_timing_records": 0,
+          "versioned_metric_metadata": 0
+        },
+        "malthusjax_batched_wrapper": {
+          "records": 24000,
+          "success": 24000,
+          "duplicate_seed_within_coordinate": 0,
+          "nonfinite_or_missing_best": 0,
+          "versioned_timing_records": 0,
+          "versioned_metric_metadata": 0
+        }
+      },
+      "sources": [
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs000_d356_p543_g175/benchmark_results.json",
+          "sha256": "f7a8c877a194c643453344d0429c00cbec2a1750705e8a2598f8ce549dd788de",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 356,
+            "P": 543,
+            "G": 175,
+            "lhs_id": "lhs000"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs001_d222_p946_g298/benchmark_results.json",
+          "sha256": "ddec83dd15daf67d56158000e7d20510d5eca6cd1bc4e80a799575edffc1eeb1",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 222,
+            "P": 946,
+            "G": 298,
+            "lhs_id": "lhs001"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs002_d380_p1084_g274/benchmark_results.json",
+          "sha256": "b36ed6e2b7aea023dbde0c3a4f88e117e92e9b4ae0bcc46b1682cb6e764c97e9",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 380,
+            "P": 1084,
+            "G": 274,
+            "lhs_id": "lhs002"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs003_d494_p93_g141/benchmark_results.json",
+          "sha256": "943b60313773602e3b2628bb8a3a388cd1a60158eb678b9b8f7fc64471a648a8",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 494,
+            "P": 93,
+            "G": 141,
+            "lhs_id": "lhs003"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs004_d480_p2015_g56/benchmark_results.json",
+          "sha256": "bc4505ef40fa8d64df5d1ad72ca2e2a921f950c5d03bce5bf7805f12e1ca21b1",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 480,
+            "P": 2015,
+            "G": 56,
+            "lhs_id": "lhs004"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs005_d105_p3141_g353/benchmark_results.json",
+          "sha256": "5729db3116c1b7318f2181b41e1a6a9897566174d31b8ee9536de5702075531c",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 105,
+            "P": 3141,
+            "G": 353,
+            "lhs_id": "lhs005"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs006_d49_p101_g233/benchmark_results.json",
+          "sha256": "2d6d431b4576138ff5633fee86c1e851b8cd76b7d9ac1f36eb2e6f587dd00764",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 49,
+            "P": 101,
+            "G": 233,
+            "lhs_id": "lhs006"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs007_d128_p632_g62/benchmark_results.json",
+          "sha256": "8aa4554dee9203ce328986486a66a782830dfdd665b1ae245e734f77f30058aa",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 128,
+            "P": 632,
+            "G": 62,
+            "lhs_id": "lhs007"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs008_d62_p144_g393/benchmark_results.json",
+          "sha256": "6fd8957b3613ba79408fea1a50bd7adbedbd50b2359cfe241240d7c8644faa7b",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 62,
+            "P": 144,
+            "G": 393,
+            "lhs_id": "lhs008"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs009_d291_p504_g436/benchmark_results.json",
+          "sha256": "ae2d92f1815ae2cb8df1831f9c4fbc7fc16a7edb09f3d51396ae7fa1bb496853",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 291,
+            "P": 504,
+            "G": 436,
+            "lhs_id": "lhs009"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs010_d13_p376_g384/benchmark_results.json",
+          "sha256": "9eafbd2981708f9da073a1959e8b02520ea690156ad7cc18e01e125fb1156e8c",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 13,
+            "P": 376,
+            "G": 384,
+            "lhs_id": "lhs010"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs011_d275_p1884_g228/benchmark_results.json",
+          "sha256": "3ae530c8afe5183c7d50e655a04b2239802f3d4b39f6652523c172e364d47ec0",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 275,
+            "P": 1884,
+            "G": 228,
+            "lhs_id": "lhs011"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs012_d253_p439_g430/benchmark_results.json",
+          "sha256": "0d3e395c4b51554f3eada40463e7bed0bdd79289504764fb39e35dca8592afed",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 253,
+            "P": 439,
+            "G": 430,
+            "lhs_id": "lhs012"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs013_d333_p323_g97/benchmark_results.json",
+          "sha256": "1b4c6992b9725c66a3f81ed8d6bbdcfb02660e3116cb53e698d326580bd0a75a",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 333,
+            "P": 323,
+            "G": 97,
+            "lhs_id": "lhs013"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs014_d418_p194_g164/benchmark_results.json",
+          "sha256": "aaa1564440a3d7cd6381bbaa7c841d1fd48ae78ad03b7a7fff320e5670d307f8",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 418,
+            "P": 194,
+            "G": 164,
+            "lhs_id": "lhs014"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs015_d86_p3934_g261/benchmark_results.json",
+          "sha256": "4860db922b5d9b228def002dd621a11f9ace54edd448e3fc41c621359d5e2853",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 86,
+            "P": 3934,
+            "G": 261,
+            "lhs_id": "lhs015"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs016_d75_p849_g127/benchmark_results.json",
+          "sha256": "37b132b04c1c203dba0021c1203d18fd70d47cb8094d1c9cb845f4b9dda8d8d7",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 75,
+            "P": 849,
+            "G": 127,
+            "lhs_id": "lhs016"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs017_d414_p977_g313/benchmark_results.json",
+          "sha256": "683e1585b57d6a0d839b6c85c952ba6dcead3ca1ba7dcceabee8715580249d55",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 414,
+            "P": 977,
+            "G": 313,
+            "lhs_id": "lhs017"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs018_d38_p122_g202/benchmark_results.json",
+          "sha256": "cdb7126171ce0baa8042cefbe129e3dc8bafb79dec9ea7b2aa7e26a062cc91c5",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 38,
+            "P": 122,
+            "G": 202,
+            "lhs_id": "lhs018"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs019_d187_p118_g94/benchmark_results.json",
+          "sha256": "184da57dd3229b6385c99cf40bce459d647e26562f12ea7d695e72b55e15c67f",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 187,
+            "P": 118,
+            "G": 94,
+            "lhs_id": "lhs019"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs020_d443_p235_g212/benchmark_results.json",
+          "sha256": "ad7e2f90757ffa8bd07755caaf70deddbd42bfc7e0fe1825d0cfb5ea3f2a8176",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 443,
+            "P": 235,
+            "G": 212,
+            "lhs_id": "lhs020"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs021_d258_p2807_g190/benchmark_results.json",
+          "sha256": "47f04ac272133337962ec7d05d1ec2f26a48bb69a28d9f985cfcb578e598b15b",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 258,
+            "P": 2807,
+            "G": 190,
+            "lhs_id": "lhs021"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs022_d432_p363_g286/benchmark_results.json",
+          "sha256": "dba2a38d4037de7d4f88bf4bb574b2fbdf4a82736a72930b19c480a88f049e9d",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 432,
+            "P": 363,
+            "G": 286,
+            "lhs_id": "lhs022"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs023_d299_p77_g293/benchmark_results.json",
+          "sha256": "5f3c2a23f363444210f4c21f91796fe9c6a36261512b41ae4876211443ab1096",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 299,
+            "P": 77,
+            "G": 293,
+            "lhs_id": "lhs023"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs024_d159_p177_g477/benchmark_results.json",
+          "sha256": "43fca070c864b723c1579926e2d964362ef43a8fdc8e5475f60002493277555e",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 159,
+            "P": 177,
+            "G": 477,
+            "lhs_id": "lhs024"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs025_d31_p3581_g110/benchmark_results.json",
+          "sha256": "e4426030ae11b0da80865f07b4b97a4ca45fb31b347dea37f73346a3cf429cea",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 31,
+            "P": 3581,
+            "G": 110,
+            "lhs_id": "lhs025"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs026_d113_p253_g414/benchmark_results.json",
+          "sha256": "b38a7b84f136866260ec04e93a24393024d8e69377b61a2ba2a006a58d332095",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 113,
+            "P": 253,
+            "G": 414,
+            "lhs_id": "lhs026"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs027_d311_p65_g408/benchmark_results.json",
+          "sha256": "34cf78412667e0600682e169cffbc9bdef34223da8c1b644a7dd1bb2eb916eea",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 311,
+            "P": 65,
+            "G": 408,
+            "lhs_id": "lhs027"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs028_d475_p87_g76/benchmark_results.json",
+          "sha256": "db6e0fb4cd38b0b5776799cd388d6f13abae59597f8d83d9245ec328c2759459",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 475,
+            "P": 87,
+            "G": 76,
+            "lhs_id": "lhs028"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs029_d458_p2395_g134/benchmark_results.json",
+          "sha256": "fa40faf49335a7f8b34f0752357b0f569f2279fe78e20df152e6c3a3fa21f925",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 458,
+            "P": 2395,
+            "G": 134,
+            "lhs_id": "lhs029"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs030_d216_p207_g461/benchmark_results.json",
+          "sha256": "56827bf2e2b3d082c225a649e054ed38327de1983cbb50477e1c519535e8cc98",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 216,
+            "P": 207,
+            "G": 461,
+            "lhs_id": "lhs030"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs031_d348_p752_g245/benchmark_results.json",
+          "sha256": "994a4fe3df3c17701552a0386c7ccb2c1c577795ee36f309c828b45281ac6d08",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 348,
+            "P": 752,
+            "G": 245,
+            "lhs_id": "lhs031"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs032_d238_p1592_g161/benchmark_results.json",
+          "sha256": "a57128aae6402fd8fd7226d531cef3444d200895227dca3314a2653428d10f28",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 238,
+            "P": 1592,
+            "G": 161,
+            "lhs_id": "lhs032"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs033_d317_p148_g335/benchmark_results.json",
+          "sha256": "a782d2d9724ac6fd5a23b17b32c21843bcb86826da99ee7fbab3346ec09312ce",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 317,
+            "P": 148,
+            "G": 335,
+            "lhs_id": "lhs033"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs034_d154_p2443_g480/benchmark_results.json",
+          "sha256": "349cab2a7515916dea72291381460b3df93e1c742807a6ad48c720c0bee632ed",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 154,
+            "P": 2443,
+            "G": 480,
+            "lhs_id": "lhs034"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs035_d369_p1702_g362/benchmark_results.json",
+          "sha256": "ca271aadf894326adc40ce7b2c4ade4e79ebb6032a529877179a33d055232a1e",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 369,
+            "P": 1702,
+            "G": 362,
+            "lhs_id": "lhs035"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs036_d180_p277_g326/benchmark_results.json",
+          "sha256": "d3f1d2f63e02e773253ae4e53f814ed95183c7794822871082e79060c0cf7e9b",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 180,
+            "P": 277,
+            "G": 326,
+            "lhs_id": "lhs036"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs037_d204_p1264_g493/benchmark_results.json",
+          "sha256": "02ebd67051c00057d69b708eac440a624da9e2e379920c5f90935dbd5233ccb0",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 204,
+            "P": 1264,
+            "G": 493,
+            "lhs_id": "lhs037"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs038_d143_p577_g368/benchmark_results.json",
+          "sha256": "99d1d3fc4f44488c19a41b8681f1de0a9ef535eab10bbf0bc2601c6ecaaabd20",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 143,
+            "P": 577,
+            "G": 368,
+            "lhs_id": "lhs038"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_gallagher_21_hi_lhs039_d393_p1385_g448/benchmark_results.json",
+          "sha256": "7f917b4b70f92873880a73a93fbf41a59df0393c67d6fd4566b320de6f9dddd4",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 393,
+            "P": 1385,
+            "G": 448,
+            "lhs_id": "lhs039"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs000_d356_p543_g175/benchmark_results.json",
+          "sha256": "d7cbd61a6b19cf1ccebcf5278955eae055b830a6753dba0f4d3c8f4eef956e4d",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 356,
+            "P": 543,
+            "G": 175,
+            "lhs_id": "lhs000"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs001_d222_p946_g298/benchmark_results.json",
+          "sha256": "ba38f46b67013a9db8804bac37f3b0679094ff4fa84fd996d9de4b595e0b52ad",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 222,
+            "P": 946,
+            "G": 298,
+            "lhs_id": "lhs001"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs002_d380_p1084_g274/benchmark_results.json",
+          "sha256": "b5cce3d6600412e877397212bdeb8ebee3b0d3aa3f59f3a3949834df8fa7fc83",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 380,
+            "P": 1084,
+            "G": 274,
+            "lhs_id": "lhs002"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs003_d494_p93_g141/benchmark_results.json",
+          "sha256": "4bbd7474bf56f22b590c2e9eb89dd8548a1a5e275a75a6b3235c6fc8391a59de",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 494,
+            "P": 93,
+            "G": 141,
+            "lhs_id": "lhs003"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs004_d480_p2015_g56/benchmark_results.json",
+          "sha256": "97b9d890cc33bd3873d7d143135bcda0a0e0f27347e05cad276078696de2f15e",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 480,
+            "P": 2015,
+            "G": 56,
+            "lhs_id": "lhs004"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs005_d105_p3141_g353/benchmark_results.json",
+          "sha256": "5dd1dc4f4b1b5c5d2fb332f998cf1f0c155ad23ed96aedf577af95560c85e0b3",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 105,
+            "P": 3141,
+            "G": 353,
+            "lhs_id": "lhs005"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs006_d49_p101_g233/benchmark_results.json",
+          "sha256": "7b9dad0e335b4f927053ea976efc92e5b27f1598b42a1025460cd25885089c4a",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 49,
+            "P": 101,
+            "G": 233,
+            "lhs_id": "lhs006"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs007_d128_p632_g62/benchmark_results.json",
+          "sha256": "28a494a9279e57c8e907b2a78a8df62a9bb626e1f5a58c87b2884d9f51f4127a",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 128,
+            "P": 632,
+            "G": 62,
+            "lhs_id": "lhs007"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs008_d62_p144_g393/benchmark_results.json",
+          "sha256": "20f9e65045dfc381aee100d40e75a12aa6931e48f8ce93c00e545fd7c204da59",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 62,
+            "P": 144,
+            "G": 393,
+            "lhs_id": "lhs008"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs009_d291_p504_g436/benchmark_results.json",
+          "sha256": "424cb48326d5de15eb543bb420d335eb9fc6cf3cfb14c6310cad9f8b97ecc5ab",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 291,
+            "P": 504,
+            "G": 436,
+            "lhs_id": "lhs009"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs010_d13_p376_g384/benchmark_results.json",
+          "sha256": "6e44ea172996aa01b3eb09ec28d7c06176bb43045535dec45accd23b04a30fbc",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 13,
+            "P": 376,
+            "G": 384,
+            "lhs_id": "lhs010"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs011_d275_p1884_g228/benchmark_results.json",
+          "sha256": "5e0eb3dfed7f17635f90b674e99e69aa22f432138b99c1debf7ccb91a15acf66",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 275,
+            "P": 1884,
+            "G": 228,
+            "lhs_id": "lhs011"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs012_d253_p439_g430/benchmark_results.json",
+          "sha256": "3ca103624224e1cf0016da1fb2c576992c1e1629093a3cb3b067b42a1e128f3a",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 253,
+            "P": 439,
+            "G": 430,
+            "lhs_id": "lhs012"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs013_d333_p323_g97/benchmark_results.json",
+          "sha256": "5d6097d0d41047f4722b601d5e44e151a7ecd91ddf101f5e7f8ec983ca379352",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 333,
+            "P": 323,
+            "G": 97,
+            "lhs_id": "lhs013"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs014_d418_p194_g164/benchmark_results.json",
+          "sha256": "f9fd518783ee91cd0162bf855c7716e60037c91ceb11cf9b3c9f398cc4f04213",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 418,
+            "P": 194,
+            "G": 164,
+            "lhs_id": "lhs014"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs015_d86_p3934_g261/benchmark_results.json",
+          "sha256": "381b3949c33dff454f686dcde62b51bc94286887e0eed7f9cb11092c21ac35ac",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 86,
+            "P": 3934,
+            "G": 261,
+            "lhs_id": "lhs015"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs016_d75_p849_g127/benchmark_results.json",
+          "sha256": "bb0cc6b62519bcaa4874c8caf8b589924a3ce69b3d76b92d6fb78932013fc0ac",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 75,
+            "P": 849,
+            "G": 127,
+            "lhs_id": "lhs016"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs017_d414_p977_g313/benchmark_results.json",
+          "sha256": "34f2d197ea7d09a626a6b522dc9b7900c405ee1f38a7bfd7f1b351bf8d56d023",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 414,
+            "P": 977,
+            "G": 313,
+            "lhs_id": "lhs017"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs018_d38_p122_g202/benchmark_results.json",
+          "sha256": "b8149c46e426822a85bff85b9f85af2b21e086691dca845173a129e53d2863a9",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 38,
+            "P": 122,
+            "G": 202,
+            "lhs_id": "lhs018"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs019_d187_p118_g94/benchmark_results.json",
+          "sha256": "b40afe4cd17f6cd10d5a29dd7e68dd9aa63dbc2f9847a1c010cc4cd00c5bb724",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 187,
+            "P": 118,
+            "G": 94,
+            "lhs_id": "lhs019"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs020_d443_p235_g212/benchmark_results.json",
+          "sha256": "3456d9983236d17b111d3d0cb8fa1e25b6bf15ffed5027adcf8fa94cfd76ef4b",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 443,
+            "P": 235,
+            "G": 212,
+            "lhs_id": "lhs020"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs021_d258_p2807_g190/benchmark_results.json",
+          "sha256": "58c2f5e8b10040d8169d9e045c445c9a7d57f73c8cd841ef6968828ae1444c80",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 258,
+            "P": 2807,
+            "G": 190,
+            "lhs_id": "lhs021"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs022_d432_p363_g286/benchmark_results.json",
+          "sha256": "37204b8c9c8c85c099edc66dbee73db4f4df2b6de3dd147f362c12fd46a8b656",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 432,
+            "P": 363,
+            "G": 286,
+            "lhs_id": "lhs022"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs023_d299_p77_g293/benchmark_results.json",
+          "sha256": "90f750dcbe1d3b592a970c09b832e74cff3e3c543485f0aeddbd243b97a263de",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 299,
+            "P": 77,
+            "G": 293,
+            "lhs_id": "lhs023"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs024_d159_p177_g477/benchmark_results.json",
+          "sha256": "42611f2bb40bcbde1c37ce451141693c9ae4a8e1f3e8589fbd0942b82b185eee",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 159,
+            "P": 177,
+            "G": 477,
+            "lhs_id": "lhs024"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs025_d31_p3581_g110/benchmark_results.json",
+          "sha256": "ee1135509571452343ebe4cc4394e4a8773c47b4c75dfba5d1574d8f1c534fe8",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 31,
+            "P": 3581,
+            "G": 110,
+            "lhs_id": "lhs025"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs026_d113_p253_g414/benchmark_results.json",
+          "sha256": "94feeff4f396d9694e56e9eb70b5f942d7d4d5a5f6cd0b2a11e79dad234e5413",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 113,
+            "P": 253,
+            "G": 414,
+            "lhs_id": "lhs026"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs027_d311_p65_g408/benchmark_results.json",
+          "sha256": "10a2b0162ac7a19d6df37494680233fab3276b7e219dd74ee26b3f7bf0aa4c51",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 311,
+            "P": 65,
+            "G": 408,
+            "lhs_id": "lhs027"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs028_d475_p87_g76/benchmark_results.json",
+          "sha256": "fbda369ac889c023d3f17235a5016c869d1c69e4373c0a03bfad904060255ecf",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 475,
+            "P": 87,
+            "G": 76,
+            "lhs_id": "lhs028"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs029_d458_p2395_g134/benchmark_results.json",
+          "sha256": "d45182af7cea202725e8c5e1c4dcd7cd033723ccbbee1bc57052e8800c1ff27d",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 458,
+            "P": 2395,
+            "G": 134,
+            "lhs_id": "lhs029"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs030_d216_p207_g461/benchmark_results.json",
+          "sha256": "09dd63090e62b726d71c8f7c988e0ccc32afc50ba085fc3be0eb2a4c95afd4d1",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 216,
+            "P": 207,
+            "G": 461,
+            "lhs_id": "lhs030"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs031_d348_p752_g245/benchmark_results.json",
+          "sha256": "4da644a5c462c8356b421420c284d66cc04821ec6612cc45646d757b00941129",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 348,
+            "P": 752,
+            "G": 245,
+            "lhs_id": "lhs031"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs032_d238_p1592_g161/benchmark_results.json",
+          "sha256": "441b4495adceae2fcef556e2afa6e8da97891e4881246d924ff03d1e9636e0c3",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 238,
+            "P": 1592,
+            "G": 161,
+            "lhs_id": "lhs032"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs033_d317_p148_g335/benchmark_results.json",
+          "sha256": "de7be9133abed74b7041b82fa1ad552a15a26eea4835c6a8a363f0428a23fcf9",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 317,
+            "P": 148,
+            "G": 335,
+            "lhs_id": "lhs033"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs034_d154_p2443_g480/benchmark_results.json",
+          "sha256": "0332bf241fb2e6a48ac6e731e0a499f36503585f57d4728165185c1af8caa7b0",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 154,
+            "P": 2443,
+            "G": 480,
+            "lhs_id": "lhs034"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs035_d369_p1702_g362/benchmark_results.json",
+          "sha256": "d3e5a76e840c6f71f2c35d72f0e487a83953b62e9f03fe8c74252087fa5b2b4f",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 369,
+            "P": 1702,
+            "G": 362,
+            "lhs_id": "lhs035"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs036_d180_p277_g326/benchmark_results.json",
+          "sha256": "6b995bd52b09c4cbe72dda6cba1c36b1a4cd9e4d24faf210c4aba561adc38388",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 180,
+            "P": 277,
+            "G": 326,
+            "lhs_id": "lhs036"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs037_d204_p1264_g493/benchmark_results.json",
+          "sha256": "1cd0a61cd860e66756d9f3f60faab4cf64dce25bdc204d7a60db245c70feee94",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 204,
+            "P": 1264,
+            "G": 493,
+            "lhs_id": "lhs037"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs038_d143_p577_g368/benchmark_results.json",
+          "sha256": "e644d7e0cbc3a598ed9f444ee5164dc8153f076c19f56c9e6b95e74aaf05e96a",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 143,
+            "P": 577,
+            "G": 368,
+            "lhs_id": "lhs038"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_lunacek_lhs039_d393_p1385_g448/benchmark_results.json",
+          "sha256": "9c2160874f8b9aabf98b86ffb54e2102fa83bd205b45e797c3c1850850394dd9",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 393,
+            "P": 1385,
+            "G": 448,
+            "lhs_id": "lhs039"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs000_d356_p543_g175/benchmark_results.json",
+          "sha256": "c02c1e7453b37ad347128160a2f216089cc91c9d719eab5664e8cf549c60f258",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 356,
+            "P": 543,
+            "G": 175,
+            "lhs_id": "lhs000"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs001_d222_p946_g298/benchmark_results.json",
+          "sha256": "b8d2ed3152146731179894f652af7676e7cecd86d8f1ebf14933992432850f88",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 222,
+            "P": 946,
+            "G": 298,
+            "lhs_id": "lhs001"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs002_d380_p1084_g274/benchmark_results.json",
+          "sha256": "aaf4d029ee2b477110fc994c804ef14bae97fc1e3353e22a7b16ddf0b2a6256b",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 380,
+            "P": 1084,
+            "G": 274,
+            "lhs_id": "lhs002"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs003_d494_p93_g141/benchmark_results.json",
+          "sha256": "27141925660d63823ca69eb36c73fe8708f90ec6c23e327b7c393982a848a57d",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 494,
+            "P": 93,
+            "G": 141,
+            "lhs_id": "lhs003"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs004_d480_p2015_g56/benchmark_results.json",
+          "sha256": "19375110a0370fec460c937ab9c73bb62018e09f1a68d4223cd001840951ecc5",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 480,
+            "P": 2015,
+            "G": 56,
+            "lhs_id": "lhs004"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs005_d105_p3141_g353/benchmark_results.json",
+          "sha256": "1b3dfe05cb04b36189c79a0b6e67958db0a7a6616c4e04dd934e9b55e454316b",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 105,
+            "P": 3141,
+            "G": 353,
+            "lhs_id": "lhs005"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs006_d49_p101_g233/benchmark_results.json",
+          "sha256": "28544bf6aaa978d4b950b2bc384fe31cba6c12cb95b3a0366227a17d53ab13c3",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 49,
+            "P": 101,
+            "G": 233,
+            "lhs_id": "lhs006"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs007_d128_p632_g62/benchmark_results.json",
+          "sha256": "d71fdb02ce0a56088a7d7bb95a254dd0de1e98445701f475f0174d905e97e9ce",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 128,
+            "P": 632,
+            "G": 62,
+            "lhs_id": "lhs007"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs008_d62_p144_g393/benchmark_results.json",
+          "sha256": "82f1be8b3bda9b68d914dad947c323cecafaedb506e7be60c2d8d531328f45ca",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 62,
+            "P": 144,
+            "G": 393,
+            "lhs_id": "lhs008"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs009_d291_p504_g436/benchmark_results.json",
+          "sha256": "7ea6d6ea6fef0f3d76c09e66331a0ed5fe91e75600d39afa5569e1b67c802c86",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 291,
+            "P": 504,
+            "G": 436,
+            "lhs_id": "lhs009"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs010_d13_p376_g384/benchmark_results.json",
+          "sha256": "d36b203fa636616b4fadb6916aebc33c26431d645443206db15ee136cd4a08aa",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 13,
+            "P": 376,
+            "G": 384,
+            "lhs_id": "lhs010"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs011_d275_p1884_g228/benchmark_results.json",
+          "sha256": "5c34850fc16c11732eb6c88053048ead44a2632d1b2d86df9607c5480c03ed7d",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 275,
+            "P": 1884,
+            "G": 228,
+            "lhs_id": "lhs011"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs012_d253_p439_g430/benchmark_results.json",
+          "sha256": "c3c459429b4397ee176f9eb417ccc477e6a0426d1db39c35455761230ce487b4",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 253,
+            "P": 439,
+            "G": 430,
+            "lhs_id": "lhs012"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs013_d333_p323_g97/benchmark_results.json",
+          "sha256": "6cfa2c6d6aec26ab79023bf12d425132921e9cdddc04eed5b9c17b2b36c2bc5f",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 333,
+            "P": 323,
+            "G": 97,
+            "lhs_id": "lhs013"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs014_d418_p194_g164/benchmark_results.json",
+          "sha256": "aafd58c9d2aa60bac4af5686af84506f8c68fb81f292d2db811226c499ce5a10",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 418,
+            "P": 194,
+            "G": 164,
+            "lhs_id": "lhs014"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs015_d86_p3934_g261/benchmark_results.json",
+          "sha256": "029485e1cc67c77146d7cbcfa67087288fa3c8d9bd1996ed6e666fda8368f029",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 86,
+            "P": 3934,
+            "G": 261,
+            "lhs_id": "lhs015"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs016_d75_p849_g127/benchmark_results.json",
+          "sha256": "561c058f556e03b608719a42b63b402dd2a5ddab4bc77ef6b8018fd4793f40ff",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 75,
+            "P": 849,
+            "G": 127,
+            "lhs_id": "lhs016"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs017_d414_p977_g313/benchmark_results.json",
+          "sha256": "aed692f47a99dcca2a0b7d78b98a7c8c71c79bb8841888995ea515ea7528717b",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 414,
+            "P": 977,
+            "G": 313,
+            "lhs_id": "lhs017"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs018_d38_p122_g202/benchmark_results.json",
+          "sha256": "ac4b597b7b69d82d1beeea857a21aedff5f89ab3df9d171176228a2ad0074d6f",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 38,
+            "P": 122,
+            "G": 202,
+            "lhs_id": "lhs018"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs019_d187_p118_g94/benchmark_results.json",
+          "sha256": "a64787d80c90eeab7b3d26b64fca00914141dfc26a2735529ccc5dab387c832e",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 187,
+            "P": 118,
+            "G": 94,
+            "lhs_id": "lhs019"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs020_d443_p235_g212/benchmark_results.json",
+          "sha256": "52b9821b05ee26772b636ea0272a3b54907d15fee484ed9094ee14f0ef976231",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 443,
+            "P": 235,
+            "G": 212,
+            "lhs_id": "lhs020"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs021_d258_p2807_g190/benchmark_results.json",
+          "sha256": "691bd8f9efc283dbf7a02bfc83ff93e0d0345d805b90d4bda927c9541a42193b",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 258,
+            "P": 2807,
+            "G": 190,
+            "lhs_id": "lhs021"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs022_d432_p363_g286/benchmark_results.json",
+          "sha256": "443cb05d870186b96f8d5088e0bf2641eb5c0544e9bf31cbb0e3bfcd6a2c125d",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 432,
+            "P": 363,
+            "G": 286,
+            "lhs_id": "lhs022"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs023_d299_p77_g293/benchmark_results.json",
+          "sha256": "9d52fadf782aa3f7ca1fff2427b8c6a4ee51271fa86b2d252db9569aeafb8fc4",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 299,
+            "P": 77,
+            "G": 293,
+            "lhs_id": "lhs023"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs024_d159_p177_g477/benchmark_results.json",
+          "sha256": "ff8b1d19a1db336b87ad18b0534a1bb2a86f9e7a41d0973e0d785b46ce5f26df",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 159,
+            "P": 177,
+            "G": 477,
+            "lhs_id": "lhs024"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs025_d31_p3581_g110/benchmark_results.json",
+          "sha256": "2f381321c0e5bff92bfdd1dc0cb1c6d2037cec787c8cc0b8a219d9909be2c852",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 31,
+            "P": 3581,
+            "G": 110,
+            "lhs_id": "lhs025"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs026_d113_p253_g414/benchmark_results.json",
+          "sha256": "9d340e9b8bb29553ae163de3df35cda5a7ed672ffb7c051f2f9ba2c1bf88001d",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 113,
+            "P": 253,
+            "G": 414,
+            "lhs_id": "lhs026"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs027_d311_p65_g408/benchmark_results.json",
+          "sha256": "1c03ec50433d5bec46c01fd8fb5b6cb9d5c2aa17d13424ba216a182c58851412",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 311,
+            "P": 65,
+            "G": 408,
+            "lhs_id": "lhs027"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs028_d475_p87_g76/benchmark_results.json",
+          "sha256": "021f54e4e09df6e1e157262a8998487648ab0b56b2e19f805f89f664d4b8f396",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 475,
+            "P": 87,
+            "G": 76,
+            "lhs_id": "lhs028"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs029_d458_p2395_g134/benchmark_results.json",
+          "sha256": "607d88697281af4ad7411698939e53050837f69334d310ef0d651fbe5c12f80a",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 458,
+            "P": 2395,
+            "G": 134,
+            "lhs_id": "lhs029"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs030_d216_p207_g461/benchmark_results.json",
+          "sha256": "681619906ee453f4df4806751b32153cc40649ca4c2cec5e9a5e11b57d6bb5a8",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 216,
+            "P": 207,
+            "G": 461,
+            "lhs_id": "lhs030"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs031_d348_p752_g245/benchmark_results.json",
+          "sha256": "a01a7e527ae008842f8169534d2772e9a4989e0215b04599b3dd3fe4a1586dfd",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 348,
+            "P": 752,
+            "G": 245,
+            "lhs_id": "lhs031"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs032_d238_p1592_g161/benchmark_results.json",
+          "sha256": "7d6d7f12cb718c59ec71d1e44f5a493e9a126f703b6fd83c1555dcc83c9a9a47",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 238,
+            "P": 1592,
+            "G": 161,
+            "lhs_id": "lhs032"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs033_d317_p148_g335/benchmark_results.json",
+          "sha256": "76af9ab3c0bed6a30f3bcd32cfd92c1174e0555b52bd8502d5e0ca90125fc1fd",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 317,
+            "P": 148,
+            "G": 335,
+            "lhs_id": "lhs033"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs034_d154_p2443_g480/benchmark_results.json",
+          "sha256": "363348988ba5115f61cd554df2fdeac0c3c4635198d5e38a7910d8cb03d5670f",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 154,
+            "P": 2443,
+            "G": 480,
+            "lhs_id": "lhs034"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs035_d369_p1702_g362/benchmark_results.json",
+          "sha256": "30eea99fab04dc7666f2aec77201d254605f3f6dcf6cda6e597815392662571c",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 369,
+            "P": 1702,
+            "G": 362,
+            "lhs_id": "lhs035"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs036_d180_p277_g326/benchmark_results.json",
+          "sha256": "0adef4c68d1042edf9a6be33cf726fc71f64f4fcf04c46b1cda44e9d7f045bd8",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 180,
+            "P": 277,
+            "G": 326,
+            "lhs_id": "lhs036"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs037_d204_p1264_g493/benchmark_results.json",
+          "sha256": "cb52c3d8c4421e04589e7ff72b1a9de8f63f6798b55559efbbf2eded19383977",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 204,
+            "P": 1264,
+            "G": 493,
+            "lhs_id": "lhs037"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs038_d143_p577_g368/benchmark_results.json",
+          "sha256": "8c53f8104dce25ce5a632fc2e0615466f8282f8818344bd1684d42b8434a465a",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 143,
+            "P": 577,
+            "G": 368,
+            "lhs_id": "lhs038"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rastrigin_lhs039_d393_p1385_g448/benchmark_results.json",
+          "sha256": "a8a74a9f545437aefe473cde6c68e531a19744b3574fb5318e5f47bf5f1373d7",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 393,
+            "P": 1385,
+            "G": 448,
+            "lhs_id": "lhs039"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs000_d356_p543_g175/benchmark_results.json",
+          "sha256": "b3f12ffe569bd5e154386c5c2baa7210626e40f02f0f7b77bcc2458cd2d65048",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 356,
+            "P": 543,
+            "G": 175,
+            "lhs_id": "lhs000"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs001_d222_p946_g298/benchmark_results.json",
+          "sha256": "4bf5ffbfb6de85fd8f255fa994b437be1b09e36c0779e805b2f2f73325679f12",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 222,
+            "P": 946,
+            "G": 298,
+            "lhs_id": "lhs001"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs002_d380_p1084_g274/benchmark_results.json",
+          "sha256": "7a4ab78c079a3c0c44c4faca52e5814235069debd69f8ca493fbcfa82c27a183",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 380,
+            "P": 1084,
+            "G": 274,
+            "lhs_id": "lhs002"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs003_d494_p93_g141/benchmark_results.json",
+          "sha256": "aec9ef6c7f44f4e9b3b8699dc53b9ebbddc23c7e4b093ce587c123f60223e18d",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 494,
+            "P": 93,
+            "G": 141,
+            "lhs_id": "lhs003"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs004_d480_p2015_g56/benchmark_results.json",
+          "sha256": "d1804e009beeb40e3a60b084ebf60fe6707913d308b5036db4c5ae0408c33dba",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 480,
+            "P": 2015,
+            "G": 56,
+            "lhs_id": "lhs004"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs005_d105_p3141_g353/benchmark_results.json",
+          "sha256": "c2e902594a5cd2ed39399b099aa2eb8c65b8ce96e7d96793f042a751b0814b6a",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 105,
+            "P": 3141,
+            "G": 353,
+            "lhs_id": "lhs005"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs006_d49_p101_g233/benchmark_results.json",
+          "sha256": "d5ab66fae03a660e52f3fc1f3e2d480f353cf7cf20263c89f810a863496e243e",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 49,
+            "P": 101,
+            "G": 233,
+            "lhs_id": "lhs006"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs007_d128_p632_g62/benchmark_results.json",
+          "sha256": "c0d98170544711227348a8371bec7f5382c39fe5a0bca54ab9dc64e5840cc0ec",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 128,
+            "P": 632,
+            "G": 62,
+            "lhs_id": "lhs007"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs008_d62_p144_g393/benchmark_results.json",
+          "sha256": "74e097fb839b3493cc387c99967d53a5685c351a71b701f7de57785f90c6cd39",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 62,
+            "P": 144,
+            "G": 393,
+            "lhs_id": "lhs008"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs009_d291_p504_g436/benchmark_results.json",
+          "sha256": "ed080a08f2b600363a97e1acb10053fb598c6f12ba2fd3902e97d6108eeb905a",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 291,
+            "P": 504,
+            "G": 436,
+            "lhs_id": "lhs009"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs010_d13_p376_g384/benchmark_results.json",
+          "sha256": "0799fdf30ca7a5d39280f4331a7400ede6b952bdffabc27676672d75bef697a3",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 13,
+            "P": 376,
+            "G": 384,
+            "lhs_id": "lhs010"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs011_d275_p1884_g228/benchmark_results.json",
+          "sha256": "f3d9905609b75b2f81d8bf897a07396930b2fb87ad87e8a0cd4c8d8ec0567b87",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 275,
+            "P": 1884,
+            "G": 228,
+            "lhs_id": "lhs011"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs012_d253_p439_g430/benchmark_results.json",
+          "sha256": "652162ec6371b5a0229459850d7d3f0972e5e2146339d276d3cb5fbb4b9d09ff",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 253,
+            "P": 439,
+            "G": 430,
+            "lhs_id": "lhs012"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs013_d333_p323_g97/benchmark_results.json",
+          "sha256": "1e773437acf729e7bac7b06ce22b3096f0e7e254dcf8e9a4b6996949d93938a9",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 333,
+            "P": 323,
+            "G": 97,
+            "lhs_id": "lhs013"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs014_d418_p194_g164/benchmark_results.json",
+          "sha256": "4eff9a8d1d0952607e54604301a92510fbf4564505860872fffe565c91dc31cc",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 418,
+            "P": 194,
+            "G": 164,
+            "lhs_id": "lhs014"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs015_d86_p3934_g261/benchmark_results.json",
+          "sha256": "33921a161591d6263a2492a668d667a1360e9da06dc65302a8e59a9f1bb2f1a9",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 86,
+            "P": 3934,
+            "G": 261,
+            "lhs_id": "lhs015"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs016_d75_p849_g127/benchmark_results.json",
+          "sha256": "4851ed18c82853872eb219943ab104da395c6c2f971966615565a2352d5a5aa3",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 75,
+            "P": 849,
+            "G": 127,
+            "lhs_id": "lhs016"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs017_d414_p977_g313/benchmark_results.json",
+          "sha256": "897bcdfefba8ebab4f7a50e0ae98f961d0e6b52c438766a2497d69e2f5f2ff5a",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 414,
+            "P": 977,
+            "G": 313,
+            "lhs_id": "lhs017"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs018_d38_p122_g202/benchmark_results.json",
+          "sha256": "8d523d65a96fb54a8b0ba4f3557b40e734f7bbf3a0a09060003f7b4e622def9b",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 38,
+            "P": 122,
+            "G": 202,
+            "lhs_id": "lhs018"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs019_d187_p118_g94/benchmark_results.json",
+          "sha256": "4c999cad3ec0438f4f768501e27e1365048556485d9889770598a7f9a148d042",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 187,
+            "P": 118,
+            "G": 94,
+            "lhs_id": "lhs019"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs020_d443_p235_g212/benchmark_results.json",
+          "sha256": "74dabeeab5c3163c65c2b47d9f2cc8902eabb0af231b8a9ce3a512f736ef2c0f",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 443,
+            "P": 235,
+            "G": 212,
+            "lhs_id": "lhs020"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs021_d258_p2807_g190/benchmark_results.json",
+          "sha256": "d09089b9e13d2de2d1b0fda54274f0067ed726f6100666f8636842b8cbde4f02",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 258,
+            "P": 2807,
+            "G": 190,
+            "lhs_id": "lhs021"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs022_d432_p363_g286/benchmark_results.json",
+          "sha256": "056c4b83c456dd017076c9b0b3915bde884301c2f8de789f876558890f337c51",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 432,
+            "P": 363,
+            "G": 286,
+            "lhs_id": "lhs022"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs023_d299_p77_g293/benchmark_results.json",
+          "sha256": "9c3e6d0abd16fcbb2009887fc3ccbdbb80505bbccb705fd33c9cffa42c81f67f",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 299,
+            "P": 77,
+            "G": 293,
+            "lhs_id": "lhs023"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs024_d159_p177_g477/benchmark_results.json",
+          "sha256": "f69f871ca6656ae0bca734492659d12ee6823df27cff772fec209c38e823d716",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 159,
+            "P": 177,
+            "G": 477,
+            "lhs_id": "lhs024"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs025_d31_p3581_g110/benchmark_results.json",
+          "sha256": "66fd944ba637359b62941bbf6a9ed517f6488fb9176aa3660d1d0a57a13d1a42",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 31,
+            "P": 3581,
+            "G": 110,
+            "lhs_id": "lhs025"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs026_d113_p253_g414/benchmark_results.json",
+          "sha256": "eaebc8512de65981ca3208ef749a9829e0c6d26e1d76bda2247b15bcf7960d18",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 113,
+            "P": 253,
+            "G": 414,
+            "lhs_id": "lhs026"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs027_d311_p65_g408/benchmark_results.json",
+          "sha256": "83ab58eaf4762c62df0c9142a684bb7de4c85237290d9c33ab649d8dd08392ac",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 311,
+            "P": 65,
+            "G": 408,
+            "lhs_id": "lhs027"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs028_d475_p87_g76/benchmark_results.json",
+          "sha256": "7b7868f758ac94b44d127a0804fc0672d3791f646a07b206007e2fe52f537e9c",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 475,
+            "P": 87,
+            "G": 76,
+            "lhs_id": "lhs028"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs029_d458_p2395_g134/benchmark_results.json",
+          "sha256": "6e3f0e712ca64b8976538aaf5d8a9980ee48221045a237730f2d20ff69bc071f",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 458,
+            "P": 2395,
+            "G": 134,
+            "lhs_id": "lhs029"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs030_d216_p207_g461/benchmark_results.json",
+          "sha256": "5f94db17e1d3bc402ea3e2248f90a9048330cef5108be81bf7c647d977985fe3",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 216,
+            "P": 207,
+            "G": 461,
+            "lhs_id": "lhs030"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs031_d348_p752_g245/benchmark_results.json",
+          "sha256": "2b56c89238a2a68a7cf49866fae20b7a853eb67e5f59dedd51b838b6332c4d2b",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 348,
+            "P": 752,
+            "G": 245,
+            "lhs_id": "lhs031"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs032_d238_p1592_g161/benchmark_results.json",
+          "sha256": "ba97fd88cdf6bd33a6658a1dc2d2e4865308a90e71cd0c27db71783b701d35c2",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 238,
+            "P": 1592,
+            "G": 161,
+            "lhs_id": "lhs032"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs033_d317_p148_g335/benchmark_results.json",
+          "sha256": "fe044c75b929f3940fe46d47dd49f663ab6f998a3bec65c646749dec5cb6770c",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 317,
+            "P": 148,
+            "G": 335,
+            "lhs_id": "lhs033"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs034_d154_p2443_g480/benchmark_results.json",
+          "sha256": "2fe9a251f7daa78570b8348ece89d4fbe28e94d152fdb0862b652cbd9c927cdc",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 154,
+            "P": 2443,
+            "G": 480,
+            "lhs_id": "lhs034"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs035_d369_p1702_g362/benchmark_results.json",
+          "sha256": "918bb774c16b2b2fb49f7cd1c899e224afcd3e714982216ca155b00de4725856",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 369,
+            "P": 1702,
+            "G": 362,
+            "lhs_id": "lhs035"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs036_d180_p277_g326/benchmark_results.json",
+          "sha256": "994f1f1effbb5298556407b6e7e85565fdc5e39b52afa364cfe74a2402f3913c",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 180,
+            "P": 277,
+            "G": 326,
+            "lhs_id": "lhs036"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs037_d204_p1264_g493/benchmark_results.json",
+          "sha256": "5ddb9de80af3bcd85e60269e847c0177816038b0a7f4138c2c8e03321abfd228",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 204,
+            "P": 1264,
+            "G": 493,
+            "lhs_id": "lhs037"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs038_d143_p577_g368/benchmark_results.json",
+          "sha256": "e9e99e989ee75e1813c5b809e985773e3831334de40cf30b41b099b1f4e86283",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 143,
+            "P": 577,
+            "G": 368,
+            "lhs_id": "lhs038"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_rosenbrock_lhs039_d393_p1385_g448/benchmark_results.json",
+          "sha256": "7ee72ff9c098c8e35af097a4b38aa714bf0714cdb70c98c873f28a64e02a7c5f",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 393,
+            "P": 1385,
+            "G": 448,
+            "lhs_id": "lhs039"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs000_d356_p543_g175/benchmark_results.json",
+          "sha256": "9ceabeeeee2894ca15b41703ca19355ce2f86ada0c08d114224e9e042cbee942",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 356,
+            "P": 543,
+            "G": 175,
+            "lhs_id": "lhs000"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs001_d222_p946_g298/benchmark_results.json",
+          "sha256": "e8b2c81716e945692e9d1c64efa12ce06071966be60597c2cea5e3facbfea867",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 222,
+            "P": 946,
+            "G": 298,
+            "lhs_id": "lhs001"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs002_d380_p1084_g274/benchmark_results.json",
+          "sha256": "c580bc4d016ef8a7612edf48b2a8e387cb4482ac0ad179ea6159bce07b9f70ad",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 380,
+            "P": 1084,
+            "G": 274,
+            "lhs_id": "lhs002"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs003_d494_p93_g141/benchmark_results.json",
+          "sha256": "b279ea63878c0d0e1763b5e1f424a33dd0701fde8e6b940be2fafb6cda4021d3",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 494,
+            "P": 93,
+            "G": 141,
+            "lhs_id": "lhs003"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs004_d480_p2015_g56/benchmark_results.json",
+          "sha256": "7ec677bb3dd3c1ca637a02bea3f00e06e3e5e7725a1e831d38fc6bb8228f212f",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 480,
+            "P": 2015,
+            "G": 56,
+            "lhs_id": "lhs004"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs005_d105_p3141_g353/benchmark_results.json",
+          "sha256": "3c6064961e2d5b05f913caf349391b4fe968f009225ae02f0946c7e280a1070b",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 105,
+            "P": 3141,
+            "G": 353,
+            "lhs_id": "lhs005"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs006_d49_p101_g233/benchmark_results.json",
+          "sha256": "e7af67c40a4a412814d76c147d15eeabc91d14c6f11e59faa337497be1109759",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 49,
+            "P": 101,
+            "G": 233,
+            "lhs_id": "lhs006"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs007_d128_p632_g62/benchmark_results.json",
+          "sha256": "4b7b9264cab20a5ee86b27ed10dc602156b52e3b994c63852665ab9cbf127cfc",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 128,
+            "P": 632,
+            "G": 62,
+            "lhs_id": "lhs007"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs008_d62_p144_g393/benchmark_results.json",
+          "sha256": "d4b5628a2511eda0544b80e0ded441e05d4d69fb0caf8c4c517f312d26a83289",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 62,
+            "P": 144,
+            "G": 393,
+            "lhs_id": "lhs008"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs009_d291_p504_g436/benchmark_results.json",
+          "sha256": "c55d593ddab175fae7a0004254d2d261c67d13b41e6f8f0d068e42a2408ee2d2",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 291,
+            "P": 504,
+            "G": 436,
+            "lhs_id": "lhs009"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs010_d13_p376_g384/benchmark_results.json",
+          "sha256": "d16c3564d1379d0238efa125952d543384d78c97b230a3cfc590af248dc0b219",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 13,
+            "P": 376,
+            "G": 384,
+            "lhs_id": "lhs010"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs011_d275_p1884_g228/benchmark_results.json",
+          "sha256": "77c8ef7169d990e3047028b5c14f9bbaf860e4a279a42ca40472f0fc2dbae827",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 275,
+            "P": 1884,
+            "G": 228,
+            "lhs_id": "lhs011"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs012_d253_p439_g430/benchmark_results.json",
+          "sha256": "3234b6cf8aee4b67fc1e974b60b321dc5cc324d5842748a39fab98c1ce7ef17d",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 253,
+            "P": 439,
+            "G": 430,
+            "lhs_id": "lhs012"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs013_d333_p323_g97/benchmark_results.json",
+          "sha256": "3f5681fcc345011c5b01f5e2b4e3494c0685e5c86792ff4b98dca1d585fb5438",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 333,
+            "P": 323,
+            "G": 97,
+            "lhs_id": "lhs013"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs014_d418_p194_g164/benchmark_results.json",
+          "sha256": "2a9167ef0dcacecd88824e9560fad2213cfdade422f9c9fcf1acd8901787b670",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 418,
+            "P": 194,
+            "G": 164,
+            "lhs_id": "lhs014"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs015_d86_p3934_g261/benchmark_results.json",
+          "sha256": "a35edff2fcd0f1876023f4546b0b6f3e970f662238addd6813f5cebf695e6a9e",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 86,
+            "P": 3934,
+            "G": 261,
+            "lhs_id": "lhs015"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs016_d75_p849_g127/benchmark_results.json",
+          "sha256": "28efef3dd1d6f30d18c18109145bc1d1b444e989d29bb2f688b726fab6c429c0",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 75,
+            "P": 849,
+            "G": 127,
+            "lhs_id": "lhs016"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs017_d414_p977_g313/benchmark_results.json",
+          "sha256": "2463b74955f872a8189b9bd7152b4e5c2045c714cf4a6b2d0c3d977850d26803",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 414,
+            "P": 977,
+            "G": 313,
+            "lhs_id": "lhs017"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs018_d38_p122_g202/benchmark_results.json",
+          "sha256": "5bad0be427bf6bb3da9406a9043135d1d9d2481cb8e6ee71ba56fb24e351a84e",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 38,
+            "P": 122,
+            "G": 202,
+            "lhs_id": "lhs018"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs019_d187_p118_g94/benchmark_results.json",
+          "sha256": "e68e0324d27cfa7949d5c211e3740117be35a0d831978235aba93eec074510ad",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 187,
+            "P": 118,
+            "G": 94,
+            "lhs_id": "lhs019"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs020_d443_p235_g212/benchmark_results.json",
+          "sha256": "f6b8c3f19c04e81ab3c8e90ddcbbd7e1c8fedfd0bc9902e54409cdda82c315f0",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 443,
+            "P": 235,
+            "G": 212,
+            "lhs_id": "lhs020"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs021_d258_p2807_g190/benchmark_results.json",
+          "sha256": "aaa731aca78b8b389a99d1fd54c90b346b7318f8706c4238dec069adc838af15",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 258,
+            "P": 2807,
+            "G": 190,
+            "lhs_id": "lhs021"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs022_d432_p363_g286/benchmark_results.json",
+          "sha256": "68175ee9501c11aca8ecd84f48d16893bc1c17b0dac493e7666d5157e54e7508",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 432,
+            "P": 363,
+            "G": 286,
+            "lhs_id": "lhs022"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs023_d299_p77_g293/benchmark_results.json",
+          "sha256": "f1c23365ab2d3f8f649f8aae938d8d9cf285ddd8c0a37e71ccc3cf4d3085109e",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 299,
+            "P": 77,
+            "G": 293,
+            "lhs_id": "lhs023"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs024_d159_p177_g477/benchmark_results.json",
+          "sha256": "1b37c31b7ca7e946450206ba3119db731573ff94826bad51532f486c4a21f492",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 159,
+            "P": 177,
+            "G": 477,
+            "lhs_id": "lhs024"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs025_d31_p3581_g110/benchmark_results.json",
+          "sha256": "c72f10889a134eeb3bb24676b32d2a1768a3aea27bfa702b924d4b68704db698",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 31,
+            "P": 3581,
+            "G": 110,
+            "lhs_id": "lhs025"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs026_d113_p253_g414/benchmark_results.json",
+          "sha256": "76e32d2ba70c7b1959eb8357e3dbdd13e11a7670fb21f06104d8a2406914bcd2",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 113,
+            "P": 253,
+            "G": 414,
+            "lhs_id": "lhs026"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs027_d311_p65_g408/benchmark_results.json",
+          "sha256": "1f9cbd140194fdc9734bff2d2a73b06ca701d355c0a05f5496914d0c7f32a48c",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 311,
+            "P": 65,
+            "G": 408,
+            "lhs_id": "lhs027"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs028_d475_p87_g76/benchmark_results.json",
+          "sha256": "f84a7bb5f1e841ad4e27d8139256720cd3df460fa28b98ebd857c1f92b13d14d",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 475,
+            "P": 87,
+            "G": 76,
+            "lhs_id": "lhs028"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs029_d458_p2395_g134/benchmark_results.json",
+          "sha256": "8bc6f7dfbc531db0457eef3e2997d8fdc70b8ee5d14793039df7fb7f8416ab74",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 458,
+            "P": 2395,
+            "G": 134,
+            "lhs_id": "lhs029"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs030_d216_p207_g461/benchmark_results.json",
+          "sha256": "b4d83522d0ac64991fcc02838eef6b7585817e605eab8300411375ff8d6d9c91",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 216,
+            "P": 207,
+            "G": 461,
+            "lhs_id": "lhs030"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs031_d348_p752_g245/benchmark_results.json",
+          "sha256": "402e6d9701588e87903a7dd969b010040e5e6f3d4186849128adb58770864185",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 348,
+            "P": 752,
+            "G": 245,
+            "lhs_id": "lhs031"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs032_d238_p1592_g161/benchmark_results.json",
+          "sha256": "163f5054937fa82556795d70d001092b91325ea08d67d26411ef52877a15cb84",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 238,
+            "P": 1592,
+            "G": 161,
+            "lhs_id": "lhs032"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs033_d317_p148_g335/benchmark_results.json",
+          "sha256": "24e1ebbb2b3c6919a39deda46c41074564c6579cc80af9fffe3763a98bab0750",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 317,
+            "P": 148,
+            "G": 335,
+            "lhs_id": "lhs033"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs034_d154_p2443_g480/benchmark_results.json",
+          "sha256": "019ec814b6765164d058e0e7b84aedb73f74b91e51b82d605528f864743370ce",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 154,
+            "P": 2443,
+            "G": 480,
+            "lhs_id": "lhs034"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs035_d369_p1702_g362/benchmark_results.json",
+          "sha256": "5186c4f8de56da9a37a603caf0b51e979fe0efd45abb1f1570e4d243c7cf0815",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 369,
+            "P": 1702,
+            "G": 362,
+            "lhs_id": "lhs035"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs036_d180_p277_g326/benchmark_results.json",
+          "sha256": "4f36934688db60eb3a761dc23851e7960e324663c8ae3c9514ef911b54985647",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 180,
+            "P": 277,
+            "G": 326,
+            "lhs_id": "lhs036"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs037_d204_p1264_g493/benchmark_results.json",
+          "sha256": "ae94cf78c983ed826ab9e82e09fc5508123038c399a2922d08562dfb77bdb686",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 204,
+            "P": 1264,
+            "G": 493,
+            "lhs_id": "lhs037"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs038_d143_p577_g368/benchmark_results.json",
+          "sha256": "13c0a8de969dd098369490a74d2a2d554150d6c4fac349e8a0a7adcafa68d69c",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 143,
+            "P": 577,
+            "G": 368,
+            "lhs_id": "lhs038"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_schwefel_lhs039_d393_p1385_g448/benchmark_results.json",
+          "sha256": "ce6f6f70c243dcbc9670d8486832a6d9fe156358592644e3278b56036ee9d686",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 393,
+            "P": 1385,
+            "G": 448,
+            "lhs_id": "lhs039"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs000_d356_p543_g175/benchmark_results.json",
+          "sha256": "75a88c9a97b082ea9cbdd32586e2ea79b2629bc53295b6c52c5730fefae4703a",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 356,
+            "P": 543,
+            "G": 175,
+            "lhs_id": "lhs000"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs001_d222_p946_g298/benchmark_results.json",
+          "sha256": "476ef98615963021c9e3b281c3881e935fe77c1024ddb937c1d4ca489020fad4",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 222,
+            "P": 946,
+            "G": 298,
+            "lhs_id": "lhs001"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs002_d380_p1084_g274/benchmark_results.json",
+          "sha256": "0f121af13ad19b16f6a7c076ea35bbbfd0543bb46511de7db6ab521f56d4a925",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 380,
+            "P": 1084,
+            "G": 274,
+            "lhs_id": "lhs002"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs003_d494_p93_g141/benchmark_results.json",
+          "sha256": "8d1e267130339782b5f1f6520e052adf69e054e7e735053fb3890c5b8627b11f",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 494,
+            "P": 93,
+            "G": 141,
+            "lhs_id": "lhs003"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs004_d480_p2015_g56/benchmark_results.json",
+          "sha256": "e89172356cdd02b1b1707354fb487a9191cb17fd21726a980aa9ce9664b98ecf",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 480,
+            "P": 2015,
+            "G": 56,
+            "lhs_id": "lhs004"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs005_d105_p3141_g353/benchmark_results.json",
+          "sha256": "648be6fca21f2da149591f579610daf036c8a293ece3036e0775cea99a3a683e",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 105,
+            "P": 3141,
+            "G": 353,
+            "lhs_id": "lhs005"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs006_d49_p101_g233/benchmark_results.json",
+          "sha256": "142cba273136d3a387eaaa01ea2fcefe25a4f62d48d14af2a500fca3c6369435",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 49,
+            "P": 101,
+            "G": 233,
+            "lhs_id": "lhs006"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs007_d128_p632_g62/benchmark_results.json",
+          "sha256": "dc9fda57d4bfa943654bb4b2d1ff3a14ad1906ba9cc60c7f43131b9446004298",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 128,
+            "P": 632,
+            "G": 62,
+            "lhs_id": "lhs007"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs008_d62_p144_g393/benchmark_results.json",
+          "sha256": "93eadc4a208edd35d77e9a11df269e66e47636db5b7edf6a55616c5ab7f4feb1",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 62,
+            "P": 144,
+            "G": 393,
+            "lhs_id": "lhs008"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs009_d291_p504_g436/benchmark_results.json",
+          "sha256": "ed5c0e9a1aa919bfa01e820cce24ba8f1456820882320c80db140de9a9840f39",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 291,
+            "P": 504,
+            "G": 436,
+            "lhs_id": "lhs009"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs010_d13_p376_g384/benchmark_results.json",
+          "sha256": "acbea97c88955936724f205c21394bb61d0e15c40110c84c9399593bf0eabbfb",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 13,
+            "P": 376,
+            "G": 384,
+            "lhs_id": "lhs010"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs011_d275_p1884_g228/benchmark_results.json",
+          "sha256": "a129f1ac941f98f22e1f9783334f232708f40519a2b294bf68aa057aa240e423",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 275,
+            "P": 1884,
+            "G": 228,
+            "lhs_id": "lhs011"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs012_d253_p439_g430/benchmark_results.json",
+          "sha256": "bd5099aad27233f7d0e8b7922c9ea6121c22e894f30704c621c0079c102779b4",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 253,
+            "P": 439,
+            "G": 430,
+            "lhs_id": "lhs012"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs013_d333_p323_g97/benchmark_results.json",
+          "sha256": "9a6ade4f3f2dafa1208f71f57c4ecc486ec5d99b466fa61575a3406a9c80a460",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 333,
+            "P": 323,
+            "G": 97,
+            "lhs_id": "lhs013"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs014_d418_p194_g164/benchmark_results.json",
+          "sha256": "52fa235677b685314e126460ef82931690d510284af002da86436f1718e6d840",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 418,
+            "P": 194,
+            "G": 164,
+            "lhs_id": "lhs014"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs015_d86_p3934_g261/benchmark_results.json",
+          "sha256": "ebcd66703a12fb5182e32345194c36b8a20e2490f67d200aef15c9bbc6ed383c",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 86,
+            "P": 3934,
+            "G": 261,
+            "lhs_id": "lhs015"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs016_d75_p849_g127/benchmark_results.json",
+          "sha256": "6bb55f826f7b352b9e23776b282dc3f74828180237f6ccf234a3250f1fbf23d4",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 75,
+            "P": 849,
+            "G": 127,
+            "lhs_id": "lhs016"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs017_d414_p977_g313/benchmark_results.json",
+          "sha256": "af0307b5b0799a5ecef55c318a13b2f0e049744d6016ab9fd65f28755cc539d1",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 414,
+            "P": 977,
+            "G": 313,
+            "lhs_id": "lhs017"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs018_d38_p122_g202/benchmark_results.json",
+          "sha256": "d7c3cc427a99affa71d75f227492def3f8785b3891bcae8e7b7dcbbb7449b1a0",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 38,
+            "P": 122,
+            "G": 202,
+            "lhs_id": "lhs018"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs019_d187_p118_g94/benchmark_results.json",
+          "sha256": "8c9f1d80c76ff1b5c26b21634ea3d9b22d6ec0402ce8c67bac1ef99fd0d486ac",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 187,
+            "P": 118,
+            "G": 94,
+            "lhs_id": "lhs019"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs020_d443_p235_g212/benchmark_results.json",
+          "sha256": "865c3c5776e9d5a0168cc546a955b6ad7259f635b0761fa05fd6e3b8294baed1",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 443,
+            "P": 235,
+            "G": 212,
+            "lhs_id": "lhs020"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs021_d258_p2807_g190/benchmark_results.json",
+          "sha256": "d5c1f356afe774cde48905be5d035058b3ef77d718fee2f66d95ffb60b8e98c3",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 258,
+            "P": 2807,
+            "G": 190,
+            "lhs_id": "lhs021"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs022_d432_p363_g286/benchmark_results.json",
+          "sha256": "a7dfe2ed36c3876a4f4e3e1cd3fd151be333133aba7b7f2b19045c8681344a1a",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 432,
+            "P": 363,
+            "G": 286,
+            "lhs_id": "lhs022"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs023_d299_p77_g293/benchmark_results.json",
+          "sha256": "51901352b0750d3a86f9f30602a910e7d9c355915d0b8a3a1368f71c33d40277",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 299,
+            "P": 77,
+            "G": 293,
+            "lhs_id": "lhs023"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs024_d159_p177_g477/benchmark_results.json",
+          "sha256": "0a717d492da16cbf7775cb39b75786c42508ab331009eaf1991d62710bf4f91b",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 159,
+            "P": 177,
+            "G": 477,
+            "lhs_id": "lhs024"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs025_d31_p3581_g110/benchmark_results.json",
+          "sha256": "170d3514cb379400ff8a8218d30216bfe01082c77fef5b36f53ea8808f9c146e",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 31,
+            "P": 3581,
+            "G": 110,
+            "lhs_id": "lhs025"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs026_d113_p253_g414/benchmark_results.json",
+          "sha256": "a82108e94547d0afb1d317fe98e864a7e04329a80884f5b557050ed21335f9eb",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 113,
+            "P": 253,
+            "G": 414,
+            "lhs_id": "lhs026"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs027_d311_p65_g408/benchmark_results.json",
+          "sha256": "6b0c12ba6e8004fbad776a07091e5d5f123eee9f15a9e4ae85f04f8a62e52055",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 311,
+            "P": 65,
+            "G": 408,
+            "lhs_id": "lhs027"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs028_d475_p87_g76/benchmark_results.json",
+          "sha256": "aade0a646d1395b6d1249435c00c7deea585fc465db380be86eda7dc1c269ff6",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 475,
+            "P": 87,
+            "G": 76,
+            "lhs_id": "lhs028"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs029_d458_p2395_g134/benchmark_results.json",
+          "sha256": "6bfee9c61d7b5d2da87adefd3b63d008759d0399c2eb766150ae59e9d73e88e3",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 458,
+            "P": 2395,
+            "G": 134,
+            "lhs_id": "lhs029"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs030_d216_p207_g461/benchmark_results.json",
+          "sha256": "907e944ccb1898b5058779fccf552376bab8d0fa2d08906fdf6dba9622468c3b",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 216,
+            "P": 207,
+            "G": 461,
+            "lhs_id": "lhs030"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs031_d348_p752_g245/benchmark_results.json",
+          "sha256": "ed64b5485c335d4b741d2db1d402343e2e620e2ba1f8610873326ba2b0c282b2",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 348,
+            "P": 752,
+            "G": 245,
+            "lhs_id": "lhs031"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs032_d238_p1592_g161/benchmark_results.json",
+          "sha256": "2c2a6ff60250960f77c5660259fb28b14a2fa770eafded453c91ea7c8326ec65",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 238,
+            "P": 1592,
+            "G": 161,
+            "lhs_id": "lhs032"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs033_d317_p148_g335/benchmark_results.json",
+          "sha256": "84cf1a93be463975412967e29b13f2ad0ebf6e7ea937f12f2e3fe64c08bedf33",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 317,
+            "P": 148,
+            "G": 335,
+            "lhs_id": "lhs033"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs034_d154_p2443_g480/benchmark_results.json",
+          "sha256": "0e0c53066ca84a4831e80e93572e6efd1457e81f98ae651544fada435896138e",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 154,
+            "P": 2443,
+            "G": 480,
+            "lhs_id": "lhs034"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs035_d369_p1702_g362/benchmark_results.json",
+          "sha256": "54bcfc6fd4f1043eb6cb6d2716685a785ad3d55bdc84ce3963dac96ce2419d8e",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 369,
+            "P": 1702,
+            "G": 362,
+            "lhs_id": "lhs035"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs036_d180_p277_g326/benchmark_results.json",
+          "sha256": "3da1711d93b485566c966f38b6a6ba8f46cce2a5db193c40bb2a321869b9f2ac",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 180,
+            "P": 277,
+            "G": 326,
+            "lhs_id": "lhs036"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs037_d204_p1264_g493/benchmark_results.json",
+          "sha256": "e46211826966fbff3bc8546c62f77efe55bca8da6af692c0d7fa2cb73e1b128d",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 204,
+            "P": 1264,
+            "G": 493,
+            "lhs_id": "lhs037"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs038_d143_p577_g368/benchmark_results.json",
+          "sha256": "c1d34e6a9d868b144c151c9418df494a656d4d250781bc4b9d240cd7fdddbb76",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 143,
+            "P": 577,
+            "G": 368,
+            "lhs_id": "lhs038"
+          }
+        },
+        {
+          "path": "results/_archive/h1_parity_lhs/exp_sphere_lhs039_d393_p1385_g448/benchmark_results.json",
+          "sha256": "5e3503ad48119b2fd2426814bb3368549970684a165b0bc72dc7da55a633f397",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 393,
+            "P": 1385,
+            "G": 448,
+            "lhs_id": "lhs039"
+          }
+        }
+      ],
+      "disposition": "Quality eligible for provenance/semantic review only; mixed-phase legacy timings require new measurement"
+    },
+    {
+      "name": "h2_ablation_final",
+      "coordinate_files": 180,
+      "pipelines": {
+        "malthusjax_baseline": {
+          "records": 18000,
+          "success": 18000,
+          "duplicate_seed_within_coordinate": 0,
+          "nonfinite_or_missing_best": 0,
+          "versioned_timing_records": 0,
+          "versioned_metric_metadata": 0
+        },
+        "mjx_ablate_sel_elite": {
+          "records": 18000,
+          "success": 18000,
+          "duplicate_seed_within_coordinate": 0,
+          "nonfinite_or_missing_best": 0,
+          "versioned_timing_records": 0,
+          "versioned_metric_metadata": 0
+        },
+        "mjx_ablate_sel_tournament_3": {
+          "records": 18000,
+          "success": 18000,
+          "duplicate_seed_within_coordinate": 0,
+          "nonfinite_or_missing_best": 0,
+          "versioned_timing_records": 0,
+          "versioned_metric_metadata": 0
+        },
+        "mjx_ablate_sel_tournament_6": {
+          "records": 18000,
+          "success": 18000,
+          "duplicate_seed_within_coordinate": 0,
+          "nonfinite_or_missing_best": 0,
+          "versioned_timing_records": 0,
+          "versioned_metric_metadata": 0
+        },
+        "mjx_ablate_crossover": {
+          "records": 18000,
+          "success": 18000,
+          "duplicate_seed_within_coordinate": 0,
+          "nonfinite_or_missing_best": 0,
+          "versioned_timing_records": 0,
+          "versioned_metric_metadata": 0
+        },
+        "mjx_ablate_mutation": {
+          "records": 18000,
+          "success": 18000,
+          "duplicate_seed_within_coordinate": 0,
+          "nonfinite_or_missing_best": 0,
+          "versioned_timing_records": 0,
+          "versioned_metric_metadata": 0
+        },
+        "mjx_ablate_mutation_batched": {
+          "records": 18000,
+          "success": 18000,
+          "duplicate_seed_within_coordinate": 0,
+          "nonfinite_or_missing_best": 0,
+          "versioned_timing_records": 0,
+          "versioned_metric_metadata": 0
+        },
+        "mjx_ablate_crossover_batched": {
+          "records": 18000,
+          "success": 18000,
+          "duplicate_seed_within_coordinate": 0,
+          "nonfinite_or_missing_best": 0,
+          "versioned_timing_records": 0,
+          "versioned_metric_metadata": 0
+        },
+        "mjx_ablate_mutation_evosax_batched": {
+          "records": 18000,
+          "success": 18000,
+          "duplicate_seed_within_coordinate": 0,
+          "nonfinite_or_missing_best": 0,
+          "versioned_timing_records": 0,
+          "versioned_metric_metadata": 0
+        },
+        "mjx_ablate_crossover_evosax_batched": {
+          "records": 18000,
+          "success": 18000,
+          "duplicate_seed_within_coordinate": 0,
+          "nonfinite_or_missing_best": 0,
+          "versioned_timing_records": 0,
+          "versioned_metric_metadata": 0
+        }
+      },
+      "sources": [
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs000_d32_p224_g191/benchmark_results.json",
+          "sha256": "035896ca83b3f981e1e19c067ba56278f1bb3ffc88ac2e98d09241ab5af6f958",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 32,
+            "P": 224,
+            "G": 191,
+            "lhs_id": "lhs000"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs001_d50_p639_g65/benchmark_results.json",
+          "sha256": "968298d03523c1edf2777f1d0dd02014f678f88666f4baf3ab75e996b07880ec",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 50,
+            "P": 639,
+            "G": 65,
+            "lhs_id": "lhs001"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs002_d29_p414_g99/benchmark_results.json",
+          "sha256": "d025613ab9f2410572b1b7ca8af29ccd3c2a200627510fb8beb3ccc54989272c",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 29,
+            "P": 414,
+            "G": 99,
+            "lhs_id": "lhs002"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs003_d90_p518_g100/benchmark_results.json",
+          "sha256": "37c7da8ec315e955568b27bc6d5965fd1f4a7c983eab86e01e1d5dea97928bb7",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 90,
+            "P": 518,
+            "G": 100,
+            "lhs_id": "lhs003"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs004_d53_p124_g93/benchmark_results.json",
+          "sha256": "5fa85805ca8b6729c31e7909c851aeb10be795100c9f7c9c2abb9e7d26455048",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 53,
+            "P": 124,
+            "G": 93,
+            "lhs_id": "lhs004"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs005_d93_p887_g85/benchmark_results.json",
+          "sha256": "dfa3dcbf3f34488c1da1be14fd9ed2a2aa823923cf3c83a99acf37e52bb1bffe",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 93,
+            "P": 887,
+            "G": 85,
+            "lhs_id": "lhs005"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs006_d56_p115_g161/benchmark_results.json",
+          "sha256": "273f57f08ea9a03cb3d542fb861a2b588134cf0994ef49642977878d95d29b19",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 56,
+            "P": 115,
+            "G": 161,
+            "lhs_id": "lhs006"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs007_d27_p936_g166/benchmark_results.json",
+          "sha256": "edb2088a3545f1c3dc7ccb1078ca82453fcdedcaf7c0978cfba021634d0a2269",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 27,
+            "P": 936,
+            "G": 166,
+            "lhs_id": "lhs007"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs008_d95_p695_g73/benchmark_results.json",
+          "sha256": "e4bd67ea831d68ee58e6373fbcdb408b71b6153bdc0317ef5b96d97ca7621808",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 95,
+            "P": 695,
+            "G": 73,
+            "lhs_id": "lhs008"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs009_d37_p252_g187/benchmark_results.json",
+          "sha256": "8724d229922d81d4d15a42e94a6ffb3ff8b613a989e38ce1441c1a6ff01d9998",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 37,
+            "P": 252,
+            "G": 187,
+            "lhs_id": "lhs009"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs010_d68_p257_g88/benchmark_results.json",
+          "sha256": "4dc24ab0fa595693afd1692d1da3292d51874d3aa5ddf34ba349da5808ea78c1",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 68,
+            "P": 257,
+            "G": 88,
+            "lhs_id": "lhs010"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs011_d81_p468_g144/benchmark_results.json",
+          "sha256": "b040768f0f0de2b14464004e6cdf93ed7bdcbb848e2f8c8a3abc076bbafeafc7",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 81,
+            "P": 468,
+            "G": 144,
+            "lhs_id": "lhs011"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs012_d22_p186_g59/benchmark_results.json",
+          "sha256": "aafe38413b87fb3570ec92796f44fd81ec9569ac069af73289a73850ed2bbb60",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 22,
+            "P": 186,
+            "G": 59,
+            "lhs_id": "lhs012"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs013_d14_p204_g51/benchmark_results.json",
+          "sha256": "1661d07dfb70a7466c6e797894f56c752a0bece88077f7b8527fc8967bd2639a",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 14,
+            "P": 204,
+            "G": 51,
+            "lhs_id": "lhs013"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs014_d83_p82_g146/benchmark_results.json",
+          "sha256": "bb252d9b506b8d40dddee887524e2452f1ee38d98258b19006edb99c1a1dc52e",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 83,
+            "P": 82,
+            "G": 146,
+            "lhs_id": "lhs014"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs015_d47_p357_g199/benchmark_results.json",
+          "sha256": "9442a12d923995118ba274cb91d07ceaa963be433a377a7aea15dda8a165b7b1",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 47,
+            "P": 357,
+            "G": 199,
+            "lhs_id": "lhs015"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs016_d11_p175_g129/benchmark_results.json",
+          "sha256": "ebf4161f510806a7d3c22056ecdc9fb2a790a4475cbd0264c6e36690ec55bbce",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 11,
+            "P": 175,
+            "G": 129,
+            "lhs_id": "lhs016"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs017_d25_p150_g177/benchmark_results.json",
+          "sha256": "7e409d87970c743b7a26ee93daa1b863531c14293c8f8c0fe0ea89b3de4bf5ef",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 25,
+            "P": 150,
+            "G": 177,
+            "lhs_id": "lhs017"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs018_d98_p547_g133/benchmark_results.json",
+          "sha256": "6a431d379655d814bf4d0aa6fe783f61dc363c99d8e10dfa57f8c2e617725e74",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 98,
+            "P": 547,
+            "G": 133,
+            "lhs_id": "lhs018"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs019_d74_p333_g114/benchmark_results.json",
+          "sha256": "fccb41dbdce8a33d017fc7f2d80aa4090e2ac3d9c0e74dea15867bd3dc9cbf65",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 74,
+            "P": 333,
+            "G": 114,
+            "lhs_id": "lhs019"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs020_d86_p97_g157/benchmark_results.json",
+          "sha256": "7ad530a2256c8741a275df730d5bc35fdc4aecf628e97cc13f26d5640532dab7",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 86,
+            "P": 97,
+            "G": 157,
+            "lhs_id": "lhs020"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs021_d59_p290_g137/benchmark_results.json",
+          "sha256": "e722b1c2b16062604b1102323786b74b1d1950207cb358e17130e6e5badbdb07",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 59,
+            "P": 290,
+            "G": 137,
+            "lhs_id": "lhs021"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs022_d65_p75_g80/benchmark_results.json",
+          "sha256": "a0785306a638ac1bf8d299d34e86b7ff7dea3726e5bf07bfe266415e223ea8f7",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 65,
+            "P": 75,
+            "G": 80,
+            "lhs_id": "lhs022"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs023_d39_p761_g173/benchmark_results.json",
+          "sha256": "4cc098e29c9d25762c6509f8b044372c0c04ebd9958ad7ac75d63708716e4359",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 39,
+            "P": 761,
+            "G": 173,
+            "lhs_id": "lhs023"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs024_d16_p91_g65/benchmark_results.json",
+          "sha256": "a7fed7e25e2a12e5b82690c5aa64ed4a925c2556de5f87454c385db3d92b027e",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 16,
+            "P": 91,
+            "G": 65,
+            "lhs_id": "lhs024"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs025_d72_p68_g122/benchmark_results.json",
+          "sha256": "9b8ede62e0323e5689dce35baa03b21007fcdc84ede3e5911f71442ea9506189",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 72,
+            "P": 68,
+            "G": 122,
+            "lhs_id": "lhs025"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs026_d41_p378_g117/benchmark_results.json",
+          "sha256": "2697dc63a44f587f77c88124c0ed985c36e16ae4db2f15271727c0e57b792b4c",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 41,
+            "P": 378,
+            "G": 117,
+            "lhs_id": "lhs026"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs027_d78_p136_g184/benchmark_results.json",
+          "sha256": "59032f1fe91a06b83d67979d7dbdcc4b242e6ee2f962b9473e8ca5c4b69bba65",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 78,
+            "P": 136,
+            "G": 184,
+            "lhs_id": "lhs027"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs028_d46_p844_g151/benchmark_results.json",
+          "sha256": "bbb84c0f31f4a377da7bc9185bc3c8db7d985198c418b2f9d88ce747062ff52e",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 46,
+            "P": 844,
+            "G": 151,
+            "lhs_id": "lhs028"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_gallagher_21_hi_lhs029_d63_p110_g107/benchmark_results.json",
+          "sha256": "027a0f4dd365f41eca1957a98fa2e2564243257ea144cb9e719c70974fc9f555",
+          "coordinate": {
+            "fn_name": "gallagher_21_hi",
+            "D": 63,
+            "P": 110,
+            "G": 107,
+            "lhs_id": "lhs029"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs000_d32_p224_g191/benchmark_results.json",
+          "sha256": "2dea742d0354a5d41ffb4ad081be5032f4c94da8906097f5ce8760e4098fe84b",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 32,
+            "P": 224,
+            "G": 191,
+            "lhs_id": "lhs000"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs001_d50_p639_g65/benchmark_results.json",
+          "sha256": "af0311828125c72e6cee25a2204620f636d5a138600bf561084bcfc2c97a76d6",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 50,
+            "P": 639,
+            "G": 65,
+            "lhs_id": "lhs001"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs002_d29_p414_g99/benchmark_results.json",
+          "sha256": "a5faabd8398f55bc904ee00168a248f80014c6bb6b7194142d1383bcf58b6509",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 29,
+            "P": 414,
+            "G": 99,
+            "lhs_id": "lhs002"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs003_d90_p518_g100/benchmark_results.json",
+          "sha256": "8f8e56f9967351f852b2bad8c67bdcd4bb71655f0d7a692596669b7ae1359e09",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 90,
+            "P": 518,
+            "G": 100,
+            "lhs_id": "lhs003"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs004_d53_p124_g93/benchmark_results.json",
+          "sha256": "a209d97fe38c623a7b701fbf51aa6db2cd7f16cd0547f994818925ef258782e2",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 53,
+            "P": 124,
+            "G": 93,
+            "lhs_id": "lhs004"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs005_d93_p887_g85/benchmark_results.json",
+          "sha256": "a108e9ee68fe314816a4ad9e9b675f1d78bd0fcd2d08cdac9ec6932306b8f5b0",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 93,
+            "P": 887,
+            "G": 85,
+            "lhs_id": "lhs005"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs006_d56_p115_g161/benchmark_results.json",
+          "sha256": "df9b8a12d6da08278dfc0ef8054e5bb1676891cd0679f121e7308dbc22bc66c2",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 56,
+            "P": 115,
+            "G": 161,
+            "lhs_id": "lhs006"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs007_d27_p936_g166/benchmark_results.json",
+          "sha256": "70f12ed526836932890708b2b6cf887484e3a71260705b1e7f4ec9f852d328fc",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 27,
+            "P": 936,
+            "G": 166,
+            "lhs_id": "lhs007"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs008_d95_p695_g73/benchmark_results.json",
+          "sha256": "3e505db001ef87db779037ddca4f291e792c29614c4a39fc76354a133dc48b3b",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 95,
+            "P": 695,
+            "G": 73,
+            "lhs_id": "lhs008"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs009_d37_p252_g187/benchmark_results.json",
+          "sha256": "73a4131b5f96f883ee516aa33115831885d771b56121fd3a31c0ca4d3971038e",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 37,
+            "P": 252,
+            "G": 187,
+            "lhs_id": "lhs009"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs010_d68_p257_g88/benchmark_results.json",
+          "sha256": "5d8c4f4c930ac9c1982683b986e47ee47cd687989eafcdbbacd76cbc3aa66c6f",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 68,
+            "P": 257,
+            "G": 88,
+            "lhs_id": "lhs010"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs011_d81_p468_g144/benchmark_results.json",
+          "sha256": "806381cd0e3f2d20eae63f6b97a3596ea642d879a3ecea7dfb0407406a0d7a7f",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 81,
+            "P": 468,
+            "G": 144,
+            "lhs_id": "lhs011"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs012_d22_p186_g59/benchmark_results.json",
+          "sha256": "c3d1d50c6a91d63a1c474db33df3cc15ec518762743b27692250ad108c2799df",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 22,
+            "P": 186,
+            "G": 59,
+            "lhs_id": "lhs012"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs013_d14_p204_g51/benchmark_results.json",
+          "sha256": "62bb0cba7b894402dc6aa7e53c4cbea68aaa594d398af62c5c5fa647c7cb834d",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 14,
+            "P": 204,
+            "G": 51,
+            "lhs_id": "lhs013"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs014_d83_p82_g146/benchmark_results.json",
+          "sha256": "617fec967e83ff6f763715c780b69da62bbd1d62f2bd7915594c7eaee89a5b86",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 83,
+            "P": 82,
+            "G": 146,
+            "lhs_id": "lhs014"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs015_d47_p357_g199/benchmark_results.json",
+          "sha256": "c23eed8a88e5e2f8b91bf417471c7ff3ea2a516c26e11aeb5b1e47503096377c",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 47,
+            "P": 357,
+            "G": 199,
+            "lhs_id": "lhs015"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs016_d11_p175_g129/benchmark_results.json",
+          "sha256": "57c9b3144e916a43dd01f60e1ba14982569651b28ee42011143059ce16d046c4",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 11,
+            "P": 175,
+            "G": 129,
+            "lhs_id": "lhs016"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs017_d25_p150_g177/benchmark_results.json",
+          "sha256": "ea2e6569c2ad6dbad32f1be61eb86c1a843ac030911790650339186f8d01e854",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 25,
+            "P": 150,
+            "G": 177,
+            "lhs_id": "lhs017"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs018_d98_p547_g133/benchmark_results.json",
+          "sha256": "ffe7f8f9dcfdfb743af8e66d08e1e3a4c41756220b7b43b6b3d3ea51da134804",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 98,
+            "P": 547,
+            "G": 133,
+            "lhs_id": "lhs018"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs019_d74_p333_g114/benchmark_results.json",
+          "sha256": "868f9c06c330268c2ec71e3c00000cab709103d7ead26b5042d90abe1437db26",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 74,
+            "P": 333,
+            "G": 114,
+            "lhs_id": "lhs019"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs020_d86_p97_g157/benchmark_results.json",
+          "sha256": "3a17cc4081ef4e01579e6419f89770c01d520a3452709b1a45e2f718d5c08742",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 86,
+            "P": 97,
+            "G": 157,
+            "lhs_id": "lhs020"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs021_d59_p290_g137/benchmark_results.json",
+          "sha256": "3aac0772ad93dea083792be29936f009ec1c201c88e4ab974003efd7dfb699fc",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 59,
+            "P": 290,
+            "G": 137,
+            "lhs_id": "lhs021"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs022_d65_p75_g80/benchmark_results.json",
+          "sha256": "d8e73628dacbbe1cb987115330cac1b5babab1cef28cb52393298fb28c968085",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 65,
+            "P": 75,
+            "G": 80,
+            "lhs_id": "lhs022"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs023_d39_p761_g173/benchmark_results.json",
+          "sha256": "1c186eafc12e250dc2380e37991e67e8be934fe395916c1b8b9b0aa8a99116fd",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 39,
+            "P": 761,
+            "G": 173,
+            "lhs_id": "lhs023"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs024_d16_p91_g65/benchmark_results.json",
+          "sha256": "84e9d4ee53abb7ca0faecf4eecc912d24a3cad17b778dea0308898d2ffdcdc45",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 16,
+            "P": 91,
+            "G": 65,
+            "lhs_id": "lhs024"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs025_d72_p68_g122/benchmark_results.json",
+          "sha256": "f1f5ef36446c67a0dc4e626326b209c3d05d878be9e02d1327bc38db07ab575e",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 72,
+            "P": 68,
+            "G": 122,
+            "lhs_id": "lhs025"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs026_d41_p378_g117/benchmark_results.json",
+          "sha256": "3bbe77cd7af2a8dea0821c612cc7254379b76b6d9ae6fc8f54a0c212b3701ea4",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 41,
+            "P": 378,
+            "G": 117,
+            "lhs_id": "lhs026"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs027_d78_p136_g184/benchmark_results.json",
+          "sha256": "beee5372fc776ade28b30d8721d1df19a000eeaef6b49464520ab33082d11a7a",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 78,
+            "P": 136,
+            "G": 184,
+            "lhs_id": "lhs027"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs028_d46_p844_g151/benchmark_results.json",
+          "sha256": "d484fe5c9d85aca07f332aeb68de35e6c93c484b7d8c9d2e90136f573c7914b9",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 46,
+            "P": 844,
+            "G": 151,
+            "lhs_id": "lhs028"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_lunacek_lhs029_d63_p110_g107/benchmark_results.json",
+          "sha256": "acc714694ef3437d7298c9bd78274f8476b74d8e28d2e3a22729c6d0a3fdc007",
+          "coordinate": {
+            "fn_name": "lunacek",
+            "D": 63,
+            "P": 110,
+            "G": 107,
+            "lhs_id": "lhs029"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs000_d32_p224_g191/benchmark_results.json",
+          "sha256": "b5ff6f28d63913bf5ca5c7b498f3dc0378864336b2500b5d51806af0b02d8759",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 32,
+            "P": 224,
+            "G": 191,
+            "lhs_id": "lhs000"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs001_d50_p639_g65/benchmark_results.json",
+          "sha256": "1107791c74ed7e79ef9baa26bb713126ca2a6b94f667b23fbdf0383dd9158be1",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 50,
+            "P": 639,
+            "G": 65,
+            "lhs_id": "lhs001"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs002_d29_p414_g99/benchmark_results.json",
+          "sha256": "e5cb088b47be7921bcedf68ac7902a55df5b1ea5088cca3ce3b8444279be8f8d",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 29,
+            "P": 414,
+            "G": 99,
+            "lhs_id": "lhs002"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs003_d90_p518_g100/benchmark_results.json",
+          "sha256": "2df060a2eb4ec8536edb391d1f06741184613503accc219a2c9c06def9913ef6",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 90,
+            "P": 518,
+            "G": 100,
+            "lhs_id": "lhs003"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs004_d53_p124_g93/benchmark_results.json",
+          "sha256": "1b011298eb27f568e3d4072c92717f30885c7187a553697e7ebed4eeaa3b9ce0",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 53,
+            "P": 124,
+            "G": 93,
+            "lhs_id": "lhs004"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs005_d93_p887_g85/benchmark_results.json",
+          "sha256": "b0436132c33df50b160475e57a5244d36ffca94c509c7f231149606aac6ac5d8",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 93,
+            "P": 887,
+            "G": 85,
+            "lhs_id": "lhs005"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs006_d56_p115_g161/benchmark_results.json",
+          "sha256": "130bea0a8033dcdc23e04b57cde088a1efa5bdcb5866bfa7a78df4ff38c9a9c6",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 56,
+            "P": 115,
+            "G": 161,
+            "lhs_id": "lhs006"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs007_d27_p936_g166/benchmark_results.json",
+          "sha256": "8bfc5d4722e9057464a2758a632e57f7fa1a28d355c03e4cab9625eb2b57b910",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 27,
+            "P": 936,
+            "G": 166,
+            "lhs_id": "lhs007"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs008_d95_p695_g73/benchmark_results.json",
+          "sha256": "973e44097f2305040b7299c9abf53bf838b42d6954d7d566ce82f19fc4d7a25c",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 95,
+            "P": 695,
+            "G": 73,
+            "lhs_id": "lhs008"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs009_d37_p252_g187/benchmark_results.json",
+          "sha256": "6d853b97d9e496a7c8475c15c8f5f979cd6a5692d3c09afcfffd311075dfd863",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 37,
+            "P": 252,
+            "G": 187,
+            "lhs_id": "lhs009"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs010_d68_p257_g88/benchmark_results.json",
+          "sha256": "2166c42b2dd7d82b8d820cefb8b485b83de977906a8696a8f061fbc2474dc544",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 68,
+            "P": 257,
+            "G": 88,
+            "lhs_id": "lhs010"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs011_d81_p468_g144/benchmark_results.json",
+          "sha256": "976c8f006d340f70b067aa1dd3bdd8a27f024a055b3587e0b4c688d99ca9ba30",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 81,
+            "P": 468,
+            "G": 144,
+            "lhs_id": "lhs011"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs012_d22_p186_g59/benchmark_results.json",
+          "sha256": "54c453ae4e599d00ddddc315008e83e3a5931a7b9ec91fe281e3bcbd616fb4d4",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 22,
+            "P": 186,
+            "G": 59,
+            "lhs_id": "lhs012"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs013_d14_p204_g51/benchmark_results.json",
+          "sha256": "9757f5faf07994b8c99564b4c1a67388f0c4706f1fef2713914eee8872407cf8",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 14,
+            "P": 204,
+            "G": 51,
+            "lhs_id": "lhs013"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs014_d83_p82_g146/benchmark_results.json",
+          "sha256": "d592cfae1e7ca8e5d1e60703f55fdd953f1fe8ad5def48f537399afa93623b11",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 83,
+            "P": 82,
+            "G": 146,
+            "lhs_id": "lhs014"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs015_d47_p357_g199/benchmark_results.json",
+          "sha256": "5ad6b2ca8ec2f670350dd485306adae19c24596b86f3090ece38857a1dc2f51b",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 47,
+            "P": 357,
+            "G": 199,
+            "lhs_id": "lhs015"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs016_d11_p175_g129/benchmark_results.json",
+          "sha256": "1bb1805a632a4f18634fe6784d8ca15dc5430594daa7dd0f42bb66c5a2441f68",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 11,
+            "P": 175,
+            "G": 129,
+            "lhs_id": "lhs016"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs017_d25_p150_g177/benchmark_results.json",
+          "sha256": "586a86f4215326383ab41a738555eaf8cc8cc1ceab47511c99acc3b116bd4b5e",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 25,
+            "P": 150,
+            "G": 177,
+            "lhs_id": "lhs017"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs018_d98_p547_g133/benchmark_results.json",
+          "sha256": "89e0aec080d362f03f180a8a4750c0fb4c1958c055950f83601fc2ef49241b41",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 98,
+            "P": 547,
+            "G": 133,
+            "lhs_id": "lhs018"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs019_d74_p333_g114/benchmark_results.json",
+          "sha256": "30f6c71e405758619c5c2714c3a78bfeb5492e8336aedf778a11b1a795c3a2a2",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 74,
+            "P": 333,
+            "G": 114,
+            "lhs_id": "lhs019"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs020_d86_p97_g157/benchmark_results.json",
+          "sha256": "24f8f1172c03fb70252b8cab50f5c29b057ea99adff7fccdfd8da15e4f413e76",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 86,
+            "P": 97,
+            "G": 157,
+            "lhs_id": "lhs020"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs021_d59_p290_g137/benchmark_results.json",
+          "sha256": "61bb867fe30db59cf42e553b9522fcb1b70b88374c383dece7b9d281dc950989",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 59,
+            "P": 290,
+            "G": 137,
+            "lhs_id": "lhs021"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs022_d65_p75_g80/benchmark_results.json",
+          "sha256": "a0d48f603399b24f73bd68d49c516248257f45da7fa403167975e309ce597cb3",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 65,
+            "P": 75,
+            "G": 80,
+            "lhs_id": "lhs022"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs023_d39_p761_g173/benchmark_results.json",
+          "sha256": "995a42ae324d3647e9d18d73bed4d14fec88ba4d76bf7711406fdbdeeb6681e5",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 39,
+            "P": 761,
+            "G": 173,
+            "lhs_id": "lhs023"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs024_d16_p91_g65/benchmark_results.json",
+          "sha256": "b9f119540c4117bc988dcd0db993b791554ed94bb208e84c631d886c244e5b4f",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 16,
+            "P": 91,
+            "G": 65,
+            "lhs_id": "lhs024"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs025_d72_p68_g122/benchmark_results.json",
+          "sha256": "3db1b454f565d4bdf359497a06f8ce62c0d38ecdacd1d2f033403437b3d7dea9",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 72,
+            "P": 68,
+            "G": 122,
+            "lhs_id": "lhs025"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs026_d41_p378_g117/benchmark_results.json",
+          "sha256": "f16969ff98ba49f615ed78e3b769e92b8d37f11428e0b3d88e5b3825aa939634",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 41,
+            "P": 378,
+            "G": 117,
+            "lhs_id": "lhs026"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs027_d78_p136_g184/benchmark_results.json",
+          "sha256": "4322f4c1d24ddd0e142806c875f44584527ac221e9bc3d5cd5bf733dbec28345",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 78,
+            "P": 136,
+            "G": 184,
+            "lhs_id": "lhs027"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs028_d46_p844_g151/benchmark_results.json",
+          "sha256": "d494b49ff10f2f8bc44b6a74d73d6e2fe741e6243500b399f32f99a4aa8978ef",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 46,
+            "P": 844,
+            "G": 151,
+            "lhs_id": "lhs028"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rastrigin_lhs029_d63_p110_g107/benchmark_results.json",
+          "sha256": "fd5502c691b48bea0b1f2fb32725bee6290deae6b071dc9fea7257e3e3319b0a",
+          "coordinate": {
+            "fn_name": "rastrigin",
+            "D": 63,
+            "P": 110,
+            "G": 107,
+            "lhs_id": "lhs029"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs000_d32_p224_g191/benchmark_results.json",
+          "sha256": "bb05638228118ee65aac89a1ebd5138b63e61586837dfa6c1f40e95acba52165",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 32,
+            "P": 224,
+            "G": 191,
+            "lhs_id": "lhs000"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs001_d50_p639_g65/benchmark_results.json",
+          "sha256": "54f893ee3e8e07e8ae8043ac57479977e056a54a4734286245604ff436574c24",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 50,
+            "P": 639,
+            "G": 65,
+            "lhs_id": "lhs001"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs002_d29_p414_g99/benchmark_results.json",
+          "sha256": "1dc32fbb9051029f3a5eb5bb6f4578b0d0112a7dd2f7500bca74abed43999d6f",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 29,
+            "P": 414,
+            "G": 99,
+            "lhs_id": "lhs002"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs003_d90_p518_g100/benchmark_results.json",
+          "sha256": "d4cdb68f1bba199b45faa4c4f447409d495202cea1553371c5608233fad07837",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 90,
+            "P": 518,
+            "G": 100,
+            "lhs_id": "lhs003"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs004_d53_p124_g93/benchmark_results.json",
+          "sha256": "909684a8839e8faec5f0c9a336af7ed9e6bba77b7a76a0e62bb0524a71b83ebf",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 53,
+            "P": 124,
+            "G": 93,
+            "lhs_id": "lhs004"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs005_d93_p887_g85/benchmark_results.json",
+          "sha256": "e2a454d5d11472322b3dafe2d8e2f18937c76f312d1766eb8e19d9226e665ffb",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 93,
+            "P": 887,
+            "G": 85,
+            "lhs_id": "lhs005"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs006_d56_p115_g161/benchmark_results.json",
+          "sha256": "e27301976654af3565ee85648c8437d85fdd45be3014e2f1a7f3d6764bc102f0",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 56,
+            "P": 115,
+            "G": 161,
+            "lhs_id": "lhs006"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs007_d27_p936_g166/benchmark_results.json",
+          "sha256": "fda83fd55ee054670406d5e1bccc5935e3b644e827453d13f5c6dd51e92ecb39",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 27,
+            "P": 936,
+            "G": 166,
+            "lhs_id": "lhs007"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs008_d95_p695_g73/benchmark_results.json",
+          "sha256": "9bb2bf70ca51a417bdaabc920a159a4f6dc12d2d5b281fc235d63e66d3dffdbf",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 95,
+            "P": 695,
+            "G": 73,
+            "lhs_id": "lhs008"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs009_d37_p252_g187/benchmark_results.json",
+          "sha256": "281409ccd5fb684b0866a513fd65f6327d08e0d3b35acce753b45b2adfb1b3bb",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 37,
+            "P": 252,
+            "G": 187,
+            "lhs_id": "lhs009"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs010_d68_p257_g88/benchmark_results.json",
+          "sha256": "15e1414fff3904e00fce9bab95613f1c52df0d3979d35fcdea01d79440601988",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 68,
+            "P": 257,
+            "G": 88,
+            "lhs_id": "lhs010"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs011_d81_p468_g144/benchmark_results.json",
+          "sha256": "5f382c8d06d2312c4b2fb3fde435831e6fe9578132b1f2a7223eb41b980a5f29",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 81,
+            "P": 468,
+            "G": 144,
+            "lhs_id": "lhs011"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs012_d22_p186_g59/benchmark_results.json",
+          "sha256": "adca28ac804d01e1a44a3310e451154b7b23f750573e61ac543d23a185e4a33a",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 22,
+            "P": 186,
+            "G": 59,
+            "lhs_id": "lhs012"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs013_d14_p204_g51/benchmark_results.json",
+          "sha256": "037e79174da7ca7a311ebcceed033e95846db9c0c1d8a278109c08897bc6ced8",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 14,
+            "P": 204,
+            "G": 51,
+            "lhs_id": "lhs013"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs014_d83_p82_g146/benchmark_results.json",
+          "sha256": "8db3643c5627b3fa45651c23549dcd1479c5f2d099c6c3389ef5820d4a7197b9",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 83,
+            "P": 82,
+            "G": 146,
+            "lhs_id": "lhs014"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs015_d47_p357_g199/benchmark_results.json",
+          "sha256": "dea03a2e65856d07c45defa5531ba7b0a79749f4ea572886163131915684d71b",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 47,
+            "P": 357,
+            "G": 199,
+            "lhs_id": "lhs015"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs016_d11_p175_g129/benchmark_results.json",
+          "sha256": "8e8b104fc461234f529bff712cbe349d2e39625e46067b6b172f4822070089f9",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 11,
+            "P": 175,
+            "G": 129,
+            "lhs_id": "lhs016"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs017_d25_p150_g177/benchmark_results.json",
+          "sha256": "5a3333538d31da2225d53f9976bdf246e3c3beea87a824a4f089b179630ba700",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 25,
+            "P": 150,
+            "G": 177,
+            "lhs_id": "lhs017"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs018_d98_p547_g133/benchmark_results.json",
+          "sha256": "f8d4140808a8b17d4f2d47dd389a89192b0e9d003deb21245cde233d5fbe1de2",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 98,
+            "P": 547,
+            "G": 133,
+            "lhs_id": "lhs018"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs019_d74_p333_g114/benchmark_results.json",
+          "sha256": "3814e4039a14df54c4d4dae8aa82b5748af0d604f7b5baef192914dbb8361f7d",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 74,
+            "P": 333,
+            "G": 114,
+            "lhs_id": "lhs019"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs020_d86_p97_g157/benchmark_results.json",
+          "sha256": "b0fd7fc84bbd4e853b2dabcaf739ceb6fc8c30013fbd2c790ea9fe69f57f9b6b",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 86,
+            "P": 97,
+            "G": 157,
+            "lhs_id": "lhs020"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs021_d59_p290_g137/benchmark_results.json",
+          "sha256": "7f6d8704b52de0440a0d3f7cee9d5a533ede7d4fbb38b5452baed29550e749ca",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 59,
+            "P": 290,
+            "G": 137,
+            "lhs_id": "lhs021"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs022_d65_p75_g80/benchmark_results.json",
+          "sha256": "30e7e6938376d3e89e597c454258da6cfde8ede358bee284c3760b2a5afdebf2",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 65,
+            "P": 75,
+            "G": 80,
+            "lhs_id": "lhs022"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs023_d39_p761_g173/benchmark_results.json",
+          "sha256": "1bf2c8d4333d9fdd57364764ff3ea4010aeae8ebee4b69f10d9ecbb63e809de8",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 39,
+            "P": 761,
+            "G": 173,
+            "lhs_id": "lhs023"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs024_d16_p91_g65/benchmark_results.json",
+          "sha256": "afe92a05206fea084df6a6315b8efebaae5f9b17cf474e8b20b14b42b51c380e",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 16,
+            "P": 91,
+            "G": 65,
+            "lhs_id": "lhs024"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs025_d72_p68_g122/benchmark_results.json",
+          "sha256": "a0301b8ff3ac66c5c9367a1c5079da3cfab7011ff71deb46f4fa40ee3d9b2b3d",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 72,
+            "P": 68,
+            "G": 122,
+            "lhs_id": "lhs025"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs026_d41_p378_g117/benchmark_results.json",
+          "sha256": "23391d92f6e73976461619b5fa570fbe4a6c184f07786708acb61e82e246d3f9",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 41,
+            "P": 378,
+            "G": 117,
+            "lhs_id": "lhs026"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs027_d78_p136_g184/benchmark_results.json",
+          "sha256": "0d8306583741dac1d82dd1099590a4c9075a5c96d76f0a27e59ae9dbc744b712",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 78,
+            "P": 136,
+            "G": 184,
+            "lhs_id": "lhs027"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs028_d46_p844_g151/benchmark_results.json",
+          "sha256": "009f03fbcb1405b52b72dee062ccae0846c034e7c64dd1171fd7709f93954d5a",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 46,
+            "P": 844,
+            "G": 151,
+            "lhs_id": "lhs028"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_rosenbrock_lhs029_d63_p110_g107/benchmark_results.json",
+          "sha256": "692b3f25a9c3f504f2107979abee712e9da74dc7535c59b50f0eec69464a16c2",
+          "coordinate": {
+            "fn_name": "rosenbrock",
+            "D": 63,
+            "P": 110,
+            "G": 107,
+            "lhs_id": "lhs029"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs000_d32_p224_g191/benchmark_results.json",
+          "sha256": "8de8a536f45ccc03713891e7b7c25b20a50244e99c0837f26c5a0e6ae95bd80f",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 32,
+            "P": 224,
+            "G": 191,
+            "lhs_id": "lhs000"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs001_d50_p639_g65/benchmark_results.json",
+          "sha256": "2eeb61f53c91d3cd3dc4136a1f2867ce51f110ed4505f9367ec027e2cb8ca035",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 50,
+            "P": 639,
+            "G": 65,
+            "lhs_id": "lhs001"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs002_d29_p414_g99/benchmark_results.json",
+          "sha256": "8cb9936ca20a05c815aaa0a09c030bf5eeb73b71951008aa770560d766b18536",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 29,
+            "P": 414,
+            "G": 99,
+            "lhs_id": "lhs002"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs003_d90_p518_g100/benchmark_results.json",
+          "sha256": "37df2dcc8deceb5a03c7115fa7ebfd386cbb758fbdd5d0a224b248e7219cb7d2",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 90,
+            "P": 518,
+            "G": 100,
+            "lhs_id": "lhs003"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs004_d53_p124_g93/benchmark_results.json",
+          "sha256": "b9b1eb9879635e35f8df5de35ef06ffd4aae32ffc38c141da5180655363f3d64",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 53,
+            "P": 124,
+            "G": 93,
+            "lhs_id": "lhs004"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs005_d93_p887_g85/benchmark_results.json",
+          "sha256": "8354c191870705835d1e2d881b4eaaa21f7574fe52db0349e06d6e20c011f555",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 93,
+            "P": 887,
+            "G": 85,
+            "lhs_id": "lhs005"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs006_d56_p115_g161/benchmark_results.json",
+          "sha256": "977ba3225493b745ab447bd5cc4cd8e4662796a1300e461ea658a98a4de2bc09",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 56,
+            "P": 115,
+            "G": 161,
+            "lhs_id": "lhs006"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs007_d27_p936_g166/benchmark_results.json",
+          "sha256": "64c583bd35d103b3fd7f68c063a8e8e995c49604946353922ca9199a277d1d84",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 27,
+            "P": 936,
+            "G": 166,
+            "lhs_id": "lhs007"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs008_d95_p695_g73/benchmark_results.json",
+          "sha256": "b2ebb23bb42a00dcea72d9c41d6bd1bb8486f62c2606a6f1c5cc2aba8e0a4e61",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 95,
+            "P": 695,
+            "G": 73,
+            "lhs_id": "lhs008"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs009_d37_p252_g187/benchmark_results.json",
+          "sha256": "4217bbb6f42e5996423744bbceb6ea49bf02a2529a50a2d926b99a1efdceb278",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 37,
+            "P": 252,
+            "G": 187,
+            "lhs_id": "lhs009"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs010_d68_p257_g88/benchmark_results.json",
+          "sha256": "5275aa647418a00c99d71c1b1732f81c4e3e95269311c1cfce159bca4dfde4f7",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 68,
+            "P": 257,
+            "G": 88,
+            "lhs_id": "lhs010"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs011_d81_p468_g144/benchmark_results.json",
+          "sha256": "6f1e4499776d03313b3efb80fd2457bfaeaabba50b8ff0c0d3e49610c2903c10",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 81,
+            "P": 468,
+            "G": 144,
+            "lhs_id": "lhs011"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs012_d22_p186_g59/benchmark_results.json",
+          "sha256": "18593efa4e43d5ad1f882639bc5b8f3c2525519655066e86116fed53d23c2eda",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 22,
+            "P": 186,
+            "G": 59,
+            "lhs_id": "lhs012"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs013_d14_p204_g51/benchmark_results.json",
+          "sha256": "fe0541f2db31444d1f3b4cf35401729529c7b038c95f0962a4557b62fc2fb8c8",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 14,
+            "P": 204,
+            "G": 51,
+            "lhs_id": "lhs013"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs014_d83_p82_g146/benchmark_results.json",
+          "sha256": "362046328710a1820784d30596a91e82a8b31fc67e5823d9b550a0cb0cebc64f",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 83,
+            "P": 82,
+            "G": 146,
+            "lhs_id": "lhs014"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs015_d47_p357_g199/benchmark_results.json",
+          "sha256": "52d43ce1c7e951337273e9b5483cb6896941e4aac51dcff52c6d9cb46dd14d7d",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 47,
+            "P": 357,
+            "G": 199,
+            "lhs_id": "lhs015"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs016_d11_p175_g129/benchmark_results.json",
+          "sha256": "e6c29c86ccbc561de19ece786fb2c21f26343d43f6b0a2de4afa1c9bc9bcfd0b",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 11,
+            "P": 175,
+            "G": 129,
+            "lhs_id": "lhs016"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs017_d25_p150_g177/benchmark_results.json",
+          "sha256": "72a4c3af065ef4f37a23c2a3a4fc628f4a864e2210c971f2a368b9cbe73f19b5",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 25,
+            "P": 150,
+            "G": 177,
+            "lhs_id": "lhs017"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs018_d98_p547_g133/benchmark_results.json",
+          "sha256": "513c0a711beaf6d97d127d36ff8314450458277b6863b5293f32bd87bdee52b2",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 98,
+            "P": 547,
+            "G": 133,
+            "lhs_id": "lhs018"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs019_d74_p333_g114/benchmark_results.json",
+          "sha256": "d5291841d2c5880ba0fd105cb7ec095b6c4cd3d4b87c5cf36b139c176080344a",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 74,
+            "P": 333,
+            "G": 114,
+            "lhs_id": "lhs019"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs020_d86_p97_g157/benchmark_results.json",
+          "sha256": "f9d41514631cee77b767b8d43a11cc9d42c758071f833bc0c275c3c625528fb9",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 86,
+            "P": 97,
+            "G": 157,
+            "lhs_id": "lhs020"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs021_d59_p290_g137/benchmark_results.json",
+          "sha256": "a8a8a9b2548a7a9f77e06da0eab1b1c7108635fc365148802f173711bd9506c0",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 59,
+            "P": 290,
+            "G": 137,
+            "lhs_id": "lhs021"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs022_d65_p75_g80/benchmark_results.json",
+          "sha256": "09280d3ef4bb27c01f18189599498899f758abf2d4e52dffa29c081d57f7816e",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 65,
+            "P": 75,
+            "G": 80,
+            "lhs_id": "lhs022"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs023_d39_p761_g173/benchmark_results.json",
+          "sha256": "167e6f7330247b9783cad6309ecdd6198cca0d7e105ae7bb7b6ffd79a0793b65",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 39,
+            "P": 761,
+            "G": 173,
+            "lhs_id": "lhs023"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs024_d16_p91_g65/benchmark_results.json",
+          "sha256": "5898bdc4acc8aefd483dff154a7388c50c7f9cb610734c6f65ba52814d0f604b",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 16,
+            "P": 91,
+            "G": 65,
+            "lhs_id": "lhs024"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs025_d72_p68_g122/benchmark_results.json",
+          "sha256": "8f55979be4f7e71d8c47a6846f80a0ed0b75368890dd45fbee55c47a05fd6717",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 72,
+            "P": 68,
+            "G": 122,
+            "lhs_id": "lhs025"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs026_d41_p378_g117/benchmark_results.json",
+          "sha256": "1e1d53050d5d932bb4bd160bf2f839afa14beaf86cd6f914c4dcbc5fcb4274e8",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 41,
+            "P": 378,
+            "G": 117,
+            "lhs_id": "lhs026"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs027_d78_p136_g184/benchmark_results.json",
+          "sha256": "5924306558d363e2dc5c29cf412369a9872cbf919f8177615ae5d773f7aa8e68",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 78,
+            "P": 136,
+            "G": 184,
+            "lhs_id": "lhs027"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs028_d46_p844_g151/benchmark_results.json",
+          "sha256": "99f688dd9cb7cedbd64371c27bd0d04244c3038a1672e677f0b93875e5c211e9",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 46,
+            "P": 844,
+            "G": 151,
+            "lhs_id": "lhs028"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_schwefel_lhs029_d63_p110_g107/benchmark_results.json",
+          "sha256": "e9263187813d5213a8095a2298ef16d8ce640d9d13e67eb40d7acce3c56a2a79",
+          "coordinate": {
+            "fn_name": "schwefel",
+            "D": 63,
+            "P": 110,
+            "G": 107,
+            "lhs_id": "lhs029"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs000_d32_p224_g191/benchmark_results.json",
+          "sha256": "c646ef64ec5b19d38a914bb52da158e560df2180afbb0551c0522a35b76c2da1",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 32,
+            "P": 224,
+            "G": 191,
+            "lhs_id": "lhs000"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs001_d50_p639_g65/benchmark_results.json",
+          "sha256": "58971bafd303cf916e92ede94ff410bd6e3e963a865534022b18594536f228cc",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 50,
+            "P": 639,
+            "G": 65,
+            "lhs_id": "lhs001"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs002_d29_p414_g99/benchmark_results.json",
+          "sha256": "6f1ae0e47dd60b35e74909f5bbfa2a4c3dbd9b61da1bfabd8a658355900c74a9",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 29,
+            "P": 414,
+            "G": 99,
+            "lhs_id": "lhs002"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs003_d90_p518_g100/benchmark_results.json",
+          "sha256": "ead4e95982a1ec58fe16a6f47dc77a7e2139d781220868d1556c7f2f8a078e41",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 90,
+            "P": 518,
+            "G": 100,
+            "lhs_id": "lhs003"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs004_d53_p124_g93/benchmark_results.json",
+          "sha256": "09630d4d92262b0e95282440e603d596ea57a2c553a1ce10865b1dc3db3a5383",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 53,
+            "P": 124,
+            "G": 93,
+            "lhs_id": "lhs004"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs005_d93_p887_g85/benchmark_results.json",
+          "sha256": "8764caa7d4816bd67535219386e74335a764c11713de5537c512ec470b0527fe",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 93,
+            "P": 887,
+            "G": 85,
+            "lhs_id": "lhs005"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs006_d56_p115_g161/benchmark_results.json",
+          "sha256": "ab49d178622f4bdd469bded28f288d2cfd6a6e5d5d8e9566c61eef6251159f85",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 56,
+            "P": 115,
+            "G": 161,
+            "lhs_id": "lhs006"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs007_d27_p936_g166/benchmark_results.json",
+          "sha256": "f6d9c6bd8d073923dcab3c6d647e3f50f287093b1b1446f2cd230ba15aef9882",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 27,
+            "P": 936,
+            "G": 166,
+            "lhs_id": "lhs007"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs008_d95_p695_g73/benchmark_results.json",
+          "sha256": "6a20fc62b4d618f8bd77de6f451888a6b88af2939a1a5de1367323f682309864",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 95,
+            "P": 695,
+            "G": 73,
+            "lhs_id": "lhs008"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs009_d37_p252_g187/benchmark_results.json",
+          "sha256": "901fa88f196118756e5244e50832a0cf70a786ff1052ffc1378487c016dbcc5e",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 37,
+            "P": 252,
+            "G": 187,
+            "lhs_id": "lhs009"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs010_d68_p257_g88/benchmark_results.json",
+          "sha256": "773b78094c77f6f6d0ae96195d8d59fd82c7b983dfff78b7b06470567caddcdc",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 68,
+            "P": 257,
+            "G": 88,
+            "lhs_id": "lhs010"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs011_d81_p468_g144/benchmark_results.json",
+          "sha256": "85e16cc6c41c94e589738382d1ac9d27b88fd910815c516015ebfc7f3af1ab75",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 81,
+            "P": 468,
+            "G": 144,
+            "lhs_id": "lhs011"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs012_d22_p186_g59/benchmark_results.json",
+          "sha256": "e887ca602c2fbf4dbaccc2bfc14b88faffb4594eab77f490dc3405ca0ee5fc00",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 22,
+            "P": 186,
+            "G": 59,
+            "lhs_id": "lhs012"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs013_d14_p204_g51/benchmark_results.json",
+          "sha256": "1b242b8bbe3bbb1cf5af7d8db2683a43fa618c28c60f9136f4a09050de1ff8e0",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 14,
+            "P": 204,
+            "G": 51,
+            "lhs_id": "lhs013"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs014_d83_p82_g146/benchmark_results.json",
+          "sha256": "f2e3a111fce2b329c66923a1ccae4045eb47e7fdc72690fe3bd21e66c41fe568",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 83,
+            "P": 82,
+            "G": 146,
+            "lhs_id": "lhs014"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs015_d47_p357_g199/benchmark_results.json",
+          "sha256": "41e36df1071e250ed0eb261642b71528964b0d43c2bc0b7a5138dbe9f6729455",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 47,
+            "P": 357,
+            "G": 199,
+            "lhs_id": "lhs015"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs016_d11_p175_g129/benchmark_results.json",
+          "sha256": "f64cd15b09c6972dfbc5bf805bd3ce93dade2c6eeccf8f4bf6f4f9d3924b36fe",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 11,
+            "P": 175,
+            "G": 129,
+            "lhs_id": "lhs016"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs017_d25_p150_g177/benchmark_results.json",
+          "sha256": "2d25556b40274f5cf66f44e0486ea328afbe9dfef9284c352b2f10659a105d46",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 25,
+            "P": 150,
+            "G": 177,
+            "lhs_id": "lhs017"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs018_d98_p547_g133/benchmark_results.json",
+          "sha256": "c5eeb474ed47f915a2c4ff5bf7bee675669de4e476156bd31d95065113a125c2",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 98,
+            "P": 547,
+            "G": 133,
+            "lhs_id": "lhs018"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs019_d74_p333_g114/benchmark_results.json",
+          "sha256": "3dc45763c1058d9c11fdd9c5884d03488d67be0a43405db3cd0f562f375eb99f",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 74,
+            "P": 333,
+            "G": 114,
+            "lhs_id": "lhs019"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs020_d86_p97_g157/benchmark_results.json",
+          "sha256": "e7cb86036369ef2e38ce9ebeeedfb18b6b6289b3ad591237d2b0a2ed6961d87a",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 86,
+            "P": 97,
+            "G": 157,
+            "lhs_id": "lhs020"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs021_d59_p290_g137/benchmark_results.json",
+          "sha256": "77957aab4c13c08578a14541395864bb4a20a47e2f345d71b19fdd0bbe56a89d",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 59,
+            "P": 290,
+            "G": 137,
+            "lhs_id": "lhs021"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs022_d65_p75_g80/benchmark_results.json",
+          "sha256": "164473e1ebdd19d9f0c3c7d1f65341fe2a6397fd4b2a7dedba6568005fd00146",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 65,
+            "P": 75,
+            "G": 80,
+            "lhs_id": "lhs022"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs023_d39_p761_g173/benchmark_results.json",
+          "sha256": "6e726460108d5c80bd2a61ae1a6a14d3bebae75b6a24d9c902737e8073540378",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 39,
+            "P": 761,
+            "G": 173,
+            "lhs_id": "lhs023"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs024_d16_p91_g65/benchmark_results.json",
+          "sha256": "713937596b7ba2206ae65e21c341822aaba6fcddbbdce572862c939616322319",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 16,
+            "P": 91,
+            "G": 65,
+            "lhs_id": "lhs024"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs025_d72_p68_g122/benchmark_results.json",
+          "sha256": "255629d5cea8e7ab1ddbf727e74b490d9118bacca378ad26dc05cf0871ce64a8",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 72,
+            "P": 68,
+            "G": 122,
+            "lhs_id": "lhs025"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs026_d41_p378_g117/benchmark_results.json",
+          "sha256": "58d37ef0f9b021085ba00044ffc8539404288c56c7d70191635392aac8de63cf",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 41,
+            "P": 378,
+            "G": 117,
+            "lhs_id": "lhs026"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs027_d78_p136_g184/benchmark_results.json",
+          "sha256": "ab7d31856bd3529fd1533437d9bfc97ce6efe7a907828a1316ca8942dc0aaba4",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 78,
+            "P": 136,
+            "G": 184,
+            "lhs_id": "lhs027"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs028_d46_p844_g151/benchmark_results.json",
+          "sha256": "e08a54b33e33eb142355eab2fa8473ad7e27697ebe2b17abe4f76ed6729f7ccf",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 46,
+            "P": 844,
+            "G": 151,
+            "lhs_id": "lhs028"
+          }
+        },
+        {
+          "path": "results/_archive/h2_ablation_final/exp_sphere_lhs029_d63_p110_g107/benchmark_results.json",
+          "sha256": "5aef2b9e606ff84438d36c00ce2521773705456b2e5d052610bd18dbd9b983ce",
+          "coordinate": {
+            "fn_name": "sphere",
+            "D": 63,
+            "P": 110,
+            "G": 107,
+            "lhs_id": "lhs029"
+          }
+        }
+      ],
+      "disposition": "Quality eligible for provenance/semantic review only; mixed-phase legacy timings require new measurement"
+    }
+  ],
+  "empirical_candidates": [
+    {
+      "path": "/Users/leonardodicaterina/Documents/GitHub/MalthusJAX/results/empirical_curves.json",
+      "sha256": "75e1fabbaddf2463faec4f54bea85a69cbf25f5a0baefb48ab05237355e6d86c",
+      "metadata": {
+        "generated_at": "2026-11-07T17:32:38Z",
+        "tier": "standard",
+        "smoke": false,
+        "heavy": false,
+        "python_version": "3.12.16 | packaged by Anaconda, Inc. | (main, Oct 26 2026, 20:21:38) [GCC 14.3.0]",
+        "jax_version": "0.12.0.1",
+        "backend": "gpu",
+        "devices": [
+          "cuda:0"
+        ],
+        "elapsed_seconds": 5649.23
+      },
+      "d5_has_per_seed": false,
+      "disposition": "legacy aggregate; not valid corrected inferential input"
+    },
+    {
+      "path": "/Users/leonardodicaterina/Documents/GitHub/MalthusJAX_Paper/figures/data/empirical_curves.json",
+      "sha256": "75e1fabbaddf2463faec4f54bea85a69cbf25f5a0baefb48ab05237355e6d86c",
+      "metadata": {
+        "generated_at": "2026-11-07T17:32:38Z",
+        "tier": "standard",
+        "smoke": false,
+        "heavy": false,
+        "python_version": "3.12.16 | packaged by Anaconda, Inc. | (main, Oct 26 2026, 20:21:38) [GCC 14.3.0]",
+        "jax_version": "0.12.0.1",
+        "backend": "gpu",
+        "devices": [
+          "cuda:0"
+        ],
+        "elapsed_seconds": 5649.23
+      },
+      "d5_has_per_seed": false,
+      "disposition": "legacy aggregate; not valid corrected inferential input"
+    }
+  ]
+}

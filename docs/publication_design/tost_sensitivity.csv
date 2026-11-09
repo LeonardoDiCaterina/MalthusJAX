@@ -1,0 +1,26 @@
+independent_pairs,paired_sd_over_margin,power_true_difference_zero,power_true_difference_half_margin,per_endpoint_alpha,method
+30,0.5,1.0,0.99956,0.025,normal paired differences; exact t-TOST integral over chi-square sample variance
+50,0.5,1.0,1.0,0.025,normal paired differences; exact t-TOST integral over chi-square sample variance
+100,0.5,1.0,1.0,0.025,normal paired differences; exact t-TOST integral over chi-square sample variance
+200,0.5,1.0,1.0,0.025,normal paired differences; exact t-TOST integral over chi-square sample variance
+500,0.5,1.0,1.0,0.025,normal paired differences; exact t-TOST integral over chi-square sample variance
+30,1,0.99913,0.75396,0.025,normal paired differences; exact t-TOST integral over chi-square sample variance
+50,1,1.0,0.9339,0.025,normal paired differences; exact t-TOST integral over chi-square sample variance
+100,1,1.0,0.99861,0.025,normal paired differences; exact t-TOST integral over chi-square sample variance
+200,1,1.0,1.0,0.025,normal paired differences; exact t-TOST integral over chi-square sample variance
+500,1,1.0,1.0,0.025,normal paired differences; exact t-TOST integral over chi-square sample variance
+30,2,0.50833,0.24032,0.025,normal paired differences; exact t-TOST integral over chi-square sample variance
+50,2,0.8678,0.40967,0.025,normal paired differences; exact t-TOST integral over chi-square sample variance
+100,2,0.99722,0.69698,0.025,normal paired differences; exact t-TOST integral over chi-square sample variance
+200,2,1.0,0.94044,0.025,normal paired differences; exact t-TOST integral over chi-square sample variance
+500,2,1.0,0.99985,0.025,normal paired differences; exact t-TOST integral over chi-square sample variance
+30,4,0.00026,0.00021,0.025,normal paired differences; exact t-TOST integral over chi-square sample variance
+50,4,0.00943,0.00641,0.025,normal paired differences; exact t-TOST integral over chi-square sample variance
+100,4,0.39396,0.19536,0.025,normal paired differences; exact t-TOST integral over chi-square sample variance
+200,4,0.88087,0.42,0.025,normal paired differences; exact t-TOST integral over chi-square sample variance
+500,4,0.9997,0.79666,0.025,normal paired differences; exact t-TOST integral over chi-square sample variance
+30,8,0.0,0.0,0.025,normal paired differences; exact t-TOST integral over chi-square sample variance
+50,8,0.0,0.0,0.025,normal paired differences; exact t-TOST integral over chi-square sample variance
+100,8,0.0,0.0,0.025,normal paired differences; exact t-TOST integral over chi-square sample variance
+200,8,0.00053,0.00036,0.025,normal paired differences; exact t-TOST integral over chi-square sample variance
+500,8,0.59331,0.27294,0.025,normal paired differences; exact t-TOST integral over chi-square sample variance
