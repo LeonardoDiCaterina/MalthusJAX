@@ -1,5 +1,5 @@
 {
-  "status": "prepared_not_submitted",
+  "status": "scope_approved_collection_ready_bounds_pending",
   "phase1_equivalence_release": "pending_user_decision; estimation-only collection authorized",
   "phase1": {
     "seeds": [
@@ -163,7 +163,7 @@
       "qdax_map_elites"
     ],
     "study_mode": "ranking",
-    "primary": "mean held-out episodic return per independent training run",
+    "primary": "paired effect estimation of mean held-out episodic return; no forced winner/total ranking",
     "primary_inference": "six paired t contrasts, two-sided, Holm family alpha .05",
     "model": "condition factor plus seed blocks, seed-clustered covariance",
     "mutation_cosine": [
@@ -175,7 +175,8 @@
       "training setup+scan cost",
       "QD coverage/score only where meaningful"
     ],
-    "replication_rationale": "20 independent blocks: ordinary 95% mean CI half-width about .47 SD; not a guarantee of pairwise power; ties/inconclusive permitted"
+    "replication_rationale": "20 independent blocks: ordinary 95% mean CI half-width about .47 SD; not a guarantee of pairwise power; ties/inconclusive permitted",
+    "front": "descriptive sample-mean return vs training-cost frontier with uncertainty; not an evolved multiobjective front"
   },
   "phase3": {
     "seeds": [
@@ -225,7 +226,7 @@
     "work_unit_time_minutes": 30,
     "cpus": 8,
     "memory_gb": 32,
-    "full_campaign_budget_approval": "pending concrete work-unit cost review; earlier draft ceilings not authorization"
+    "full_campaign_budget_approval": "Study sizes approved; launcher transparently proposes at most 8h per phase (24h across three serial allocations); manual submission accepts those ceilings, not a completion forecast."
   },
   "pilot_exclusion": "seeds1000..1002 and all smoke/diagnostic runs excluded; no response-driven margin or schedule tuning",
   "scope": "Hopper wrapper, H200, P32/G20 ranking; not standard-environment universal leaderboard"
