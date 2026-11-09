@@ -1,6 +1,7 @@
 import time
 from typing import Any
 
+from malthusjax.composer.adapters.metrics import archive_metric_metadata
 from malthusjax.core.timing import TimingCapture, block_until_ready, execution_metadata
 
 
@@ -132,7 +133,7 @@ class MapElitesEngineAdapter:
 
         num_gens = int(self.engine.engine_params.num_generations)
         history = []
-        track_keys = self.history_metrics or ["best_fitness", "qd_score", "coverage"]
+        track_keys = self.history_metrics or ["best_fitness", "mean_fitness", "std_fitness", "qd_score", "coverage"]
 
         sign = -1.0 if self.maximize else 1.0
 
@@ -141,7 +142,7 @@ class MapElitesEngineAdapter:
             for k in track_keys:
                 if hasattr(scan_history, k):
                     val = getattr(scan_history, k)[g]
-                    if k in ("best_fitness", "mean_fitness", "std_fitness"):
+                    if k in ("best_fitness", "mean_fitness"):
                         val = val * sign
                     gen_stats[k] = float(val)
             history.append(gen_stats)
@@ -158,16 +159,20 @@ class MapElitesEngineAdapter:
 
         summary = {
             "best_fitness": float(final_state.best_fitness * sign),
-            "qd_score": float(qd_score) if qd_score is not None else 0.0,
-            "coverage": float(coverage) if coverage is not None else 0.0,
+            "qd_score": float(qd_score) if qd_score is not None else float("nan"),
+            "coverage": float(coverage) if coverage is not None else float("nan"),
             "final_generation": int(final_state.generation),
             "total_evaluations": int(final_state.generation * self.pop_size),
         }
+
+        for name in ("mean_fitness", "std_fitness"):
+            summary[name] = history[-1].get(name, float("nan")) if history else float("nan")
 
         return {
             "history": history,
             "summary": summary,
             "timing_metadata": capture.metadata(),
+            "metric_metadata": archive_metric_metadata(self.maximize),
             "timings": {
                 "warmup": t_warmup_end - t_warmup_start,
                 "execution": t_exec_end - t_exec_start,

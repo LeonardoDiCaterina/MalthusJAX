@@ -149,9 +149,8 @@ class MapElitesEngine(AbstractEngine[G, P]):
 
         # Extract best fitness from the repertoire. Since we flipped the sign if minimizing,
         # we flip it back to log the true raw fitness correctly.
-        best_fitness = jnp.max(repertoire.fitnesses)
-        if not self.engine_params.maximize:
-            best_fitness = -best_fitness
+        from malthusjax.core.fitness.qd.metrics import archive_metrics
+        best_fitness = -archive_metrics(repertoire.fitnesses)["max_fitness"]
 
         best_genome_idx = jnp.argmax(repertoire.fitnesses)
         best_genome_values = jax.tree_util.tree_map(
@@ -250,37 +249,15 @@ class MapElitesEngine(AbstractEngine[G, P]):
 
         # 5. Extract KPI metrics
         if self.engine_params.track_metrics:
-            # The repertoire fitnesses are stored maximized. So if minimize, they are -raw_fitness.
-            # We extract best_fitness from the repertoire and flip it back if necessary.
-            best_fitness = jnp.max(new_repertoire.fitnesses)
-            if not self.engine_params.maximize:
-                best_fitness = -best_fitness
+            from malthusjax.core.fitness.qd.metrics import archive_metrics
+            metrics = archive_metrics(new_repertoire.fitnesses)
+            # Engines retain lower-is-better objectives; adapters restore requested orientation.
+            best_fitness = -metrics["max_fitness"]
+            mean_fitness = -metrics["mean_fitness"]
+            std_fitness = metrics["std_fitness"]
+            coverage = metrics["coverage"]
+            qd_score = metrics["qd_score"]
 
-            mean_fitness = jnp.mean(
-                jnp.where(new_repertoire.fitnesses > -jnp.inf, new_repertoire.fitnesses, 0.0)
-            )
-            if not self.engine_params.maximize:
-                mean_fitness = -mean_fitness
-
-            std_fitness = jnp.std(
-                jnp.where(new_repertoire.fitnesses > -jnp.inf, new_repertoire.fitnesses, 0.0)
-            )
-            # std is strictly positive, no need to negate
-
-            coverage = (
-                100
-                * jnp.sum(new_repertoire.fitnesses > -jnp.inf)
-                / new_repertoire.centroids.shape[0]
-            )
-
-            qd_score = jnp.sum(
-                new_repertoire.fitnesses, where=(new_repertoire.fitnesses > -jnp.inf)
-            )
-            if not self.engine_params.maximize:
-                # If minimizing, raw fitnesses are negative.
-                qd_score = -qd_score
-
-            jnp.sum(new_repertoire.fitnesses > -jnp.inf)
         else:
             best_fitness = cast(chex.Array, jnp.nan)
             mean_fitness = cast(chex.Array, jnp.nan)

@@ -72,6 +72,7 @@ def extract_control_runs(
                 "best_so_far": np.maximum.accumulate(curve).tolist(),
                 "execution_seconds": _execution_seconds(run),
                 "timing_metadata": dict(getattr(run, "timing_metadata", {}) or {}),
+                "metric_metadata": dict(getattr(run, "metric_metadata", {}) or {}),
                 "timing_record": dict(getattr(run, "timing_record", {}) or {}),
             }
         )
@@ -111,6 +112,7 @@ def extract_qd_runs(comparison: Any, pipeline: str, generations: int) -> dict[st
                 "qd_score": _curve(run, "qd_score").tolist(),
                 "execution_seconds": _execution_seconds(run),
                 "timing_metadata": dict(getattr(run, "timing_metadata", {}) or {}),
+                "metric_metadata": dict(getattr(run, "metric_metadata", {}) or {}),
                 "timing_record": dict(getattr(run, "timing_record", {}) or {}),
             }
         )
@@ -150,3 +152,14 @@ def prepare_output_paths(output: Path) -> tuple[Path, Path]:
         raise FileExistsError(f"Use an empty/new output directory: {output.parent}")
     output.parent.mkdir(parents=True, exist_ok=True)
     return output.parent / "tables", output.parent / "runs"
+
+
+def qd_comparison_status(left, right):
+    records = list(left) + list(right)
+    contracts = [r.get("metric_metadata", {}) for r in records]
+    if (not contracts or any(c.get("schema_version") != 1 for c in contracts)
+            or any(c != contracts[0] for c in contracts)):
+        return {"status": "unavailable", "reason": "Missing or incompatible archive metric contracts"}
+    return {"status": "comparable", "definition": contracts[0]["metrics"]["qd_score"]["definition"],
+            "orientation": "higher_is_better", "offset": 0.0,
+            "inference": "not implied by metric comparability"}

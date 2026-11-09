@@ -274,6 +274,9 @@ def test_optional_upstream_factory_runs_the_prepared_universal_path(backend):
 
         adapter = TestTensorNEATAdapterRealIntegration().make_adapter()
     result = adapter.run_once(jax.random.PRNGKey(42))
+    if backend == "qdax":
+        assert result["metric_metadata"]["schema_version"] == 1
+        assert result["metric_metadata"]["quality_offset"] == 0
     assert result["timing_metadata"]["status"] == "valid"
     assert result["timing_metadata"]["phase"] == "prepared_first_execution"
     assert np.isfinite(result["timings"]["execution"])

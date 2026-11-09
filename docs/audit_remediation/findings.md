@@ -8,7 +8,7 @@ The original audit and probes remain at `audit/2026-11-08/` locally. [Baseline m
 |---|---|---|---|---|
 | A01 Forced timing | Reproduced | Fixed in P1 | `tests/benchmarking/test_empirical.py`, `test_empirical_generator.py`: actual slowdown survives extraction and table export | Dataset 5 timing/ratio; historical impact unverified |
 | A02 Invalid statistical defaults | Reproduced | Open, P4 | Shared finite-sample validity and unavailable inference | Generator statistical claims |
-| A03 Signed metrics/QD meaning | Reproduced/source | Partial, P1; harmonization P3 | Signed observations preserved; QD comparisons marked unavailable; shared definitions still needed | Control returns; Dataset 5 QD/fitness |
+| A03 Signed metrics/QD meaning | Reproduced/source | Implemented P1/P3; see P3.md | Signed observations preserved; QD comparisons marked unavailable; shared definitions still needed | Control returns; Dataset 5 QD/fitness |
 | A04 Placeholder ingestion | Source; baseline dry-run overwrite confirmed in disposable directory | Contained in P2; real generation deferred P10 | Paper `tests/test_ingest_cluster_results.py`: no writes on dry-run/error; no mock fallback | H1/H2/H3 ingestion; historical impact unverified |
 | A05 Crowding | Reproduced | Open, P5 | Independent front-local reference and survival invariance | MO results, if used |
 | A06 Island horizons | Reproduced | Open, P6 | Exact 0/remainder/divisible horizons | Island fitness/budgets |
@@ -19,13 +19,13 @@ The original audit and probes remain at `audit/2026-11-08/` locally. [Baseline m
 | A11 Optimize API limits | Source | Open, P8 | Implement or reject controls; truthful termination/covariance | Satellite optimization users/results |
 | A12 Run validity/timeout | Reproduced/source | Open, P9 | Status/finite metrics; enforce or reject requested timeout | Success counts and downstream analysis |
 | A13 Crossover inferred size | Reproduced | Open, P5 | Typed/legacy key/default-size contract | Fast-path callers |
-| A14 Standard deviation sign | Source | Open, P3 | Sign-invariant standard deviations | Maximization histories/error bars |
+| A14 Standard deviation sign | Source | Implemented P3 | Sign-invariant standard deviations | Maximization histories/error bars |
 | A15 Gap transform | Source; H1 provenance unresolved | Open, P7/P10 | Explicit estimand/optimum/epsilon and analysis replay | H1/fitness regressions |
 | A16 Adjusted R² | Source | Open, P7 | Match fitted reference statistics | Regression reports |
 | A17 Unpackaged plugin | Source | Open, P11 | Isolated wheel backend test | Installed TensorNEAT/QD backend |
 | A18 Assurance scope | Source | Open, P11 | Include scientific paths and packages in release checks | Coverage/CI claims |
 | A19 Provenance/environment | Risk | Partial, P0; early timing records PT4; full manifests P9/P10 | Baseline captured; versioned timing observations precede full environment replay | All paper evidence |
-| A20 Archive statistics | Source | Open, P3 | Occupancy-masked mean/std | QD metrics |
+| A20 Archive statistics | Source | Implemented P3 | Occupancy-masked mean/std | QD metrics |
 | A21 Warmup selection | Source | Open, PT4; extended provenance P9 | Both comparator paths retain seeds and select by declared timing phase, not seed number | Timing comparisons |
 | A22 Documentation/operational promises | Source | Partial, P1/P2; remainder P11 | Output/ingestion behavior documented; verify Docker/tracing/other commands | Reproduction workflow |
 

@@ -12,7 +12,6 @@ import jax
 import jax.numpy as jnp
 
 from malthusjax.composer.adapters import EvalMode, adapter
-from malthusjax.composer.adapters.metrics import MetricSpec
 
 
 def list_strategies() -> list[str]:
@@ -109,11 +108,10 @@ def _qdax_malthusjax_eval(
     return scoring_fn
 
 
-QDAX_METRICS = [
-    MetricSpec(name="best_fitness", source="max_fitness", is_objective_value=True),
-    MetricSpec(name="qd_score", source="qd_score", is_objective_value=True),
-    MetricSpec(name="coverage", source="coverage", is_objective_value=False),
-]
+from malthusjax.composer.adapters.metrics import archive_metric_specs, archive_metric_metadata
+from malthusjax.core.fitness.qd.metrics import archive_metrics
+
+QDAX_METRICS = archive_metric_specs()
 
 
 @adapter(
@@ -184,6 +182,8 @@ class QDaxEngineAdapter:
         # We also manually pack the metrics required
         # Note: the decorator will extract `max_fitness` as `best_fitness`
 
+        metrics = dict(metrics)
+        metrics.update(archive_metrics(repertoire.fitnesses))
         return (repertoire, emitter_state, randkey), metrics
 
 
@@ -283,7 +283,7 @@ def build_qdax_engine(
         else kwargs.get("genome_length", 1),
     }
 
-    return QDaxEngineAdapter(
+    adapter_engine = QDaxEngineAdapter(
         strategy=strategy,
         params=params,
         pop_size=pop_size,
@@ -296,3 +296,6 @@ def build_qdax_engine(
         backend_maximizes=True,
         initial_population=init_pop,
     )  # type: ignore[call-arg]
+    adapter_engine.metric_metadata = archive_metric_metadata(maximize)
+    adapter_engine.engine.metric_metadata = adapter_engine.metric_metadata
+    return adapter_engine

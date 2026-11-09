@@ -146,7 +146,7 @@ class GeneticEngineAdapter:
             for k in track_keys:
                 if hasattr(scan_history, k):
                     val = getattr(scan_history, k)[g]
-                    if k in ("best_fitness", "mean_fitness", "std_fitness"):
+                    if k in ("best_fitness", "mean_fitness"):
                         val = val * sign
                     gen_stats[k] = float(val)
                     if k == "best_fitness":

@@ -22,15 +22,10 @@ class QDAdapterTestSuiteMixin:
         assert 0.0 <= summary["coverage"] <= 100.0
 
     def test_qd_score_sign_consistency(self, small_adapter, small_adapter_max):
-        """Verify that qd_score respects the maximize flag sign conventions.
+        """The score preserves higher-is-better archive space without sign inversion.
 
-        MalthusJAX convention: qd_score is the sum of the RAW objective values.
-        If we evaluate Rastrigin (raw values are positive) but we are minimizing
-        (maximize=False), the qd_score should still be positive because it is
-        the sum of the raw positive values.
-
-        We verify this by ensuring that flipping the maximize flag flips the
-        sign of the qd_score.
+        This native QDax fixture uses the same scoring function for both flags,
+        so both archives and their quality sums are identical.
         """
         key = jr.PRNGKey(42)
         min_result = small_adapter.run_once(key)
@@ -44,8 +39,6 @@ class QDAdapterTestSuiteMixin:
         assert min_qd != 0.0
         assert max_qd != 0.0
 
-        # If the adapter correctly normalizes qd_score, the max and min
-        # traces will have opposite signs (or at least diverge strongly
-        # if the trajectories diverge).
-        # We assert they are mathematically distinct and appropriately signed.
-        assert min_qd != max_qd
+        assert min_qd == max_qd
+        assert min_result["metric_metadata"]["metrics"]["qd_score"]["orientation"] == "higher_is_better"
+        assert max_result["metric_metadata"]["quality_offset"] == 0.0

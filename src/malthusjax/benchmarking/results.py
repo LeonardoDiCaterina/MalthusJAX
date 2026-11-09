@@ -48,6 +48,7 @@ class RunResult:
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     timing_metadata: Dict[str, Any] = field(default_factory=dict)
     timing_record: Dict[str, Any] = field(default_factory=dict)
+    metric_metadata: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize the object to a JSON-friendly dictionary.
@@ -63,6 +64,7 @@ class RunResult:
             "duration_seconds": self.duration_seconds,
             "timings": self.timings,
             "timing_metadata": self.timing_metadata,
+            "metric_metadata": self.metric_metadata,
             "timing_record": self.timing_record
             or {"status": "legacy/unknown", "reason": "No versioned timing record"},
             "error": self.error,
@@ -104,6 +106,7 @@ class RunResult:
             duration_seconds=d.get("duration_seconds"),
             timings=d.get("timings"),
             timing_metadata=d.get("timing_metadata") or {},
+            metric_metadata=d.get("metric_metadata") or {},
             timing_record=d.get("timing_record")
             or {"status": "legacy/unknown", "reason": "No versioned timing record"},
             error=d.get("error"),
@@ -694,6 +697,7 @@ class ComparisonResult:
                     duration_seconds=run.duration_seconds,
                     timings=run.timings,
                     timing_metadata=run.timing_metadata,
+                    metric_metadata=run.metric_metadata,
                     timing_record=run.timing_record,
                     error=run.error,
                     created_at=run.created_at,

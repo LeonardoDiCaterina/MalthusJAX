@@ -382,6 +382,7 @@ class UniversalAdapterEngine:
             "summary": summary,
             "timings": timings,
             "timing_metadata": capture.metadata(unavailable),
+            **({"metric_metadata": self.metric_metadata} if hasattr(self, "metric_metadata") else {}),
         }
 
     def get_supported_metrics(self) -> list[Any]:

@@ -49,7 +49,8 @@ class BaseAdapterTestSuite(abc.ABC):
     def test_result_keys(self, small_adapter):
         """Verify the output of run_once contains exactly the required keys."""
         result = small_adapter.run_once(jr.PRNGKey(0))
-        assert set(result.keys()) == {"history", "summary", "timings", "timing_metadata"}
+        assert {"history", "summary", "timings", "timing_metadata"} <= set(result)
+        assert set(result) <= {"history", "summary", "timings", "timing_metadata", "metric_metadata"}
         metadata = result["timing_metadata"]
         if metadata["status"] == "valid":
             assert metadata["phase"] == "prepared_first_execution"
@@ -169,5 +170,6 @@ class BaseAdapterTestSuite(abc.ABC):
             pytest.skip("EvalMode.MALTHUSJAX not implemented for this adapter.")
 
         result = small_adapter_mjx.run_once(jr.PRNGKey(0))
-        assert set(result.keys()) == {"history", "summary", "timings", "timing_metadata"}
+        assert {"history", "summary", "timings", "timing_metadata"} <= set(result)
+        assert set(result) <= {"history", "summary", "timings", "timing_metadata", "metric_metadata"}
         assert len(result["history"]) > 0

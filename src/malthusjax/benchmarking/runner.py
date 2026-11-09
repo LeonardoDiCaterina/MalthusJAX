@@ -263,6 +263,7 @@ class BenchmarkRunner:
                 duration_seconds=duration,
                 timings=timings,
                 timing_metadata=dict(engine_result.get("timing_metadata") or {}),
+                metric_metadata=dict(engine_result.get("metric_metadata") or {}),
             )
 
         except Exception as e:
