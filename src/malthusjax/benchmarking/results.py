@@ -47,6 +47,7 @@ class RunResult:
     error: Optional[str] = None
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     timing_metadata: Dict[str, Any] = field(default_factory=dict)
+    timing_record: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize the object to a JSON-friendly dictionary.
@@ -62,6 +63,8 @@ class RunResult:
             "duration_seconds": self.duration_seconds,
             "timings": self.timings,
             "timing_metadata": self.timing_metadata,
+            "timing_record": self.timing_record
+            or {"status": "legacy/unknown", "reason": "No versioned timing record"},
             "error": self.error,
             "created_at": self.created_at.isoformat(),
         }
@@ -101,6 +104,8 @@ class RunResult:
             duration_seconds=d.get("duration_seconds"),
             timings=d.get("timings"),
             timing_metadata=d.get("timing_metadata") or {},
+            timing_record=d.get("timing_record")
+            or {"status": "legacy/unknown", "reason": "No versioned timing record"},
             error=d.get("error"),
             created_at=d["created_at"],
         )
@@ -315,9 +320,15 @@ class ExperimentResult:
                 std_val = stats['stdev']
                 print(f"{metric}: {mean_val:.4f} ± {std_val:.4f}")
         """
+        from ..core.timing_records import timing_values
+
+        try:
+            execution_values, _ = timing_values(self.runs)
+        except ValueError:
+            execution_values = None
         # Collect numeric metrics across runs
         agg: Dict[str, List[float]] = {}
-        for r in self.runs:
+        for run_index, r in enumerate(self.runs):
             virtual_metrics = dict(r.metrics)
             if r.duration_seconds is not None and "duration_seconds" not in virtual_metrics:
                 virtual_metrics["duration_seconds"] = r.duration_seconds
@@ -325,7 +336,15 @@ class ExperimentResult:
                 for tk, tv in r.timings.items():
                     virtual_metrics.setdefault(f"time_{tk}", tv)
 
+            from ..core.timing_records import ALIASES
+
             for k, v in virtual_metrics.items():
+                if k in ALIASES or k.startswith("time_"):
+                    if k != "time_execution":
+                        continue
+                    if execution_values is None:
+                        continue
+                    v = execution_values[run_index]
                 try:
                     val = float(v)
                 except Exception:
@@ -353,6 +372,11 @@ class ExperimentResult:
                 ci_upper = mean + ci_margin
 
             summary[k] = {
+                "count": len(vals),
+                "estimator": "median_across_seeds"
+                if k == "time_execution"
+                else "mean_across_seeds",
+                "phase": "prepared_first_execution" if k == "time_execution" else None,
                 "mean": mean,
                 "median": med,
                 "stdev": stdev,
@@ -541,6 +565,19 @@ class ComparisonResult:
             latex_code = comparison.summary_table(latex=True)
             print(latex_code)
         """
+        from ..core.timing_records import timing_values
+
+        contracts = []
+        for exp in self.pipelines.values():
+            try:
+                contracts.append(timing_values(exp.runs)[1])
+            except ValueError:
+                contracts.append(None)
+        comparable_timing = (
+            bool(contracts)
+            and contracts[0] is not None
+            and all(c == contracts[0] for c in contracts)
+        )
         table: Dict[str, Dict[str, Any]] = {}
         for name, exp in self.pipelines.items():
             agg = exp.aggregated_summary(optimum=optimum)
@@ -548,14 +585,22 @@ class ComparisonResult:
             # Flatten to the mean; negate fitness keys if needed
             table_row = {}
             for k, v in agg.items():
+                if k == "time_execution" and not comparable_timing:
+                    continue
                 mean_val = (
                     v["mean"] * s if k in self._FITNESS_KEYS and optimum is None else v["mean"]
                 )
+                if k == "time_execution":
+                    mean_val = v["median"]
                 table_row[k] = {
                     "mean": mean_val,
-                    "ci_margin": v.get("ci_margin", 0.0),
-                    "ci_lower": v.get("ci_lower", mean_val),
-                    "ci_upper": v.get("ci_upper", mean_val),
+                    "median": v.get("median"),
+                    "count": v.get("count"),
+                    "estimator": v.get("estimator"),
+                    "phase": v.get("phase"),
+                    "ci_margin": 0.0 if k == "time_execution" else v.get("ci_margin", 0.0),
+                    "ci_lower": mean_val if k == "time_execution" else v.get("ci_lower", mean_val),
+                    "ci_upper": mean_val if k == "time_execution" else v.get("ci_upper", mean_val),
                 }
             table[name] = table_row
 
@@ -648,6 +693,8 @@ class ComparisonResult:
                     artifacts=run.artifacts,
                     duration_seconds=run.duration_seconds,
                     timings=run.timings,
+                    timing_metadata=run.timing_metadata,
+                    timing_record=run.timing_record,
                     error=run.error,
                     created_at=run.created_at,
                 )
@@ -665,24 +712,20 @@ class ComparisonResult:
         base_exp = self.pipelines[base_pipeline]
         target_exp = self.pipelines[target_pipeline]
 
-        base_runs = {r.seed: r for r in base_exp.runs if r.duration_seconds is not None}
-        target_runs = {r.seed: r for r in target_exp.runs if r.duration_seconds is not None}
+        from ..core.timing_records import timing_values
 
-        common_seeds = set(base_runs.keys()).intersection(target_runs.keys())
-        if not common_seeds:
-            raise ValueError("No common seeds with duration data found.")
+        timing_values(base_exp.runs)
+        timing_values(target_exp.runs)
+        base_runs = {r.seed: r for r in base_exp.runs}
+        target_runs = {r.seed: r for r in target_exp.runs}
+        if set(base_runs) != set(target_runs):
+            raise ValueError("Speedup requires identical seed sets")
+        from ..core.timing_records import paired_timing_summary
 
-        speedups = []
-        for seed in common_seeds:
-            b_dur = float(base_runs[seed].duration_seconds or 0.0)
-            t_dur = float(target_runs[seed].duration_seconds or 1e-9)
-            speedups.append(b_dur / t_dur)
-
-        # Optional: remove the pair with the highest base_duration (warmup)
-        if len(speedups) > 3:
-            base_times = [float(base_runs[s].duration_seconds or 0.0) for s in common_seeds]
-            warmup_idx = base_times.index(max(base_times))
-            speedups.pop(warmup_idx)
+        summary = paired_timing_summary(base_exp.runs, [target_runs[r.seed] for r in base_exp.runs])
+        if summary["status"] != "valid":
+            raise ValueError(summary["reason"])
+        speedups = [b / t for b, t in zip(summary["left_values"], summary["right_values"])]
 
         n = len(speedups)
         mean_speedup = statistics.mean(speedups)
@@ -752,43 +795,36 @@ class ComparisonResult:
             "n_samples": n,
         }
 
-    def timing_data(self, timing_key: str = "duration_seconds") -> Dict[str, List[float]]:
+    def timing_data(self, timing_key: str = "execution") -> Dict[str, List[float]]:
         """Collect timing values for each pipeline across all seeds.
 
         Parameters
         ----------
         timing_key : str, optional
-            Which timing channel to collect. ``"duration_seconds"`` gathers
-            the per-run wall-clock duration. Other keys may be taken from
-            ``RunResult.timings`` if present.
-            Default: ``"duration_seconds"``.
+            Declared execution phase (or its explicit ``execution`` alias).
+            Legacy, unavailable, mixed, and mismatched records raise ValueError.
+            Runner wall time and warmup are retained as descriptive raw phases.
 
         Returns
         -------
         Dict[str, List[float]]
             Mapping of pipeline name to a list of timing values.
         """
-        data: Dict[str, List[float]] = {}
+        from ..core.timing_records import timing_values
+
+        data = {}
+        contract = None
         for name, exp in self.pipelines.items():
-            values: List[float] = []
-            for run in exp.runs:
-                if timing_key == "duration_seconds":
-                    if run.duration_seconds is not None:
-                        values.append(run.duration_seconds)
-                else:
-                    if run.timings is None:
-                        continue
-                    if timing_key in run.timings:
-                        try:
-                            values.append(float(run.timings[timing_key]))
-                        except (TypeError, ValueError):
-                            continue
+            values, current = timing_values(exp.runs, timing_key)
+            if contract is not None and current != contract:
+                raise ValueError("Incompatible pipeline timing contracts")
+            contract = current
             data[name] = values
         return data
 
     def plot_timing_boxplot(
         self,
-        timing_key: str = "duration_seconds",
+        timing_key: str = "execution",
         ax: Any = None,
         title: Optional[str] = None,
         save_path: Optional[Union[str, Path]] = None,
@@ -878,12 +914,16 @@ class ComparisonResult:
             Values are sign-normalized for pipelines marked in
             ``negate_map``.
         """
+        from ..core.timing_records import ALIASES
+
+        if metric_key in ALIASES:
+            return self.timing_data(metric_key)
         data: Dict[str, List[float]] = {}
         for name, exp in self.pipelines.items():
             values: List[float] = []
             sign = self._sign(name) if metric_key in self._FITNESS_KEYS else 1.0
 
-            # Sort chronologically so index 0 is the true first run (warmup)
+            # Preserve chronological display order without excluding observations.
             sorted_runs = sorted(exp.runs, key=lambda r: r.created_at)
 
             for run in sorted_runs:
@@ -907,12 +947,6 @@ class ComparisonResult:
                 else:
                     value = value * sign
                 values.append(value)
-
-            if (
-                metric_key in ("duration_seconds", "execution", "total", "warmup")
-                and len(values) > 1
-            ):
-                values = values[1:]
 
             data[name] = values
         return data

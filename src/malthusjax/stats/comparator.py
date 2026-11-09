@@ -440,6 +440,10 @@ def _build_timing_summary(
 
 
 def _extract_metric_from_run(run: "RunResult", metric_name: str) -> float:
+    from ..core.timing_records import ALIASES, select_timing
+
+    if metric_name in ALIASES:
+        return select_timing(run, metric_name)[0]
     if metric_name in run.metrics:
         return float(run.metrics[metric_name])
     if run.history and metric_name in run.history[-1]:
@@ -475,12 +479,22 @@ def paired_dataset_from_experiments(
 
     left_by_seed = {int(run.seed): run for run in left.runs}
     right_by_seed = {int(run.seed): run for run in right.runs}
-    common = sorted(set(left_by_seed) & set(right_by_seed))
+    if len(left_by_seed) != len(left.runs) or len(right_by_seed) != len(right.runs):
+        raise StatisticalSpecError("Duplicate seeds in timing/objective records")
+    common = [int(run.seed) for run in left.runs if int(run.seed) in right_by_seed]
 
     if len(common) < spec.min_paired_seeds:
         raise StatisticalSpecError(
             f"paired seed count {len(common)} below min_paired_seeds={spec.min_paired_seeds}"
         )
+
+    from ..core.timing_records import ALIASES, timing_values
+
+    if spec.metric_name in ALIASES:
+        _, lc = timing_values([left_by_seed[s] for s in common], spec.metric_name)
+        _, rc = timing_values([right_by_seed[s] for s in common], spec.metric_name)
+        if lc != rc:
+            raise StatisticalSpecError("Incompatible timing contracts")
 
     left_values: list[float] = []
     right_values: list[float] = []
@@ -512,33 +526,6 @@ def paired_dataset_from_experiments(
 
         left_start_values.append(_extract_initial_metric_from_run(lrun, spec.metric_name))
         right_start_values.append(_extract_initial_metric_from_run(rrun, spec.metric_name))
-
-    left_total_timing: list[float] = []
-    right_total_timing: list[float] = []
-    left_component_timing: dict[str, list[float]] = {}
-    right_component_timing: dict[str, list[float]] = {}
-
-    if spec.include_timing_stats:
-        timing_seeds = [s for s in common if s != 0]
-        if 0 not in common and common:
-            timing_seeds = common[1:]
-        for seed in timing_seeds:
-            lrun = left_by_seed[seed]
-            rrun = right_by_seed[seed]
-
-            if lrun.duration_seconds is not None and rrun.duration_seconds is not None:
-                left_total_timing.append(float(lrun.duration_seconds))
-                right_total_timing.append(float(rrun.duration_seconds))
-
-            if lrun.timings and rrun.timings:
-                common_timing_keys = sorted(set(lrun.timings) & set(rrun.timings))
-                for key in common_timing_keys:
-                    lv_raw = lrun.timings.get(key)
-                    rv_raw = rrun.timings.get(key)
-                    if lv_raw is None or rv_raw is None:
-                        continue
-                    left_component_timing.setdefault(key, []).append(float(lv_raw))
-                    right_component_timing.setdefault(key, []).append(float(rv_raw))
 
     source = "experiment_runs"
     if spec.hypothesis_kind == HypothesisKind.CLOSER_TO_OPTIMUM:
@@ -583,11 +570,15 @@ def paired_dataset_from_experiments(
         ]
 
     if spec.include_timing_stats:
-        metadata["timing_summary"] = _build_timing_summary(
-            left_total=left_total_timing,
-            right_total=right_total_timing,
-            left_components=left_component_timing,
-            right_components=right_component_timing,
+        from ..core.timing_records import paired_timing_summary
+
+        metadata["timing_summary"] = paired_timing_summary(
+            [left_by_seed[s] for s in common], [right_by_seed[s] for s in common], spec.timing_phase
+        )
+        metadata["timing_summary"].update(
+            seeds=common,
+            left_unpaired_seeds=[s for s in left_by_seed if s not in right_by_seed],
+            right_unpaired_seeds=[s for s in right_by_seed if s not in left_by_seed],
         )
 
     return PairedMetricDataset(
@@ -719,6 +710,19 @@ def paired_dataset_from_artifacts(
 ) -> PairedMetricDataset:
     validate_spec(spec)
 
+    from ..core.timing_records import ALIASES
+
+    if spec.metric_name in ALIASES:
+        from ..benchmarking.io import read_summary_json
+
+        return paired_dataset_from_experiments(
+            read_summary_json(left_dir / "summary.json"),
+            read_summary_json(right_dir / "summary.json"),
+            left_name,
+            right_name,
+            spec,
+        )
+
     left_csv = left_dir / "histories_combined.csv"
     right_csv = right_dir / "histories_combined.csv"
     if not left_csv.exists() or not right_csv.exists():
@@ -781,37 +785,23 @@ def paired_dataset_from_artifacts(
 
     timing_summary: dict[str, Any] | None = None
     if spec.include_timing_stats:
-        left_timings = _load_timings_by_seed_from_summary(left_dir / "summary.json")
-        right_timings = _load_timings_by_seed_from_summary(right_dir / "summary.json")
+        from ..core.timing_records import paired_timing_summary
 
-        left_total_timing: list[float] = []
-        right_total_timing: list[float] = []
-        left_component_timing: dict[str, list[float]] = {}
-        right_component_timing: dict[str, list[float]] = {}
+        def load_timing_rows(path):
+            with path.open() as stream:
+                rows = json.load(stream).get("runs", [])
+            if len({row["seed"] for row in rows}) != len(rows):
+                raise ValueError("Duplicate timing seeds in artifact")
+            return {row["seed"]: row for row in rows}
 
-        timing_seeds = [s for s in seeds if s != 0]
-        if 0 not in seeds and seeds:
-            timing_seeds = seeds[1:]
-        for seed in timing_seeds:
-            lt = left_timings.get(seed)
-            rt = right_timings.get(seed)
-            if not lt or not rt:
-                continue
-
-            left_total_timing.append(float(sum(lt.values())))
-            right_total_timing.append(float(sum(rt.values())))
-
-            common_keys = sorted(set(lt) & set(rt))
-            for key in common_keys:
-                left_component_timing.setdefault(key, []).append(float(lt[key]))
-                right_component_timing.setdefault(key, []).append(float(rt[key]))
-
-        timing_summary = _build_timing_summary(
-            left_total=left_total_timing,
-            right_total=right_total_timing,
-            left_components=left_component_timing,
-            right_components=right_component_timing,
-        )
+        try:
+            lrows = load_timing_rows(left_dir / "summary.json")
+            rrows = load_timing_rows(right_dir / "summary.json")
+            timing_summary = paired_timing_summary(
+                [lrows[s] for s in seeds], [rrows[s] for s in seeds], spec.timing_phase
+            )
+        except (OSError, ValueError, KeyError) as exc:
+            timing_summary = {"status": "unavailable", "reason": str(exc), "count": 0}
 
     metadata: dict[str, Any] = {
         "left_dir": str(left_dir),

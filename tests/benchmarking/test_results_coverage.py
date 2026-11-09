@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
+from tests.timing_records_helpers import record
 
 from malthusjax.benchmarking.results import (
     ComparisonResult,
@@ -61,6 +62,8 @@ def _make_sample_comparison() -> ComparisonResult:
         duration_seconds=0.18,
     )
     exp_b = ExperimentResult(name="pipe_b", runs=[r3, r4])
+    for row in (r1, r2, r3, r4):
+        row.timing_record = record(row.duration_seconds, row.seed)
 
     return ComparisonResult(
         pipelines={"pipe_a": exp_a, "pipe_b": exp_b},

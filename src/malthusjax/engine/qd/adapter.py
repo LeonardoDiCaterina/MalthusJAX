@@ -25,7 +25,7 @@ except ImportError:
     _HAS_QDAX = False
 
 from malthusjax.core.logger import StepLoggingConfig, get_logger
-from malthusjax.core.timing import block_until_ready, execution_metadata
+from malthusjax.core.timing import TimingCapture, block_until_ready, execution_metadata
 from malthusjax.engine.qd.map_elites import MapElitesEngine, MapElitesState
 
 logger = get_logger("engine.qd.adapter")
@@ -115,6 +115,7 @@ class MapElitesEngineAdapter:
     ) -> Tuple[MapElitesEvolutionState, Any, int]:
         """Executes MAP-Elites evolution across self.generations using jax.lax.scan."""
         start_time = time.perf_counter()
+        capture = TimingCapture()
 
         def _loop(
             cur_state: MapElitesState[Any, Any], _: Any
@@ -123,6 +124,7 @@ class MapElitesEngineAdapter:
             return next_state, kpi
 
         block_until_ready(init_state, effects=True)
+        capture.initialized(init_state, self.engine)
         spec = (id(self.engine), self.generations)
         if self._run_spec != spec:
             self._run_kernel = jax.jit(
@@ -130,11 +132,13 @@ class MapElitesEngineAdapter:
             )
             self._run_spec = spec
         prepared = self._run_kernel.lower(init_state).compile()
+        capture.prepared()
         warmup_end = time.perf_counter()
         execution_start = time.perf_counter()
         final_inner_state, kpis = prepared(init_state)
         block_until_ready((final_inner_state, kpis), effects=True)
         execution_end = time.perf_counter()
+        capture.executed()
         elapsed = execution_end - execution_start
         self.last_timings = {
             "warmup": warmup_end - start_time,
@@ -143,7 +147,7 @@ class MapElitesEngineAdapter:
         reason = (
             "QD adapter step logging is not implemented" if self.step_logging is not None else None
         )
-        self.last_timing_metadata = execution_metadata(reason)
+        self.last_timing_metadata = capture.metadata(reason)
         if reason is None:
             self.last_timings["execution"] = elapsed
         logger.debug(

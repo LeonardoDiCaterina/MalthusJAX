@@ -54,6 +54,9 @@ def test_analyzer_prioritizes_execution_time(tmp_path):
         "best_fitness": 1.23,
     }
 
+    from tests.timing_records_helpers import record
+    mock_run["timing_record"] = record(0.25, seed=42)
+
     mock_data = {
         "experiment": "test_exp_D10_P50_G10",
         "config": {"D": 10, "P": 50, "G": 10, "fn_name": "lunacek"},

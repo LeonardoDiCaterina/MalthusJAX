@@ -10,13 +10,14 @@ is specified here for engines to implement, and a simple deterministic
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
 import chex
 import jax
 
+from ..core.timing_records import TimingPolicy, TimingRecord, environment_identity, json_safe
 from ..core.logger import get_logger
 from ..core.random import create_key, resolve_prng_impl
 from .io import write_experiment_artifacts
@@ -43,6 +44,8 @@ class BenchmarkRunner:
     trace_dir: Optional[Path] = None  # If set, capture JAX trace for seed[0]
     serialize_history: bool = True  # If False, drops generation history to save disk space
 
+    timing_policy: TimingPolicy = field(default_factory=TimingPolicy)
+
     def run(
         self,
         seeds: Sequence[int],
@@ -59,6 +62,9 @@ class BenchmarkRunner:
         written.
         """
         runs: List[RunResult] = []
+        identity = environment_identity()
+        if len(set(seeds)) != len(seeds):
+            raise ValueError("Duplicate seeds are ambiguous timing observations")
 
         impl = resolve_prng_impl(self.prng_impl) if self.prng_impl else None
 
@@ -73,6 +79,73 @@ class BenchmarkRunner:
             # Only trace the first seed
             trace_this = self.trace_dir if i == 0 else None
             run_result = self._run_single_seed(seed, key, timeout_seconds, trace_dir=trace_this)
+            run_result.timing_record = TimingRecord.from_producer(
+                run_result.timings,
+                run_result.timing_metadata,
+                seed=seed,
+                order=i,
+                environment=identity,
+                duration=run_result.duration_seconds,
+            ).to_dict()
+            record = run_result.timing_record
+            record["target_phase"] = self.timing_policy.target_phase
+            record["policy"] = self.timing_policy.to_dict()
+            record["trial_results"] = []
+            for trial_id in range(
+                1, 1 + self.timing_policy.preconditioning + self.timing_policy.repetitions
+            ):
+                repeat = self._run_single_seed(seed, create_key(seed, impl=impl), timeout_seconds)
+                repeated_record = TimingRecord.from_producer(
+                    repeat.timings,
+                    repeat.timing_metadata,
+                    seed=seed,
+                    order=i,
+                    environment=identity,
+                    duration=repeat.duration_seconds,
+                ).to_dict()
+                record["trial_results"].append(
+                    {
+                        "trial_id": trial_id,
+                        "result": json_safe(repeat.to_dict()),
+                        "timing_record": repeated_record,
+                    }
+                )
+                trial = (
+                    repeated_record.get("trials")
+                    or [
+                        {
+                            "seconds": None,
+                            "status": "unavailable",
+                            "reason": repeated_record.get("reason"),
+                        }
+                    ]
+                )[0].copy()
+                trial.update(
+                    trial_id=trial_id,
+                    phase="preconditioning"
+                    if trial_id <= self.timing_policy.preconditioning
+                    else "prepared_execution_repeat",
+                )
+                record["trials"].append(trial)
+                objective = lambda row: {
+                    k: v
+                    for k, v in row.metrics.items()
+                    if k != "duration_seconds" and not k.startswith("time_")
+                }
+                agrees = (
+                    objective(repeat) == objective(run_result)
+                    and repeat.history == run_result.history
+                )
+                record["trial_results"][-1]["objective_agreement"] = agrees
+                if (
+                    not agrees
+                    or repeated_record["status"] != "valid"
+                    or repeated_record["signature"] != record["signature"]
+                ):
+                    record.update(
+                        status="unavailable",
+                        reason="Repeated trial failed, seeded output differed, or executable signature changed",
+                    )
             runs.append(run_result)
             logger.info(
                 "Seed %d/%d done status=%s duration=%.2fs",
@@ -91,6 +164,8 @@ class BenchmarkRunner:
                 "total_runs": len(runs),
                 "successful_runs": len([r for r in runs if r.status == "success"]),
                 "serialize_history": self.serialize_history,
+                "timing_policy": self.timing_policy.to_dict(),
+                "timing_environment": identity,
             },
         )
 
@@ -117,7 +192,7 @@ class BenchmarkRunner:
         the resulting :class:`RunResult` with ``status="error"``.
         """
 
-        start_time = time.time()
+        start_time = time.perf_counter()
 
         try:
             if trace_dir is not None:
@@ -166,7 +241,7 @@ class BenchmarkRunner:
                 if "generation" in last:
                     metrics["final_generation"] = float(last["generation"])
 
-            duration = time.time() - start_time
+            duration = time.perf_counter() - start_time
             metrics["duration_seconds"] = duration
 
             if timings:
@@ -194,7 +269,7 @@ class BenchmarkRunner:
             import traceback
 
             traceback.print_exc()
-            duration = time.time() - start_time
+            duration = time.perf_counter() - start_time
             return RunResult(
                 seed=seed,
                 status="error",

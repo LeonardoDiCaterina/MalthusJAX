@@ -103,6 +103,7 @@ class StatisticalComparisonSpec:
     include_value_lists: bool = False
     include_timing_stats: bool = True
     include_mean_summary: bool = False
+    timing_phase: str = "prepared_first_execution"
 
 
 @dataclass

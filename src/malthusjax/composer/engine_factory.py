@@ -24,7 +24,7 @@ from ..core.genome.binary_genome import BinaryGenomeConfig
 from ..core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
 from ..core.logger import StepLoggingConfig, get_logger
 from ..core.random import resolve_prng_impl
-from ..core.timing import block_until_ready, execution_metadata
+from ..core.timing import TimingCapture, block_until_ready, execution_metadata
 from ..engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
 from ..engine.schedules import TrackBest
 
@@ -85,6 +85,7 @@ class GeneticEngineAdapter:
         """
         # ---- Warmup phase: state init + JIT compilation ----
         t_warmup_start = time.perf_counter()
+        capture = TimingCapture()
         state = self.genetic_engine.init_state(key)
         state.best_fitness.block_until_ready()
         initial_best = float(state.best_fitness)
@@ -118,7 +119,9 @@ class GeneticEngineAdapter:
         # JIT compilation warmup — trigger tracing + XLA optimisation so
         # the cost is captured in the "warmup" bucket, not "execution".
         active_logging = step_logging or self.step_logging
+        capture.initialized(state, self.genetic_engine)
         prepared = self.genetic_engine.prepare_run(state, step_logging=active_logging)
+        capture.prepared()
         t_warmup_end = time.perf_counter()
 
         # ---- Execution phase: run the pre-compiled scan (JIT cache warm) ----
@@ -129,6 +132,7 @@ class GeneticEngineAdapter:
         # GeneticEngine.run performs best-genome finalization after its base scan.
         block_until_ready((final_state, scan_history), effects=True)
         t_exec_end = time.perf_counter()
+        capture.executed()
 
         num_gens = int(self.genetic_engine.engine_params.num_generations)
         history = []
@@ -186,7 +190,7 @@ class GeneticEngineAdapter:
             "history": history,
             "summary": summary,
             "timings": timings,
-            "timing_metadata": execution_metadata(),
+            "timing_metadata": capture.metadata(),
         }
 
 

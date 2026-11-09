@@ -1,6 +1,7 @@
 """Contracts for extracting scientific evidence without GPU integrations."""
 
 from types import SimpleNamespace
+from tests.timing_records_helpers import record
 
 import numpy as np
 import pytest
@@ -22,6 +23,7 @@ def comparison(values=(-10.0, -2.0), execution=2.0):
         history=history,
         timings={"execution": execution},
         metrics={},
+        timing_record=record(execution, seed=42),
     )
     return SimpleNamespace(pipelines={"p": SimpleNamespace(runs=[run])})
 
@@ -46,23 +48,26 @@ def test_missing_qd_metric_is_not_replaced_with_zero(metric):
 @pytest.mark.parametrize("execution", [None, 0, -1, np.nan, np.inf])
 def test_invalid_execution_cannot_produce_a_measurement(execution):
     comp = comparison(execution=execution)
-    with pytest.raises(ValueError, match="execution"):
+    with pytest.raises(ValueError, match="[Tt]iming|execution|duration"):
         extract_control_runs(comp, "p", 2, 2, 4)
 
 
 def test_total_time_is_not_silently_used_as_execution_time():
     comp = comparison()
     comp.pipelines["p"].runs[0].timings = {"total": 10.0}
-    with pytest.raises(ValueError, match="execution"):
+    comp.pipelines["p"].runs[0].timing_record = {}
+    with pytest.raises(ValueError, match="[Tt]iming|execution|duration"):
         extract_control_runs(comp, "p", 2, 2, 4)
 
 
-def test_explicit_execution_metric_is_a_supported_measurement():
+def test_unversioned_execution_metric_is_rejected():
     comp = comparison()
     run = comp.pipelines["p"].runs[0]
     run.timings = None
     run.metrics = {"time_execution": 3.0}
-    assert extract_control_runs(comp, "p", 1, 2, 1)["exec_time_mean"] == 3.0
+    run.timing_record = {}
+    with pytest.raises(ValueError, match="legacy/unknown"):
+        extract_control_runs(comp, "p", 1, 2, 1)
 
 
 @pytest.mark.parametrize("problem", ["failed", "empty", "short", "nan", "duplicate"])
@@ -97,6 +102,9 @@ def test_slower_native_execution_remains_a_slowdown():
         "ms_per_gen_malthusjax": 3.0,
         "ms_per_gen_qdax": 1.5,
         "speedup_ratio": 0.5,
+        "timing_phase": "prepared_first_execution",
+        "timing_estimator": "median_across_seeds",
+        "timing_sample_counts": [3, 3],
     }
 
 

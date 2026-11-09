@@ -22,7 +22,7 @@ from malthusjax.core.logger import (
     _host_log_step,
     get_logger,
 )
-from malthusjax.core.timing import block_until_ready, execution_metadata
+from malthusjax.core.timing import TimingCapture, block_until_ready, execution_metadata
 
 logger = get_logger("composer.adapters")
 
@@ -281,6 +281,7 @@ class UniversalAdapterEngine:
             self.pop_size,
         )
         t_warmup_start = time.perf_counter()
+        capture = TimingCapture()
 
         key, key_init, key_eval = jax.random.split(key, 3)
 
@@ -290,6 +291,7 @@ class UniversalAdapterEngine:
         )
         block_until_ready((key, state_init), effects=True)
 
+        capture.initialized((key, state_init), self)
         # Build JIT loop or Python loop
         if self.use_python_loop:
             run_loop = self._build_python_loop()
@@ -298,6 +300,7 @@ class UniversalAdapterEngine:
             if compile:
                 run_loop = run_loop.lower(key, state_init).compile()
 
+        capture.prepared()
         t_warmup_end = time.perf_counter()
 
         # Execute
@@ -308,6 +311,7 @@ class UniversalAdapterEngine:
         _block_all_until_ready((final_state, scan_history))
 
         t_exec_end = time.perf_counter()
+        capture.executed()
 
         # Format history output
         history = []
@@ -377,7 +381,7 @@ class UniversalAdapterEngine:
             "history": history,
             "summary": summary,
             "timings": timings,
-            "timing_metadata": execution_metadata(unavailable),
+            "timing_metadata": capture.metadata(unavailable),
         }
 
     def get_supported_metrics(self) -> list[Any]:

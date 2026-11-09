@@ -5,6 +5,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from malthusjax.benchmarking.cli import main
+from tests.timing_records_helpers import record
 
 
 def _create_mock_experiment_dir(
@@ -37,7 +38,8 @@ def _create_mock_experiment_dir(
                 ],
                 "artifacts": {},
                 "duration_seconds": 0.5,
-                "timings": {"step": 0.4},
+                "timings": {"execution": 0.4},
+                "timing_record": record(0.4, seed),
                 "error": None,
                 "created_at": "2026-09-19T12:00:00",
             }

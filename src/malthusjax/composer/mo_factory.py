@@ -9,7 +9,7 @@ import jax.numpy as jnp
 
 from malthusjax.core.genome.binary_genome import BinaryGenomeConfig
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
-from malthusjax.core.timing import block_until_ready, execution_metadata
+from malthusjax.core.timing import TimingCapture, block_until_ready, execution_metadata
 from malthusjax.engine.mo.mo_engine import MOEngine, MOEngineParams
 
 
@@ -32,6 +32,7 @@ class MOEngineAdapter:
 
     def run_once(self, key: chex.Array) -> Dict[str, Any]:
         t_warmup_start = time.perf_counter()
+        capture = TimingCapture()
 
         # Determine population initialization
         if self.initial_population is not None:
@@ -43,7 +44,9 @@ class MOEngineAdapter:
 
         state = self.mo_engine.init_state(key, pop)
 
+        capture.initialized(state, self.mo_engine)
         prepared = self.mo_engine.prepare_run(state)
+        capture.prepared()
         t_warmup_end = time.perf_counter()
 
         t_exec_start = time.perf_counter()
@@ -52,6 +55,7 @@ class MOEngineAdapter:
         )
         block_until_ready((final_state, scan_history), effects=True)
         t_exec_end = time.perf_counter()
+        capture.executed()
 
         num_gens = int(self.mo_engine.engine_params.num_generations)
         history = []
@@ -90,7 +94,7 @@ class MOEngineAdapter:
             "history": history,
             "summary": summary,
             "timings": timings,
-            "timing_metadata": execution_metadata(),
+            "timing_metadata": capture.metadata(),
         }
 
 

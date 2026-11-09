@@ -79,6 +79,9 @@ def test_comparison_statistical_methods():
     exp2 = ExperimentResult(name="ex2", runs=[r2])
     comp = ComparisonResult(pipelines={"pipe1": exp1, "pipe2": exp2})
 
+    from tests.timing_records_helpers import record
+    r1.timing_record = record(1.)
+    r2.timing_record = record(2.)
     speedup = comp.statistical_speedup("pipe2", "pipe1")
     assert speedup["mean_speedup"] == 2.0
 

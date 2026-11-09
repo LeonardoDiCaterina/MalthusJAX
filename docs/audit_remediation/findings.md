@@ -46,12 +46,12 @@ The revised implementation order is **PT1 → PT2 → PT3 → PT4 → PT5**, fol
 | Timing finding | Evidence | Owner / work package | Closure evidence required |
 |---|---|---|---|
 | T01 Distinct prepared/invoked JIT functions | Actual tracing and XLA compilation reproduced during execution | Codex, fixed on CPU PT1/PT3; hardware PT5 pending | Exact retained executable tested on first/reordered seeds and logging/history/key/dtype/sharding variants |
-| T02 Silently ignored preparation failures | Intentional lower failure suppressed in probe | Codex, fixed PT1; consumer checks PT4 pending | Preparation failures propagate; unsupported mode declares unavailable timing |
+| T02 Silently ignored preparation failures | Intentional lower failure suppressed in probe | Codex, fixed PT1; consumer checks PT4 passed on CPU | Preparation failures propagate; unsupported mode declares unavailable timing |
 | T03 Inconsistent readiness/finalization boundaries | Source plus barrier-coverage probe | Codex, fixed on CPU PT2/PT3; hardware PT5 pending | Full input/output/effect waits; seeded results and genetic finalization preserved |
 | T04 MO/island timing mixes phases | Source; separate Dataset 3 scaling path explicitly distinguished | Codex, adopted/limited explicitly in PT3; scheduling P6 pending | Actual production adapter paths prepare scans or report timing unavailable; hardware validation pending |
 | T05 Universal helper skips PyTrees/swallows errors | Custom PyTree and nested failure probes | Codex, fixed PT2; callback refinement PT3 | Registered/custom/slots trees and nested device errors tested; callbacks explicitly drained |
-| T06 Consumers mix phases/exclude by seed | Both comparator paths and analyzer fallback reviewed | Codex, PT4 | All raw observations retained; mismatched/legacy phases explicitly diagnosed; no total-as-execution fallback |
-| T07 First-use/steady/end-to-end scopes unspecified | Source; contribution to cluster durations unquantified | Codex, minimal phase declared PT3; full records/policy PT4/PT5 pending | Prepared first execution is not labeled steady-state; repetition/order/cache policy and full schema still required |
+| T06 Consumers mix phases/exclude by seed | Both comparator paths and analyzer fallback reviewed | Codex, fixed/validated on CPU PT4; hardware PT5 pending | All raw observations retained; mismatched/legacy phases explicitly diagnosed; no total-as-execution fallback |
+| T07 First-use/steady/end-to-end scopes unspecified | Source; contribution to cluster durations unquantified | Codex, versioned records/policy PT4; hardware PT5 pending | Prepared first execution is not labeled steady-state; repetition/order/cache policy and full schema still required |
 | T08 Tests miss phase contamination | 29 selected tests passed alongside reproduced timing defects | Codex, maintained CPU regressions added PT1–PT3; PT5/P11 pending | Event/trace/failure regressions pass; hardware validation and CI expansion remain separate |
 
 No gate requires a favorable performance ratio. Job 1303 remains unchanged historical evidence. A small timing-only validation is prepared after CPU tests pass; another full RL-heavy/publication-sized comparison is deferred until the relevant timing and scientific gates pass.
@@ -73,3 +73,5 @@ python scripts/ingest_cluster_results.py --results-dir /path/to/results --dry-ru
 ```
 
 This validates only the current H2 CSV schema and finite model coefficients. It does not validate H1/H3, scientific conclusions, or provenance, and never writes a table.
+
+PT4 CPU consumer closure: see [PT4.md](PT4.md) for schema, compatibility impact, preserved first/repeated trials, and the 60-test boundary and 228-test consumer selections (overlapping). Hardware gate B remains open.

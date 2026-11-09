@@ -41,6 +41,7 @@ def parse_global_data(results_dir: Path, target_metrics: list = None) -> pd.Data
         target_metrics = ["best_fitness", "execution_time"]
 
     records = []
+    seen_observations = set()
 
     # Support both new TOML engine and legacy hardcoded script outputs
     search_patterns = [
@@ -86,6 +87,8 @@ def parse_global_data(results_dir: Path, target_metrics: list = None) -> pd.Data
                         G = float(m.group(1))
 
             pipelines = data.get("pipelines", {})
+            if not pipelines and "runs" in data:
+                pipelines = {data.get("name", exp_name): {"per_seed": data["runs"]}}
             for p_name, p_data in pipelines.items():
                 runs = p_data.get("per_seed", p_data)
                 if not isinstance(runs, list):
@@ -107,14 +110,15 @@ def parse_global_data(results_dir: Path, target_metrics: list = None) -> pd.Data
                     for metric in target_metrics:
                         val = run.get(metric, np.nan)
 
-                        # Fallbacks for execution time aliases: prioritize pure execution over total
-                        if metric == "execution_time" and pd.isna(val):
-                            if "timings" in run and "execution" in run["timings"]:
-                                val = run["timings"]["execution"]
-                            elif "timings" in run and "total" in run["timings"]:
-                                val = run["timings"]["total"]
-                            else:
-                                val = run.get("duration_seconds", np.nan)
+                        if metric == "execution_time":
+                            from malthusjax.core.timing_records import select_timing
+
+                            val, contract = select_timing(run)
+                            if records and any(
+                                r.get("_timing_contract") != contract for r in records
+                            ):
+                                raise ValueError("Incompatible analyzer timing contracts")
+                            record["_timing_contract"] = contract
 
                         try:
                             val = float(val) if val is not None else np.nan
@@ -122,6 +126,12 @@ def parse_global_data(results_dir: Path, target_metrics: list = None) -> pd.Data
                             val = np.nan
 
                         record[metric] = val
+
+                    if "execution_time" in target_metrics:
+                        identity = (exp_name, fn_name, str(D), str(P), str(G), p_name, seed)
+                        if identity in seen_observations:
+                            raise ValueError(f"Duplicate analyzer timing observation: {identity}")
+                        seen_observations.add(identity)
 
                     # Skip if ALL target metrics are nan
                     if all(pd.isna(record[m]) for m in target_metrics):

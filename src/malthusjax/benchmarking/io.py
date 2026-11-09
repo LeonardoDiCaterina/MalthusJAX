@@ -129,6 +129,41 @@ def write_experiment_artifacts(
         write_histories_csv(experiment_result, csv_path)
         written_paths["histories_csv"] = csv_path
 
+    if write_csv:
+        timing_path = output_dir / "timing_trials.csv"
+        with timing_path.open("w", newline="") as stream:
+            columns = [
+                "seed",
+                "run_order",
+                "schema_version",
+                "record_status",
+                "record_reason",
+                "phase",
+                "seconds",
+                "trial_id",
+                "status",
+                "reason",
+                "raw_value",
+                "timing_record",
+            ]
+            writer = csv.DictWriter(stream, fieldnames=columns)
+            writer.writeheader()
+            for run in experiment_result.runs:
+                record = run.to_dict()["timing_record"]
+                for trial in record.get("trials") or [{}]:
+                    writer.writerow(
+                        {
+                            "seed": run.seed,
+                            "run_order": record.get("run_order"),
+                            "schema_version": record.get("schema_version"),
+                            "record_status": record.get("status"),
+                            "record_reason": record.get("reason"),
+                            **trial,
+                            "timing_record": json.dumps(record),
+                        }
+                    )
+        written_paths["timing_csv"] = timing_path
+
     # Create seed folders for future per-seed artifacts
     for run in experiment_result.runs:
         seed_dir = ensure_seed_folder(output_dir, run.seed)

@@ -1,7 +1,7 @@
 import time
 from typing import Any
 
-from malthusjax.core.timing import block_until_ready, execution_metadata
+from malthusjax.core.timing import TimingCapture, block_until_ready, execution_metadata
 
 
 class MapElitesEngineAdapter:
@@ -21,6 +21,7 @@ class MapElitesEngineAdapter:
         import jax
 
         t_warmup_start = time.perf_counter()
+        capture = TimingCapture()
 
         # Check if we are running the exact QDAX replica for bit-parity
         is_qdax_replica = (
@@ -116,7 +117,9 @@ class MapElitesEngineAdapter:
             # Force the exact QDAX key into the state for generation 1
             state = state.replace(rng_key=k_init_qdax)
 
+        capture.initialized(state, self.engine)
         prepared = self.engine.prepare_run(state)
+        capture.prepared()
         t_warmup_end = time.perf_counter()
 
         t_exec_start = time.perf_counter()
@@ -125,6 +128,7 @@ class MapElitesEngineAdapter:
         )
         block_until_ready((final_state, scan_history), effects=True)
         t_exec_end = time.perf_counter()
+        capture.executed()
 
         num_gens = int(self.engine.engine_params.num_generations)
         history = []
@@ -163,7 +167,7 @@ class MapElitesEngineAdapter:
         return {
             "history": history,
             "summary": summary,
-            "timing_metadata": execution_metadata(),
+            "timing_metadata": capture.metadata(),
             "timings": {
                 "warmup": t_warmup_end - t_warmup_start,
                 "execution": t_exec_end - t_exec_start,

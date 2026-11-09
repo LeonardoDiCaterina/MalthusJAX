@@ -101,11 +101,15 @@ def test_comparison_timing_data_and_boxplot():
     exp = ExperimentResult(name="ex", runs=[r1, r2])
     comparison = ComparisonResult(pipelines={"GA": exp})
 
-    duration_data = comparison.timing_data()
-    assert duration_data == {"GA": [1.2, 1.4]}
-
-    init_data = comparison.timing_data(timing_key="warmup")
-    assert init_data == {"GA": [0.1, 0.2]}
+    from tests.timing_records_helpers import record
+    import pytest
+    with pytest.raises(ValueError, match="legacy/unknown"):
+        comparison.timing_data()
+    r1.timing_record = record(1.1, seed=0)
+    r2.timing_record = record(1.2, seed=1, order=1)
+    assert comparison.timing_data("execution") == {"GA": [1.1, 1.2]}
+    with pytest.raises(ValueError, match="phase mismatch"):
+        comparison.timing_data("warmup")
 
     try:
         import matplotlib.pyplot as plt
@@ -113,8 +117,8 @@ def test_comparison_timing_data_and_boxplot():
         plt = None
 
     if plt is not None:
-        ax = comparison.plot_timing_boxplot(timing_key="duration_seconds")
-        assert ax.get_ylabel() == "duration_seconds (seconds)"
+        ax = comparison.plot_timing_boxplot(timing_key="execution")
+        assert ax.get_ylabel() == "execution (seconds)"
         assert ax.get_title() == "Timing boxplot"
 
 

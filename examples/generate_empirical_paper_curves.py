@@ -1044,6 +1044,11 @@ def generate_dataset_5a_parity_and_speedup(cfg: Dict[str, Any]) -> Dict[str, Any
 
     mjx_data = extract_qd_runs(comparison, "malthusjax_native", n_gens)
     qdax_data = extract_qd_runs(comparison, "qdax_baseline", n_gens)
+    from malthusjax.core.timing_records import timing_values
+    _, native_contract = timing_values(mjx_data["per_seed"])
+    _, reference_contract = timing_values(qdax_data["per_seed"])
+    if native_contract != reference_contract:
+        raise ValueError("Incompatible empirical timing contracts")
     timing = timing_comparison(mjx_data["ms_arr"], qdax_data["ms_arr"])
     ms_mjx = timing["ms_per_gen_malthusjax"]
     ms_qdax = timing["ms_per_gen_qdax"]

@@ -26,6 +26,8 @@ class RunOutput(TypedDict, total=False):
     history: List[Dict[str, Any]]
     summary: Dict[str, Any]
     timings: Dict[str, float]
+    timing_metadata: Dict[str, Any]
+    timing_record: Dict[str, Any]
 
 
 @runtime_checkable

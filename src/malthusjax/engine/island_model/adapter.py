@@ -11,7 +11,7 @@ import jax.numpy as jnp
 from flax import struct
 
 from malthusjax.core.logger import StepLoggingConfig, get_logger
-from malthusjax.core.timing import block_until_ready, execution_metadata
+from malthusjax.core.timing import TimingCapture, block_until_ready, execution_metadata
 from malthusjax.engine.island_model.base import BaseIslandModel
 
 logger = get_logger("engine.island_model.adapter")
@@ -102,18 +102,22 @@ class IslandEngineAdapter:
     ) -> Dict[str, Any]:
         """BenchmarkRunner protocol implementation."""
         t_start = time.perf_counter()
+        capture = TimingCapture()
         init_state = self.init_state(key)
         block_until_ready(init_state, effects=True)
+        capture.initialized(init_state, self)
         spec = (self.generations, id(self.island_model))
         if self._compiled_spec != spec:
             self._compiled_run = jax.jit(self.run)
             self._compiled_spec = spec
         prepared = self._compiled_run.lower(init_state).compile()
+        capture.prepared()
         t_warmup_end = time.perf_counter()
         t_execution_start = time.perf_counter()
         final_state, history, _ = prepared(init_state)
         block_until_ready((final_state, history), effects=True)
         t_end = time.perf_counter()
+        capture.executed()
 
         best_fit = float(final_state.best_fitness)
         sign = -1.0 if self.maximize else 1.0
@@ -141,7 +145,7 @@ class IslandEngineAdapter:
             "history": [],
             "summary": summary,
             "timings": timings,
-            "timing_metadata": execution_metadata(unavailable),
+            "timing_metadata": capture.metadata(unavailable),
         }
 
     def __getattr__(self, name: str) -> Any:

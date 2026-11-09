@@ -40,7 +40,7 @@ import jax
 import jax.numpy as jnp
 import jax.random as jr
 
-from malthusjax.core.timing import block_until_ready, execution_metadata
+from malthusjax.core.timing import TimingCapture, block_until_ready, execution_metadata
 
 try:
     import evosax
@@ -199,6 +199,7 @@ class EvosaxEngineAdapter:
         """
         # ---- Warmup phase: setup + JIT compilation ----
         t_warmup_start = time.perf_counter()
+        capture = TimingCapture()
 
         key, key_pop, key_eval = jax.random.split(key, 3)
 
@@ -229,8 +230,10 @@ class EvosaxEngineAdapter:
 
         inputs = (key, population_init, tell_fitness_init, prob_state_init)
         block_until_ready(inputs, effects=True)
+        capture.initialized(inputs, self)
         run_fn = run_fn.lower(*inputs).compile()
 
+        capture.prepared()
         t_warmup_end = time.perf_counter()
 
         # ---- Execution phase: run with the real key on a warm JIT cache ----
@@ -238,6 +241,7 @@ class EvosaxEngineAdapter:
         final_state, metrics = run_fn(key, population_init, tell_fitness_init, prob_state_init)
         block_until_ready((final_state, metrics), effects=True)
         t_exec_end = time.perf_counter()
+        capture.executed()
 
         # ---- Post-processing: extract history and summary ----
         history = []
@@ -286,7 +290,7 @@ class EvosaxEngineAdapter:
             "history": history,
             "summary": summary,
             "timings": timings,
-            "timing_metadata": execution_metadata(),
+            "timing_metadata": capture.metadata(),
         }
 
 

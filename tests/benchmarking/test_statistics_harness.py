@@ -373,6 +373,10 @@ def test_paired_dataset_from_artifacts(tmp_path):
             {"seed": 1, "timings": {"warmup": 0.1, "execution": 0.01}},
         ]
     }
+    from tests.timing_records_helpers import record
+    for summary in (left_summary, right_summary):
+        for row in summary["runs"]:
+            row["timing_record"] = record(row["timings"]["execution"], seed=row["seed"])
     (left_dir / "summary.json").write_text(json.dumps(left_summary))
     (right_dir / "summary.json").write_text(json.dumps(right_summary))
 
@@ -385,15 +389,13 @@ def test_paired_dataset_from_artifacts(tmp_path):
     assert np.allclose(ds.left_values, [0.8, 0.7])
     assert np.allclose(ds.right_values, [1.0, 0.95])
 
-    # Timing summary should have N=1 because seed 0 is excluded
     timing_summary = ds.metadata["timing_summary"]
-    # Only seed 1 total duration should be included: sum of timings: 0.1 + 0.01 = 0.11
-    assert timing_summary["duration_seconds"]["left_mean"] == pytest.approx(0.11)
-    assert timing_summary["duration_seconds"]["right_mean"] == pytest.approx(0.11)
-    assert timing_summary["components"]["warmup"]["left_mean"] == pytest.approx(0.1)
+    assert timing_summary["status"] == "valid"
+    assert timing_summary["count"] == 2
+    assert timing_summary["left_values"] == [0.01, 0.01]
 
 
-def test_paired_dataset_from_experiments_excludes_seed_0_for_timing():
+def test_paired_dataset_from_experiments_keeps_seed_0_for_timing():
     left_runs = [
         RunResult(
             seed=0,
@@ -441,8 +443,12 @@ def test_paired_dataset_from_experiments_excludes_seed_0_for_timing():
     # Fitness/normality uses all seeds
     assert ds.seeds == [0, 1]
 
-    # Timing excludes seed 0
     timing_summary = ds.metadata["timing_summary"]
-    assert timing_summary["duration_seconds"]["left_mean"] == pytest.approx(0.11)
-    assert timing_summary["duration_seconds"]["right_mean"] == pytest.approx(0.11)
-    assert timing_summary["components"]["warmup"]["left_mean"] == pytest.approx(0.1)
+    assert timing_summary["status"] == "unavailable"  # legacy records cannot become corrected samples
+    from tests.timing_records_helpers import record
+    for exp in (left, right):
+        for run in exp.runs:
+            run.timing_record = record(run.timings["execution"], seed=run.seed)
+    ds = paired_dataset_from_experiments(left, right, "L", "R", spec)
+    assert ds.metadata["timing_summary"]["count"] == 2
+    assert ds.metadata["timing_summary"]["left_values"] == [0.01, 0.01]

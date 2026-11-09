@@ -47,16 +47,9 @@ def _curve(run: Any, metric: str) -> np.ndarray:
 
 
 def _execution_seconds(run: Any) -> float:
-    value = (run.timings or {}).get("execution")
-    if value is None:
-        value = run.metrics.get("time_execution")
-    try:
-        seconds = float(value)
-    except (TypeError, ValueError) as exc:
-        raise ValueError(f"Seed {run.seed}: missing/invalid execution time") from exc
-    if not np.isfinite(seconds) or seconds <= 0:
-        raise ValueError(f"Seed {run.seed}: execution time must be finite and positive")
-    return seconds
+    from ..core.timing_records import select_timing
+
+    return select_timing(run)[0]
 
 
 def extract_control_runs(
@@ -65,8 +58,12 @@ def extract_control_runs(
     """Extract signed, already-reported returns and explicitly derived running maxima."""
     if pop_size <= 0 or max_steps <= 0:
         raise ValueError("pop_size and max_steps must be positive")
+    from ..core.timing_records import timing_values
+
+    runs = _runs(comparison, pipeline, generations)
+    timing_values(runs)
     records = []
-    for run in _runs(comparison, pipeline, generations):
+    for run in runs:
         curve = _curve(run, "best_fitness")
         records.append(
             {
@@ -75,6 +72,7 @@ def extract_control_runs(
                 "best_so_far": np.maximum.accumulate(curve).tolist(),
                 "execution_seconds": _execution_seconds(run),
                 "timing_metadata": dict(getattr(run, "timing_metadata", {}) or {}),
+                "timing_record": dict(getattr(run, "timing_record", {}) or {}),
             }
         )
     observed = np.asarray([r["best_fitness"] for r in records])
@@ -99,8 +97,12 @@ def extract_control_runs(
 
 def extract_qd_runs(comparison: Any, pipeline: str, generations: int) -> dict[str, Any]:
     """Preserve backend-native signed QD observations without asserting comparability."""
+    from ..core.timing_records import timing_values
+
+    runs = _runs(comparison, pipeline, generations)
+    timing_values(runs)
     records = []
-    for run in _runs(comparison, pipeline, generations):
+    for run in runs:
         records.append(
             {
                 "seed": int(run.seed),
@@ -109,6 +111,7 @@ def extract_qd_runs(comparison: Any, pipeline: str, generations: int) -> dict[st
                 "qd_score": _curve(run, "qd_score").tolist(),
                 "execution_seconds": _execution_seconds(run),
                 "timing_metadata": dict(getattr(run, "timing_metadata", {}) or {}),
+                "timing_record": dict(getattr(run, "timing_record", {}) or {}),
             }
         )
     return {
@@ -120,7 +123,7 @@ def extract_qd_runs(comparison: Any, pipeline: str, generations: int) -> dict[st
     }
 
 
-def timing_comparison(native_ms: Any, reference_ms: Any) -> dict[str, float]:
+def timing_comparison(native_ms: Any, reference_ms: Any) -> dict[str, Any]:
     """Return the ratio of measured medians, including ratios below one."""
     medians = []
     for values in (native_ms, reference_ms):
@@ -134,6 +137,9 @@ def timing_comparison(native_ms: Any, reference_ms: Any) -> dict[str, float]:
         "ms_per_gen_malthusjax": medians[0],
         "ms_per_gen_qdax": medians[1],
         "speedup_ratio": medians[1] / medians[0],
+        "timing_phase": "prepared_first_execution",
+        "timing_estimator": "median_across_seeds",
+        "timing_sample_counts": [len(native_ms), len(reference_ms)],
     }
 
 

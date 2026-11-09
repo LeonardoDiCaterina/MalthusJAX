@@ -80,6 +80,7 @@ def suite_to_dict(suite: StatisticalSuiteResult) -> dict[str, Any]:
             "include_tests": list(suite.spec.include_tests),
             "include_value_lists": suite.spec.include_value_lists,
             "include_timing_stats": suite.spec.include_timing_stats,
+            "timing_phase": suite.spec.timing_phase,
             "include_mean_summary": suite.spec.include_mean_summary,
         },
         "results": [_result_to_dict(r) for r in suite.results],
@@ -217,42 +218,21 @@ def suite_to_markdown(suite: StatisticalSuiteResult) -> str:
     for r in suite.results:
         timing_summary = r.metadata.get("timing_summary")
         if isinstance(timing_summary, dict):
-            total = timing_summary.get("duration_seconds", {})
-            lines.append("")
-            lines.append(f"## Timing Summary: {r.label}")
-            lines.append("")
-            lines.append(
-                "| Timing | Left Mean | Right Mean | Left Median | Right Median | "
-                "Left Min | Right Min | Left Max | Right Max | "
-                "Paired Diff Mean (L-R) | Wilcoxon p |"
-            )
-            lines.append("|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
-            if isinstance(total, dict):
+            lines.extend(["", f"## Timing Summary: {r.label}", ""])
+            if timing_summary.get("status") != "valid":
                 lines.append(
-                    f"| duration_seconds | {_fmt(total.get('left_mean'))} | "
-                    f"{_fmt(total.get('right_mean'))} | "
-                    f"{_fmt(total.get('left_median'))} | "
-                    f"{_fmt(total.get('right_median'))} | "
-                    f"{_fmt(total.get('left_min'))} | {_fmt(total.get('right_min'))} | "
-                    f"{_fmt(total.get('left_max'))} | {_fmt(total.get('right_max'))} | "
-                    f"{_fmt(total.get('paired_diff_mean_left_minus_right'))} | "
-                    f"{_fmt(total.get('paired_wilcoxon_p_value'))} |"
+                    f"Timing unavailable: {timing_summary.get('reason', 'legacy/unknown')}"
                 )
-            components = timing_summary.get("components", {})
-            if isinstance(components, dict):
-                for key, comp in components.items():
-                    if not isinstance(comp, dict):
-                        continue
-                    lines.append(
-                        f"| {key} | {_fmt(comp.get('left_mean'))} | "
-                        f"{_fmt(comp.get('right_mean'))} | "
-                        f"{_fmt(comp.get('left_median'))} | "
-                        f"{_fmt(comp.get('right_median'))} | "
-                        f"{_fmt(comp.get('left_min'))} | {_fmt(comp.get('right_min'))} | "
-                        f"{_fmt(comp.get('left_max'))} | {_fmt(comp.get('right_max'))} | "
-                        f"{_fmt(comp.get('paired_diff_mean_left_minus_right'))} | "
-                        f"{_fmt(comp.get('paired_wilcoxon_p_value'))} |"
-                    )
+                continue
+            lines.extend(
+                [
+                    "| Phase | Estimator | Paired seeds | Left seconds | Right seconds |",
+                    "|---|---|---:|---:|---:|",
+                    f"| {timing_summary['phase']} | {timing_summary['estimator']} | "
+                    f"{timing_summary['count']} | {_fmt(timing_summary['left_median'])} | "
+                    f"{_fmt(timing_summary['right_median'])} |",
+                ]
+            )
 
     for r in suite.results:
         if not bool(r.metadata.get("include_value_lists", False)):

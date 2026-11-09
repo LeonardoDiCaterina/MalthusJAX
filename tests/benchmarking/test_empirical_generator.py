@@ -9,6 +9,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
+from tests.timing_records_helpers import record
 
 SCRIPT = Path(__file__).resolve().parents[2] / "examples/generate_empirical_paper_curves.py"
 spec = importlib.util.spec_from_file_location("empirical_generator", SCRIPT)
@@ -30,6 +31,7 @@ def measured_qd(monkeypatch, tmp_path):
                     error=None,
                     metrics={},
                     timings={"execution": seconds},
+                    timing_record=record(seconds, seed),
                     history=[
                         {"best_fitness": -2.0, "coverage": 50.0, "qd_score": qd_score},
                         {"best_fitness": -1.0, "coverage": 75.0, "qd_score": qd_score},

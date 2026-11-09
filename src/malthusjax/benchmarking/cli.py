@@ -235,7 +235,7 @@ def handle_plot(args: argparse.Namespace) -> int:
 
     # Try to generate the timings boxplot
     try:
-        comparison.plot_boxplots(metric_key="duration_seconds", save_path=plot_dir / "timings.png")
+        comparison.plot_boxplots(metric_key="execution", save_path=plot_dir / "timings.png")
         logger.info("Generated %s", plot_dir / "timings.png")
     except Exception as e:
         logger.warning("Could not generate timings boxplot: %s", e)
@@ -288,7 +288,10 @@ def handle_aggregate(args: argparse.Namespace) -> int:
     meta.plot_boxplot_grid(save_path=plot_dir / "fitness_distribution_grid.png")
 
     logger.info("Generating aggregate timings grid...")
-    meta.plot_boxplot_grid(metric_key="duration_seconds", save_path=plot_dir / "timings_grid.png")
+    try:
+        meta.plot_boxplot_grid(metric_key="execution", save_path=plot_dir / "timings_grid.png")
+    except ValueError as exc:
+        logger.warning("Timing grid unavailable: %s", exc)
 
     logger.info("Generating aggregate summary JSON...")
     summary = meta.summary_table()

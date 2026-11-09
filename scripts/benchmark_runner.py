@@ -164,6 +164,8 @@ def run_suite(toml_path: str, force_smoke: bool = False) -> None:
 
                     if run.timings:
                         seed_data["timings"] = run.timings
+                    seed_data["timing_record"] = run.timing_record
+                    seed_data["timing_metadata"] = run.timing_metadata
 
                     # Handle Aggregation Level
                     if config.suite.aggregation_level in ["full_trace", "final_only"]:
