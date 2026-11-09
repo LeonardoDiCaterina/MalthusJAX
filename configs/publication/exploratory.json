@@ -1,0 +1,68 @@
+{
+  "stage": "exploratory",
+  "seeds": [
+    1000,
+    1001,
+    1002
+  ],
+  "purpose": "Cost/scale and descriptive outcome exploration; excluded from confirmation; not power estimation from three blocks",
+  "nominal_training_runs": {
+    "1": 45,
+    "2": 9,
+    "3": 12
+  },
+  "phase_arguments": {
+    "1": [
+      "--functions",
+      "sphere",
+      "rastrigin",
+      "rosenbrock",
+      "--dims",
+      "10",
+      "--populations",
+      "128",
+      "--generations",
+      "50",
+      "--timing",
+      "--repetitions",
+      "3"
+    ],
+    "2": [
+      "--population",
+      "32",
+      "--generations",
+      "20",
+      "--horizon",
+      "200",
+      "--eval-episodes",
+      "3"
+    ],
+    "3": [
+      "--population",
+      "32",
+      "--islands",
+      "4",
+      "--generations",
+      "20",
+      "--horizon",
+      "200",
+      "--migration-interval",
+      "5",
+      "--migrants-per-island",
+      "2",
+      "--heldout-policy",
+      "all",
+      "--heldout-episodes",
+      "3",
+      "--max-nodes",
+      "32",
+      "--max-conns",
+      "64",
+      "--topologies",
+      "single",
+      "ring",
+      "bidirectional",
+      "fully_connected"
+    ]
+  }
+}
