@@ -1,6 +1,6 @@
 # PT5 — Timing-only cluster validation
 
-Status: entrypoint, frozen configuration, Slurm wrapper, and CPU regression evidence prepared. **H100 execution and timing gate B remain pending authorization and observed cluster results.** No RL-heavy or publication rerun was launched; historical job 1303 remains unchanged.
+Status: implemented and validated on CPU and the H100 native/QDax workload. **Timing gate B passes within this workload, based on user-provided job 1516 output and report inspection.** No RL-heavy or publication rerun was launched; historical job 1303 remains unchanged.
 
 ## Workload and output contract
 
@@ -67,3 +67,11 @@ git diff --check
 The regressions cover the frozen alternating schedule, seed 0 and retained trial counts, compilation-detection positive and negative controls, reference disagreement, failed-record exports, revision mismatch before construction, fresh-directory refusal, and quoted argument/GPU assignment preservation for both Slurm wrappers. Existing prepared-executable and timing-record contracts are included. Detailed final counts and CPU gate observations are recorded in `PT5_cpu_evidence.json`. No full repository coverage threshold or GPU pass is claimed.
 
 Final local result: **47 tests passed**, two bounds-default warnings, 28.66 s. The actual production-adapter CPU diagnostic **passed**, retaining **48 timed trials, eight references, and 168 phase markers**, with all eight reference groups agreeing across all six trials and zero measured-execution compilation events. Ruff, shell syntax checks, and diff whitespace checks passed.
+
+## H100 validation — job 1516
+
+After explicit user authorization, the user submitted job **1516** from the remediation checkout. The job reported `passed` at revision `aa6274dbf7176e5b87a34b1a2b3acb19780ac710`, using the intended imported source path, JAX/jaxlib 0.12.0.1, Python 3.12.16, NumPy 2.5.4, and one NVIDIA H100 NVL. Its output directory is `results/pt5-aa6274dbf717-20261109-063346`. User inspection of `report.json` confirmed **48 timed trials, eight references, zero execution compilation events, and all reference agreements true**. This satisfies timing gate B for the declared native/QDax workload. The inspected output is transcribed in `PT5_cluster_1516.json`; complete raw artifacts remain on the cluster and were not independently fetched to this checkout.
+
+The repeated-phase median across four within-seed medians was **0.0015826839953660965 s native** and **0.001887401333078742 s QDax**, each covering the complete 15-generation execution, not a single generation. The observed QDax/native ratio is approximately **1.193**. This is descriptive diagnostic evidence, without a statistical speedup or publication throughput claim.
+
+The job-local NVIDIA snapshot listed GPU UUID `GPU-32603e59-831b-b60c-6cde-1c48e387f37f`, 561 MiB used, and 0% utilization at sampling. The earlier interactive vLLM snapshot therefore does not establish contention during this job. Conversely, a startup snapshot cannot exclude transient contention throughout measurement. The environment records `dirty=true` with the SHA-256 of an empty tracked diff. This is consistent with untracked files; no complete untracked-file inventory was supplied, so the record is preserved rather than relabeled clean. Full artifacts should be archived before using results in the paper. Scientific P3/P4 work remains open.

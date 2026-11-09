@@ -1,0 +1,61 @@
+{
+  "evidence_source": "User-pasted job stdout and report.json inspection; full cluster artifacts not copied to this checkout.",
+  "job_id": 1516,
+  "status": "passed",
+  "revision": "aa6274dbf7176e5b87a34b1a2b3acb19780ac710",
+  "output_directory": "results/pt5-aa6274dbf717-20261109-063346",
+  "environment": {
+    "python": "3.12.16",
+    "jax": "0.12.0.1",
+    "jaxlib": "0.12.0.1",
+    "numpy": "2.5.4",
+    "platform": "Linux-6.1.0-38-amd64-x86_64-with-glibc2.36",
+    "source_path": "/home/20240485/post_submission_remediation/src/malthusjax/core/timing_records.py",
+    "backend": "gpu",
+    "devices": [
+      "NVIDIA H100 NVL"
+    ],
+    "revision": "aa6274dbf7176e5b87a34b1a2b3acb19780ac710",
+    "dirty": true,
+    "diff_identity": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "timed_trial_count": 48,
+  "reference_count": 8,
+  "execution_compilation_event_count": 0,
+  "all_reference_agreements": true,
+  "timing_summary": {
+    "status": "valid",
+    "phase": "prepared_execution_repeat",
+    "estimator": "median_across_seeds",
+    "count": 4,
+    "left_values": [
+      0.0016268808394670486,
+      0.0014927810989320278,
+      0.0015384871512651443,
+      0.0016300198622047901
+    ],
+    "right_values": [
+      0.0018477188423275948,
+      0.0018771928735077381,
+      0.001898961141705513,
+      0.001897609792649746
+    ],
+    "left_median": 0.0015826839953660965,
+    "right_median": 0.001887401333078742
+  },
+  "qdax_native_time_ratio": 1.1925320143533518,
+  "gpu_snapshot": {
+    "index": 0,
+    "uuid": "GPU-32603e59-831b-b60c-6cde-1c48e387f37f",
+    "name": "NVIDIA H100 NVL",
+    "driver_version": "580.65.06",
+    "memory_used_mib": 561,
+    "utilization_percent": 0
+  },
+  "limitations": [
+    "Snapshot is not continuous device-contention monitoring.",
+    "Dirty flag is true; tracked diff hash is empty. No complete untracked-file inventory was supplied.",
+    "Full phase logs, raw first-use/repeated trials and entrypoint hash remain in cluster artifacts.",
+    "Scoped native/QDax timing gate only; no statistical equivalence or publication throughput inference."
+  ]
+}
