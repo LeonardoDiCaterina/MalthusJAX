@@ -10,7 +10,7 @@ The original audit and probes remain at `audit/2026-11-08/` locally. [Baseline m
 | A02 Invalid statistical defaults | Reproduced | Implemented P4; publication policy pending | Shared finite-sample validity and unavailable inference | Generator statistical claims |
 | A03 Signed metrics/QD meaning | Reproduced/source | Implemented P1/P3; see P3.md | Signed objectives preserved; versioned shared archive definitions; legacy comparisons unavailable | Control returns; Dataset 5 QD/fitness |
 | A04 Placeholder ingestion | Source; baseline dry-run overwrite confirmed in disposable directory | Contained in P2; real generation deferred P10 | Paper `tests/test_ingest_cluster_results.py`: no writes on dry-run/error; no mock fallback | H1/H2/H3 ingestion; historical impact unverified |
-| A05 Crowding | Reproduced | Open, P5 | Independent front-local reference and survival invariance | MO results, if used |
+| A05 Crowding | Reproduced | Implemented P5; see P5.md | Independent front-local reference and survival invariance | MO results, if used |
 | A06 Island horizons | Reproduced | Open, P6 | Exact 0/remainder/divisible horizons | Island fitness/budgets |
 | A07 Island timing | Source | CPU measurement repaired PT2/PT3; hardware PT5 and scheduling P6 pending | Prepared outer run and full waits; unresolved horizons declare timing unavailable | Island scaling |
 | A08 Corrected decisions | Reproduced | Implemented P4 | Corrected p=.06 cannot pass equivalence at .05 | Suite inference |
@@ -18,7 +18,7 @@ The original audit and probes remain at `audit/2026-11-08/` locally. [Baseline m
 | A10 Decision semantics | Source | Implemented P4; publication policy pending | Hypothesis-specific conclusions, margins, uncertainty | Equivalence/zero-overhead claims |
 | A11 Optimize API limits | Source | Open, P8 | Implement or reject controls; truthful termination/covariance | Satellite optimization users/results |
 | A12 Run validity/timeout | Reproduced/source | Open, P9 | Status/finite metrics; enforce or reject requested timeout | Success counts and downstream analysis |
-| A13 Crossover inferred size | Reproduced | Open, P5 | Typed/legacy key/default-size contract | Fast-path callers |
+| A13 Crossover inferred size | Reproduced | Implemented P5; see P5.md | Typed/legacy key/default-size contract | Fast-path callers |
 | A14 Standard deviation sign | Source | Implemented P3 | Sign-invariant standard deviations | Maximization histories/error bars |
 | A15 Gap transform | Source; H1 provenance unresolved | Open, P7/P10 | Explicit estimand/optimum/epsilon and analysis replay | H1/fitness regressions |
 | A16 Adjusted R² | Source | Open, P7 | Match fitted reference statistics | Regression reports |

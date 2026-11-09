@@ -53,43 +53,55 @@ def compute_pareto_ranks(dominance_matrix: chex.Array) -> chex.Array:
 
 
 def compute_crowding_distance(fitness: chex.Array, ranks: chex.Array) -> chex.Array:
-    """Computes the crowding distance for each individual within its Pareto front.
+    """Front-local NSGA-II crowding, summed across objectives (not averaged).
 
-    Args:
-        fitness: (N, M) array of multi-objective fitness values.
-        ranks: (N,) array of integer Pareto ranks (0 is the best front).
-
-    Returns:
-        distances: (N,) array of crowding distances (higher is more diverse, jnp.inf for boundaries).
+    Constant objectives contribute zero, including their arbitrary sorted ends.
+    Fronts with at most two members receive infinity. Ties use input-index order.
+    Empty (0, M) input returns an empty vector. Shape/type mistakes raise at
+    trace time; nonfinite fitness or negative ranks return all-NaN distances in
+    eager and JIT execution, making invalid input explicit without callbacks.
     """
+    if fitness.ndim != 2 or fitness.shape[1] == 0:
+        raise ValueError("fitness must have shape (N, M) with at least one objective")
+    if ranks.ndim != 1 or ranks.shape[0] != fitness.shape[0]:
+        raise ValueError("ranks must have shape (N,) matching fitness")
+    if not jnp.issubdtype(ranks.dtype, jnp.integer):
+        raise ValueError("ranks must have integer dtype")
+    if not (
+        jnp.issubdtype(fitness.dtype, jnp.floating) or jnp.issubdtype(fitness.dtype, jnp.integer)
+    ):
+        raise ValueError("fitness must contain real numeric values")
+    fitness = fitness.astype(jnp.result_type(fitness.dtype, jnp.float32))
     n, num_objectives = fitness.shape
-
-    f_min = jnp.min(fitness, axis=0)
-    f_max = jnp.max(fitness, axis=0)
-    f_range = jnp.maximum(f_max - f_min, 1e-6)
-
-    distances = jnp.zeros(n)
-
+    distances = jnp.zeros(n, dtype=fitness.dtype)
+    if n == 0:
+        return distances
+    valid = jnp.all(jnp.isfinite(fitness)) & jnp.all(ranks >= 0)
+    positions = jnp.arange(n)
     for m in range(num_objectives):
-        idx = jnp.lexsort((fitness[:, m], ranks))
-
+        idx = jnp.lexsort((positions, fitness[:, m], ranks))
         sorted_f = fitness[idx, m]
         sorted_r = ranks[idx]
-
-        diffs = sorted_f[2:] - sorted_f[:-2]
-        same_rank = sorted_r[2:] == sorted_r[:-2]
-        norm_diffs = jnp.where(same_rank, diffs / f_range[m], jnp.inf)
-
-        updates = jnp.full(n, jnp.inf)
-        updates = updates.at[1:-1].set(norm_diffs)
-
-        is_left_boundary = jnp.concatenate([jnp.array([True]), sorted_r[1:] != sorted_r[:-1]])
-        is_right_boundary = jnp.concatenate([sorted_r[:-1] != sorted_r[1:], jnp.array([True])])
-        is_boundary = is_left_boundary | is_right_boundary
-
-        updates = jnp.where(is_boundary, jnp.inf, updates)
-
-        orig_updates = jnp.zeros(n).at[idx].set(updates)
-        distances += orig_updates
-
-    return distances
+        left = jnp.concatenate((jnp.array([True]), sorted_r[1:] != sorted_r[:-1]))
+        right = jnp.concatenate((sorted_r[:-1] != sorted_r[1:], jnp.array([True])))
+        # Forward/backward scans locate each member's own front, even for
+        # noncontiguous rank labels. No dense N-by-N crowding mask is needed.
+        start = jax.lax.associative_scan(jnp.maximum, jnp.where(left, positions, 0))
+        end = jax.lax.associative_scan(
+            jnp.minimum, jnp.where(right, positions, n - 1), reverse=True
+        )
+        low, high = sorted_f[start], sorted_f[end]
+        span = high - low
+        previous, following = jnp.roll(sorted_f, 1), jnp.roll(sorted_f, -1)
+        ordinary = (following - previous) / jnp.where(span > 0, span, 1)
+        # Finite endpoints can overflow their subtraction. Scale only in that
+        # case; no epsilon floor changes distances on small nonzero ranges.
+        scale = jnp.maximum(jnp.abs(low), jnp.abs(high))
+        scale = jnp.where(scale > 0, scale, 1)
+        scaled_span = high / scale - low / scale
+        scaled = (following / scale - previous / scale) / jnp.where(scaled_span > 0, scaled_span, 1)
+        gap = jnp.where(jnp.isfinite(span), ordinary, scaled)
+        updates = jnp.where(span > 0, jnp.where(left | right, jnp.inf, gap), 0.0)
+        updates = jnp.where(end - start < 2, jnp.inf, updates)
+        distances = distances + jnp.zeros_like(distances).at[idx].set(updates)
+    return jnp.where(valid, distances, jnp.nan)

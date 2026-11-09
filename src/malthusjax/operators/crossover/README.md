@@ -194,6 +194,22 @@ offspring_pop = crossover(all_keys, p1_pop, p2_pop, config)
 # Result: offspring_pop has 8 individuals (4 pairs × 2 offspring each)
 ```
 
+### Batch validation
+
+`input_length=-1` infers the pair count from the parent gene arrays. This also
+works in `apply_fastpath`; its two parent arrays must have matching shapes.
+A configured nonnegative `input_length` must match the actual pair count
+(`0` explicitly means an empty batch). Population calls validate every gene
+PyTree leaf's leading batch axis and matching parent structure/shapes.
+
+Supply exactly `pairs * num_offspring * num_keys_per_atomic_operation` keys.
+Typed PRNG keys and legacy `uint32[..., 2]` keys are accepted, either as split
+key batches or in already grouped layouts. Key dtype determines the format;
+ordinary numeric arrays are not treated as typed keys. Wrong sizes/shapes fail
+before vmap/recombination. Keys are never silently split, reused, or discarded.
+`apply_fastpath` continues to support one offspring per pair; use the population
+path for multiple offspring, returned in pair-major order.
+
 ### Internal Implementation Details (Developers Only)
 
 The above user call internally executes these Tier-3 (vmap) nested iterations:

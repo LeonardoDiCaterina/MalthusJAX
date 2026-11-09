@@ -1,6 +1,7 @@
 import dataclasses
 import warnings
 from abc import abstractmethod
+from numbers import Integral
 from typing import Any, Generic, Optional, Tuple, TypeVar, cast
 
 import chex
@@ -406,6 +407,44 @@ class BaseCrossover(Generic[G, C]):
         noise = self._generate_noise(keys, config, generation)
         return self._recombine_one(p1, p2, noise, config)
 
+    def _parent_batch_length(self, first: Any, second: Any) -> int:
+        """Validate static parent shapes before vmap or key reshaping."""
+        left, left_tree = jax.tree_util.tree_flatten(first)
+        right, right_tree = jax.tree_util.tree_flatten(second)
+        if left_tree != right_tree or not left:
+            raise ValueError("Parents must have the same nonempty gene PyTree structure")
+        if any(not hasattr(x, "shape") or len(x.shape) < 1 for x in left + right):
+            raise ValueError("Every parent gene leaf must have a batch axis")
+        count = left[0].shape[0]
+        if any(a.shape != b.shape or a.shape[0] != count for a, b in zip(left, right)):
+            raise ValueError("Parent gene shapes and batch lengths must match")
+        if not isinstance(self.input_length, Integral) or self.input_length < -1:
+            raise ValueError("input_length must be -1 (inferred) or a nonnegative integer")
+        if self.input_length >= 0 and self.input_length != count:
+            raise ValueError(
+                f"Configured input_length={self.input_length} does not match {count} parent pairs"
+            )
+        if not isinstance(self.num_offspring, Integral) or self.num_offspring < 1:
+            raise ValueError("num_offspring must be a positive integer")
+        return count
+
+    def _batch_keys(self, all_keys: chex.Array, count: int) -> chex.Array:
+        """Consume exactly the supplied key budget; never silently split/reuse."""
+        n_keys = self.num_keys_per_atomic_operation
+        expected = count * self.num_offspring * n_keys
+        if jnp.issubdtype(all_keys.dtype, jax.dtypes.prng_key):
+            actual = all_keys.size
+            suffix = ()
+        elif all_keys.dtype == jnp.uint32 and all_keys.ndim >= 1 and all_keys.shape[-1] == 2:
+            actual = all_keys.size // 2
+            suffix = (2,)
+        else:
+            raise ValueError("Crossover keys must be typed PRNG keys or legacy uint32[..., 2] keys")
+        if actual != expected:
+            raise ValueError(f"Crossover requires exactly {expected} keys, received {actual}")
+        shape = (count, n_keys) if self.num_offspring == 1 else (count, self.num_offspring, n_keys)
+        return all_keys.reshape(shape + suffix)
+
     def apply_fastpath(
         self,
         all_keys: chex.Array,
@@ -419,19 +458,10 @@ class BaseCrossover(Generic[G, C]):
         Takes flat arrays, generates noise, and maps _apply_mask across the batch.
         Bypasses PyTree overhead completely.
         """
-        n_keys = self.num_keys_per_atomic_operation
         if self.num_offspring != 1:
             raise NotImplementedError("apply_fastpath only supports num_offspring=1.")
-
-        is_legacy = (
-            all_keys.dtype == jnp.uint32 and all_keys.ndim >= 1 and all_keys.shape[-1] == 2
-        )
-        typed = (not is_legacy) and (self.typed_keys or is_new_style_key(all_keys))
-        in_len = self.input_length if self.input_length > 0 else flat_values.shape[0]
-        if typed:
-            keys_flat = all_keys.reshape(in_len, n_keys)
-        else:
-            keys_flat = all_keys.reshape(in_len, n_keys, 2)
+        in_len = self._parent_batch_length(p1_values, p2_values)
+        keys_flat = self._batch_keys(all_keys, in_len)
 
         def _cross_flat(k: chex.Array, val1: chex.Array, val2: chex.Array) -> chex.Array:
             noise = self._generate_noise(k, config, generation)
@@ -479,27 +509,11 @@ class BaseCrossover(Generic[G, C]):
         for num_offspring == 1, performs a simple vmap over pairs with no reshape.
         for num_offspring > 1, performs a nested vmap and then flattens
         """
-        n_keys = self.num_keys_per_atomic_operation
-
-        is_legacy = (
-            all_keys.dtype == jnp.uint32 and all_keys.ndim >= 1 and all_keys.shape[-1] == 2
-        )
-        typed = (not is_legacy) and (self.typed_keys or is_new_style_key(all_keys))
-        in_len = (
-            self.input_length
-            if self.input_length > 0
-            else (
-                p1_pop.genes.values.shape[0]
-                if hasattr(p1_pop.genes, "values")
-                else len(p1_pop)
-            )
-        )
+        in_len = self._parent_batch_length(p1_pop.genes, p2_pop.genes)
+        keys = self._batch_keys(all_keys, in_len)
 
         if self.num_offspring == 1:
-            if typed:
-                keys_flat = all_keys.reshape(in_len, n_keys)
-            else:
-                keys_flat = all_keys.reshape(in_len, n_keys, 2)
+            keys_flat = keys
 
             def _cross_flat(k: chex.Array, p1: G, p2: G) -> G:
                 return self._cross_fused(k, p1, p2, config, generation)
@@ -509,10 +523,7 @@ class BaseCrossover(Generic[G, C]):
             )
             return p1_pop.spawn_offspring(new_genes)
 
-        if typed:
-            keys_reshaped = all_keys.reshape(in_len, self.num_offspring, n_keys)
-        else:
-            keys_reshaped = all_keys.reshape(in_len, self.num_offspring, n_keys, 2)
+        keys_reshaped = keys
 
         def _process_pairs(k_block: chex.Array, parent1: G, parent2: G) -> Any:
             def _inner_cross(k: chex.Array) -> G:

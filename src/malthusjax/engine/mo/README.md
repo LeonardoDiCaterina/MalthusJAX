@@ -45,6 +45,22 @@ Key architectural mechanisms:
 
 ---
 
+## Crowding-distance contract
+
+Crowding is normalized independently within each Pareto front and objective,
+then summed across objectives. Adding an unrelated front cannot change an
+existing front's distances or its survivor ordering. No epsilon floor changes
+small nonzero objective ranges; very large finite ranges are scaled if their
+subtraction would overflow.
+
+Zero-range objectives contribute zero. Fronts of one or two members receive
+infinite distance; a larger front with all objectives constant receives zeros.
+Tied objective values use original input-index order deterministically. An empty
+`(0, M)` fitness array yields an empty distance vector. Invalid shapes/rank
+dtypes raise during tracing; nonfinite objective values or negative ranks return
+all-NaN distances in both eager and JIT calls. These are unavailable distances,
+not valid diversity scores; complete run-status validation remains P9 work.
+
 ## Class Reference
 
 ### `MOEngineParams`
