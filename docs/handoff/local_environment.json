@@ -1,0 +1,25 @@
+{
+  "evidence_origin": "Local metadata inspection on 2026-11-09; not a cluster snapshot",
+  "python": "3.12.5 | packaged by conda-forge | (main, Aug  8 2024, 18:32:50) [Clang 16.0.6 ]",
+  "executable": "/opt/anaconda3/bin/python3",
+  "platform": "macOS-27.2-arm64-arm-64bit",
+  "packages": {
+    "jax": "0.11.0",
+    "jaxlib": "0.11.0",
+    "numpy": "2.5.1",
+    "flax": "0.12.8",
+    "chex": "0.1.91",
+    "scipy": "1.18.0",
+    "pandas": "3.0.5",
+    "statsmodels": "0.14.6",
+    "evosax": "0.2.0",
+    "qdax": "0.5.0",
+    "bbobax": "0.1.0",
+    "brax": "0.14.2",
+    "mujoco": "3.10.0",
+    "malthusjax": "0.2.0",
+    "malthus-gp": "0.1.0",
+    "malthus-neat": "0.1.0",
+    "malthus-optimize": "0.1.0"
+  }
+}

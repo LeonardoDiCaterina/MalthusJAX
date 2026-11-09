@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "evidence_origin": "User-pasted stdout, stderr and JSON inspections from this chat; raw cluster artifacts not copied locally",
+  "as_of_date": "2026-11-09",
+  "jobs": [
+    {
+      "job_id": 1303,
+      "kind": "historical smoke diagnostic",
+      "status": "execution completed, timing contamination identified",
+      "checkout": "/home/20240485/post_submission_remediation",
+      "output": "results/remediation-1303",
+      "scope": "Historical failure evidence; do not reuse its execution ratios for publication",
+      "evidence_reference": "docs/audit_remediation/timing_cluster_observations.json"
+    },
+    {
+      "job_id": 1516,
+      "kind": "earlier PT5 timing validation",
+      "status": "passed",
+      "revision": "aa6274dbf7176e5b87a34b1a2b3acb19780ac710",
+      "output": "results/pt5-aa6274dbf717-20261109-063346",
+      "reported_counts": {
+        "timed_trials": 48,
+        "references": 8,
+        "execution_compilation_events": 0,
+        "all_reference_agreements": true
+      },
+      "evidence_reference": "docs/audit_remediation/PT5_cluster_1516.json"
+    },
+    {
+      "job_id": 1630,
+      "kind": "five-dataset GPU smoke",
+      "status": "reported successful",
+      "revision_context": "Checkout was fast-forwarded to 0e1752f2 before submission; smoke metadata excerpt does not contain revision",
+      "checkout": "/home/20240485/post_submission",
+      "output": "results/gpu1-smoke-1630/empirical_curves.json",
+      "tables": "results/gpu1-smoke-1630/tables",
+      "elapsed_seconds": 657.85,
+      "exported_datasets": 5,
+      "exported_tables": 4,
+      "metadata": {
+        "schema_version": 2,
+        "generated_at": "2026-11-09T11:29:29Z",
+        "tier": "smoke",
+        "python_version": "3.12.16",
+        "jax_version": "0.12.0.1",
+        "backend": "gpu",
+        "devices": [
+          "cuda:0"
+        ]
+      },
+      "dataset_5": {
+        "population": 32,
+        "generations": 15,
+        "seeds": 2,
+        "native_ms_per_generation": 0.1942181804527839,
+        "qdax_ms_per_generation": 0.20542486260334653,
+        "qdax_native_ratio": 1.057701509325421,
+        "legacy_p_values": null,
+        "qd_comparison": "comparable: occupied higher-is-better fitness sum; offset=0; no inference implied"
+      },
+      "stderr": "Progress bars; Brax maintenance warnings; legacy PRNGKey deprecations; no visible traceback in pasted log",
+      "scope": "Smoke only; not a publication inference or matched-workload power pilot",
+      "log_stdout": "logs/mjx_gpu1_smoke_1630.out",
+      "log_stderr": "logs/mjx_gpu1_smoke_1630.err"
+    },
+    {
+      "job_id": 1649,
+      "kind": "current-code-revision PT5 timing validation",
+      "status": "passed",
+      "revision": "0e1752f24c36b08d149210b6a503f8545effcb99",
+      "checkout": "/home/20240485/post_submission",
+      "output": "results/pt5-0e1752f24c36-1649",
+      "slurm_job_gpus": "1",
+      "cuda_visible_devices": "0",
+      "timing_phase": "prepared_execution_repeat",
+      "estimator": "median_across_seeds",
+      "seed_summaries": 4,
+      "native_median_seconds": 0.0015328715089708567,
+      "qdax_median_seconds": 0.001855336595326662,
+      "error": null,
+      "evidence_reference": "docs/publication_design/PT5_job_1649_user_summary.json",
+      "scope": "Protocol gate accepted; no repeat proposed. No raw-report trial/reference/compilation counts available in this stdout excerpt.",
+      "log_stdout": "logs/mjx_pt5_timing_1649.out",
+      "log_stderr": "logs/mjx_pt5_timing_1649.err"
+    }
+  ]
+}
