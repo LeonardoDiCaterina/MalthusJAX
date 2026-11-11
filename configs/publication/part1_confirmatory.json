@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "suite": "part1_confirmatory",
+  "status": "pilot_ready_bounds_and_margin_pending_freeze",
+  "libraries": ["evosax", "qdax"],
+  "full_grid": {
+    "functions": [
+      "sphere",
+      "rastrigin",
+      "rosenbrock",
+      "ellipsoidal_rotated",
+      "schaffers_f7",
+      "gallagher_101_me"
+    ],
+    "instances": [1, 2],
+    "dims": [10, 20, 50],
+    "populations": [128],
+    "sensitivity_populations": [512],
+    "generations": [50, 150, 500],
+    "seeds_range": [3000, 3099],
+    "candidate_n": 100
+  },
+  "pilot_grid": {
+    "functions": [
+      "sphere",
+      "rastrigin",
+      "rosenbrock"
+    ],
+    "instances": [1],
+    "dims": [10, 50],
+    "populations": [128],
+    "generations": [50, 150],
+    "seeds": [1000, 1001, 1002, 1003, 1004],
+    "timing_repetitions": 5
+  },
+  "smoke_grid": {
+    "functions": ["sphere"],
+    "instances": [1],
+    "dims": [10],
+    "populations": [16],
+    "generations": [2],
+    "seeds": [1000],
+    "timing_repetitions": 1
+  },
+  "bounds": [-5.0, 5.0],
+  "primary_metric": {
+    "name": "log10_error",
+    "formula": "log10(max(final_objective - f_opt, epsilon))",
+    "epsilon": 1e-8,
+    "candidate_equivalence_margin": 0.05
+  },
+  "conditions": {
+    "evosax": ["evosax_direct", "evosax_adapter", "evosax_native"],
+    "qdax": ["qdax_direct", "qdax_adapter", "qdax_native"]
+  },
+  "condition_parameters": {
+    "evosax": {
+      "crossover_rate": 0.3,
+      "elite_ratio": 0.16666666
+    },
+    "qdax": {
+      "num_centroids": 100,
+      "qd_variation_percentage": 0.5,
+      "qd_mutation_sigma": 0.1
+    }
+  },
+  "timing_protocol": {
+    "warmup_calls": 1,
+    "steady_repetitions": 5,
+    "counterbalanced_order": true,
+    "separate_jit": true
+  }
+}
