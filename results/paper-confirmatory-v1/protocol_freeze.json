@@ -1,0 +1,109 @@
+{
+  "schema_version": 2,
+  "status": "frozen_confirmed_from_pilot_v2",
+  "timestamp_utc": "2026-11-11T11:50:00Z",
+  "pilot_v2_outcome": {
+    "status": "success",
+    "pilot_seed_blocks": 720,
+    "pilot_runs": 4320,
+    "tost_equivalence_all_contrasts": true,
+    "evosax_native_speedup": 1.864,
+    "qdax_native_speedup": 0.997,
+    "full_grid_gpu_hours_n100": 3.04
+  },
+  "script_hashes": {
+    "scripts/run_publication_part1_confirmatory.py": "d1e77cb653f41b7c7f7efa4a63066ff8e9ec3c52b880a2f23f4371c7fd47b8e8",
+    "scripts/submit_publication_confirmatory.sh": "5f0d54f73d5a441f9ccaa275a06ad957bf88efc500e2097f763412bc6a1f5460",
+    "configs/publication/part1_confirmatory.json": "82332f24d3b3fd109956fd69cc78c0185b608b8d158fdef2049a24cc2bef550a",
+    "docs/part1_confirmatory_v2_artifact_spec.md": "491457b505cf110935d4e5a1f6a769bda58a999373274024120fa8e099aa9474"
+  },
+  "frozen_protocol": {
+    "full_grid": {
+      "functions": [
+        "sphere",
+        "rastrigin",
+        "rosenbrock",
+        "ellipsoidal_rotated",
+        "schaffers_f7",
+        "gallagher_101_me"
+      ],
+      "instances": [
+        1,
+        2
+      ],
+      "dims": [
+        10,
+        20,
+        50
+      ],
+      "populations": [
+        128
+      ],
+      "sensitivity_populations": [
+        512
+      ],
+      "generations": [
+        50,
+        150,
+        500
+      ],
+      "seeds_range": [
+        2000,
+        2099
+      ],
+      "candidate_n": 100,
+      "timing_repetitions": 5
+    },
+    "primary_metric": {
+      "name": "log10_error",
+      "formula": "log10(max(final_objective - f_opt, epsilon))",
+      "epsilon": 1e-08,
+      "candidate_equivalence_margin": 0.05,
+      "sensitivity_margins": [
+        0.025,
+        0.05,
+        0.1
+      ]
+    },
+    "qd_metrics": {
+      "primary": [
+        "qd_score",
+        "coverage",
+        "max_fitness",
+        "archive_entropy"
+      ],
+      "candidate_relative_margin": 0.05,
+      "candidate_coverage_margin_pct": 5.0
+    },
+    "conditions": {
+      "evosax": [
+        "evosax_direct",
+        "evosax_adapter",
+        "evosax_native"
+      ],
+      "qdax": [
+        "qdax_direct",
+        "qdax_adapter",
+        "qdax_native"
+      ]
+    },
+    "condition_parameters": {
+      "evosax": {
+        "crossover_rate": 0.3,
+        "elite_ratio": 0.16666666
+      },
+      "qdax": {
+        "num_centroids": 100,
+        "qd_variation_percentage": 0.5,
+        "qd_mutation_sigma": 0.1
+      }
+    },
+    "timing_protocol": {
+      "warmup_calls": 1,
+      "steady_repetitions": 5,
+      "counterbalanced_order": true,
+      "separate_jit": true,
+      "retain_compiled_executable_per_cell": true
+    }
+  }
+}
