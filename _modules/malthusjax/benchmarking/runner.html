@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
 
-    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.1.1 and Furo 2025.12.19 -->
         <title>malthusjax.benchmarking.runner - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
@@ -354,8 +354,11 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span>
 
@@ -364,8 +367,9 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">..core.logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..core.random</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_key</span><span class="p">,</span> <span class="n">resolve_prng_impl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..core.timing_records</span><span class="w"> </span><span class="kn">import</span> <span class="n">TimingPolicy</span><span class="p">,</span> <span class="n">TimingRecord</span><span class="p">,</span> <span class="n">environment_identity</span><span class="p">,</span> <span class="n">json_safe</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_experiment_artifacts</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.results</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExperimentResult</span><span class="p">,</span> <span class="n">RunResult</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.results</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExperimentResult</span><span class="p">,</span> <span class="n">RunResult</span><span class="p">,</span> <span class="n">standard_json</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="s2">"benchmarking.runner"</span><span class="p">)</span>
 
@@ -387,8 +391,11 @@
     <span class="n">output_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">write_artifacts</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">prng_impl</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">trace_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># If set, capture JAX trace for seed[0]</span>
+    <span class="n">trace_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Legacy option; profiler capture is currently disabled.</span>
+    <span class="n">configuration</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">serialize_history</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># If False, drops generation history to save disk space</span>
+
+    <span class="n">timing_policy</span><span class="p">:</span> <span class="n">TimingPolicy</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">TimingPolicy</span><span class="p">)</span>
 
 <div class="viewcode-block" id="BenchmarkRunner.run">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.runner.html#malthusjax.benchmarking.BenchmarkRunner.run">[docs]</a>
@@ -407,7 +414,16 @@
 <span class="sd">        directory is provided the corresponding JSON/CSV artifacts are also</span>
 <span class="sd">        written.</span>
 <span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">timeout_seconds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s2">"Hard timeouts require a subprocess/job boundary; this runner cannot enforce them"</span>
+            <span class="p">)</span>
         <span class="n">runs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">RunResult</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">identity</span> <span class="o">=</span> <span class="n">environment_identity</span><span class="p">()</span>
+        <span class="n">configuration_snapshot</span> <span class="o">=</span> <span class="n">standard_json</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configuration</span><span class="p">))</span>
+        <span class="n">configuration_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">configuration_snapshot</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">allow_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">seeds</span><span class="p">))</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">seeds</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Duplicate seeds are ambiguous timing observations"</span><span class="p">)</span>
 
         <span class="n">impl</span> <span class="o">=</span> <span class="n">resolve_prng_impl</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prng_impl</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prng_impl</span> <span class="k">else</span> <span class="kc">None</span>
 
@@ -422,6 +438,74 @@
             <span class="c1"># Only trace the first seed</span>
             <span class="n">trace_this</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trace_dir</span> <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
             <span class="n">run_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run_single_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">timeout_seconds</span><span class="p">,</span> <span class="n">trace_dir</span><span class="o">=</span><span class="n">trace_this</span><span class="p">)</span>
+            <span class="n">run_result</span><span class="o">.</span><span class="n">timing_record</span> <span class="o">=</span> <span class="n">TimingRecord</span><span class="o">.</span><span class="n">from_producer</span><span class="p">(</span>
+                <span class="n">run_result</span><span class="o">.</span><span class="n">timings</span><span class="p">,</span>
+                <span class="n">run_result</span><span class="o">.</span><span class="n">timing_metadata</span><span class="p">,</span>
+                <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+                <span class="n">order</span><span class="o">=</span><span class="n">i</span><span class="p">,</span>
+                <span class="n">environment</span><span class="o">=</span><span class="n">identity</span><span class="p">,</span>
+                <span class="n">duration</span><span class="o">=</span><span class="n">run_result</span><span class="o">.</span><span class="n">duration_seconds</span><span class="p">,</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+            <span class="n">record</span> <span class="o">=</span> <span class="n">run_result</span><span class="o">.</span><span class="n">timing_record</span>
+            <span class="n">record</span><span class="p">[</span><span class="s2">"target_phase"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">timing_policy</span><span class="o">.</span><span class="n">target_phase</span>
+            <span class="n">record</span><span class="p">[</span><span class="s2">"policy"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">timing_policy</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+            <span class="n">record</span><span class="p">[</span><span class="s2">"trial_results"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">trial_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span>
+                <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">timing_policy</span><span class="o">.</span><span class="n">preconditioning</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">timing_policy</span><span class="o">.</span><span class="n">repetitions</span>
+            <span class="p">):</span>
+                <span class="n">repeat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run_single_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">create_key</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">impl</span><span class="o">=</span><span class="n">impl</span><span class="p">),</span> <span class="n">timeout_seconds</span><span class="p">)</span>
+                <span class="n">repeated_record</span> <span class="o">=</span> <span class="n">TimingRecord</span><span class="o">.</span><span class="n">from_producer</span><span class="p">(</span>
+                    <span class="n">repeat</span><span class="o">.</span><span class="n">timings</span><span class="p">,</span>
+                    <span class="n">repeat</span><span class="o">.</span><span class="n">timing_metadata</span><span class="p">,</span>
+                    <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+                    <span class="n">order</span><span class="o">=</span><span class="n">i</span><span class="p">,</span>
+                    <span class="n">environment</span><span class="o">=</span><span class="n">identity</span><span class="p">,</span>
+                    <span class="n">duration</span><span class="o">=</span><span class="n">repeat</span><span class="o">.</span><span class="n">duration_seconds</span><span class="p">,</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+                <span class="n">record</span><span class="p">[</span><span class="s2">"trial_results"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="s2">"trial_id"</span><span class="p">:</span> <span class="n">trial_id</span><span class="p">,</span>
+                        <span class="s2">"result"</span><span class="p">:</span> <span class="n">json_safe</span><span class="p">(</span><span class="n">repeat</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()),</span>
+                        <span class="s2">"timing_record"</span><span class="p">:</span> <span class="n">repeated_record</span><span class="p">,</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
+                <span class="n">trial</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">repeated_record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"trials"</span><span class="p">)</span>
+                    <span class="ow">or</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                            <span class="s2">"seconds"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                            <span class="s2">"status"</span><span class="p">:</span> <span class="s2">"unavailable"</span><span class="p">,</span>
+                            <span class="s2">"reason"</span><span class="p">:</span> <span class="n">repeated_record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"reason"</span><span class="p">),</span>
+                        <span class="p">}</span>
+                    <span class="p">]</span>
+                <span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">trial</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                    <span class="n">trial_id</span><span class="o">=</span><span class="n">trial_id</span><span class="p">,</span>
+                    <span class="n">phase</span><span class="o">=</span><span class="s2">"preconditioning"</span>
+                    <span class="k">if</span> <span class="n">trial_id</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">timing_policy</span><span class="o">.</span><span class="n">preconditioning</span>
+                    <span class="k">else</span> <span class="s2">"prepared_execution_repeat"</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">record</span><span class="p">[</span><span class="s2">"trials"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trial</span><span class="p">)</span>
+                <span class="k">def</span><span class="w"> </span><span class="nf">objective</span><span class="p">(</span><span class="n">row</span><span class="p">:</span> <span class="n">RunResult</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+                    <span class="k">return</span> <span class="p">{</span>
+                        <span class="n">k</span><span class="p">:</span> <span class="n">v</span>
+                        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">row</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                        <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">"duration_seconds"</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"time_"</span><span class="p">)</span>
+                    <span class="p">}</span>
+                <span class="n">agrees</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">objective</span><span class="p">(</span><span class="n">repeat</span><span class="p">)</span> <span class="o">==</span> <span class="n">objective</span><span class="p">(</span><span class="n">run_result</span><span class="p">)</span>
+                    <span class="ow">and</span> <span class="n">repeat</span><span class="o">.</span><span class="n">history</span> <span class="o">==</span> <span class="n">run_result</span><span class="o">.</span><span class="n">history</span>
+                <span class="p">)</span>
+                <span class="n">record</span><span class="p">[</span><span class="s2">"trial_results"</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">"objective_agreement"</span><span class="p">]</span> <span class="o">=</span> <span class="n">agrees</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="ow">not</span> <span class="n">agrees</span>
+                    <span class="ow">or</span> <span class="n">repeated_record</span><span class="p">[</span><span class="s2">"status"</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">"valid"</span>
+                    <span class="ow">or</span> <span class="n">repeated_record</span><span class="p">[</span><span class="s2">"signature"</span><span class="p">]</span> <span class="o">!=</span> <span class="n">record</span><span class="p">[</span><span class="s2">"signature"</span><span class="p">]</span>
+                <span class="p">):</span>
+                    <span class="n">record</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                        <span class="n">status</span><span class="o">=</span><span class="s2">"unavailable"</span><span class="p">,</span>
+                        <span class="n">reason</span><span class="o">=</span><span class="s2">"Repeated trial failed, seeded output differed, or executable signature changed"</span><span class="p">,</span>
+                    <span class="p">)</span>
             <span class="n">runs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">run_result</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s2">"Seed </span><span class="si">%d</span><span class="s2">/</span><span class="si">%d</span><span class="s2"> done status=</span><span class="si">%s</span><span class="s2"> duration=</span><span class="si">%.2f</span><span class="s2">s"</span><span class="p">,</span>
@@ -440,6 +524,17 @@
                 <span class="s2">"total_runs"</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">runs</span><span class="p">),</span>
                 <span class="s2">"successful_runs"</span><span class="p">:</span> <span class="nb">len</span><span class="p">([</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">runs</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s2">"success"</span><span class="p">]),</span>
                 <span class="s2">"serialize_history"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">serialize_history</span><span class="p">,</span>
+                <span class="s2">"configuration"</span><span class="p">:</span> <span class="n">configuration_snapshot</span><span class="p">,</span>
+                <span class="s2">"configuration_status"</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="s2">"partial_runtime_objects"</span>
+                    <span class="k">if</span> <span class="s2">"unserializable_type"</span> <span class="ow">in</span> <span class="n">configuration_json</span>
+                    <span class="k">else</span> <span class="s2">"declared"</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">configuration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="s2">"unknown"</span><span class="p">,</span>
+                <span class="s2">"configuration_sha256"</span><span class="p">:</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">configuration_json</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">(),</span>
+                <span class="s2">"timing_policy"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">timing_policy</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span>
+                <span class="s2">"timing_environment"</span><span class="p">:</span> <span class="n">identity</span><span class="p">,</span>
             <span class="p">},</span>
         <span class="p">)</span>
 
@@ -461,13 +556,13 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RunResult</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Execute the engine for one seed and package the outcome.</span>
 
-<span class="sd">        The method measures wall time, optionally wraps the engine invocation</span>
-<span class="sd">        in a JAX profiler trace, and normalizes the returned summary metrics to</span>
-<span class="sd">        floats.  Any exceptions raised by the engine are caught and recorded in</span>
+<span class="sd">        The method measures wall time and normalizes returned summary metrics.</span>
+<span class="sd">        The legacy trace_dir option currently produces no profiler output.</span>
+<span class="sd">        Any exceptions raised by the engine are caught and recorded in</span>
 <span class="sd">        the resulting :class:`RunResult` with ``status="error"``.</span>
 <span class="sd">        """</span>
 
-        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">trace_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -516,7 +611,25 @@
                 <span class="k">if</span> <span class="s2">"generation"</span> <span class="ow">in</span> <span class="n">last</span><span class="p">:</span>
                     <span class="n">metrics</span><span class="p">[</span><span class="s2">"final_generation"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">last</span><span class="p">[</span><span class="s2">"generation"</span><span class="p">])</span>
 
-            <span class="n">duration</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+            <span class="k">if</span> <span class="s2">"best_fitness"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metrics</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">metrics</span><span class="p">[</span><span class="s2">"best_fitness"</span><span class="p">]):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Run returned no finite required best_fitness"</span><span class="p">)</span>
+            <span class="n">expected</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">,</span> <span class="s2">"num_generations"</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">,</span> <span class="s2">"generations"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">expected</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">candidate</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">,</span> <span class="s2">"genetic_engine"</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">,</span> <span class="s2">"mo_engine"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="n">expected</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span>
+                    <span class="nb">getattr</span><span class="p">(</span><span class="n">candidate</span><span class="p">,</span> <span class="s2">"engine_params"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">"num_generations"</span><span class="p">,</span> <span class="kc">None</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">expected</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="ow">and</span> <span class="s2">"final_generation"</span> <span class="ow">in</span> <span class="n">metrics</span>
+                <span class="ow">and</span> <span class="n">metrics</span><span class="p">[</span><span class="s2">"final_generation"</span><span class="p">]</span> <span class="o">!=</span> <span class="n">expected</span>
+            <span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Reported completed horizon differs from requested horizon"</span><span class="p">)</span>
+            <span class="n">duration</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
             <span class="n">metrics</span><span class="p">[</span><span class="s2">"duration_seconds"</span><span class="p">]</span> <span class="o">=</span> <span class="n">duration</span>
 
             <span class="k">if</span> <span class="n">timings</span><span class="p">:</span>
@@ -537,13 +650,15 @@
                 <span class="n">history</span><span class="o">=</span><span class="n">history</span><span class="p">,</span>
                 <span class="n">duration_seconds</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span>
                 <span class="n">timings</span><span class="o">=</span><span class="n">timings</span><span class="p">,</span>
+                <span class="n">timing_metadata</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">engine_result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"timing_metadata"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}),</span>
+                <span class="n">metric_metadata</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">engine_result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"metric_metadata"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}),</span>
             <span class="p">)</span>
 
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
 
             <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
-            <span class="n">duration</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+            <span class="n">duration</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
             <span class="k">return</span> <span class="n">RunResult</span><span class="p">(</span>
                 <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
                 <span class="n">status</span><span class="o">=</span><span class="s2">"error"</span><span class="p">,</span>
@@ -601,7 +716,7 @@
 
             <span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                 <span class="p">{</span>
-                    <span class="s2">"generation"</span><span class="p">:</span> <span class="n">gen</span><span class="p">,</span>
+                    <span class="s2">"generation"</span><span class="p">:</span> <span class="n">gen</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
                     <span class="s2">"best_fitness"</span><span class="p">:</span> <span class="n">current_fitness</span><span class="p">,</span>
                     <span class="s2">"mean_fitness"</span><span class="p">:</span> <span class="n">current_fitness</span> <span class="o">+</span> <span class="mf">0.1</span><span class="p">,</span>
                     <span class="s2">"std_fitness"</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
@@ -610,7 +725,7 @@
 
         <span class="n">summary</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">"best_fitness"</span><span class="p">:</span> <span class="n">current_fitness</span><span class="p">,</span>
-            <span class="s2">"final_generation"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">generations</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s2">"final_generation"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">generations</span><span class="p">,</span>
             <span class="s2">"total_evaluations"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">generations</span> <span class="o">*</span> <span class="mi">50</span><span class="p">,</span>  <span class="c1"># fake pop size</span>
         <span class="p">}</span>
 

@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
 
-    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.1.1 and Furo 2025.12.19 -->
         <title>malthusjax.benchmarking.results - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
@@ -373,6 +373,27 @@
     <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.figure</span><span class="w"> </span><span class="kn">import</span> <span class="n">Figure</span>
 
 
+<div class="viewcode-block" id="standard_json">
+<a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.standard_json">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">standard_json</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Unavailable numeric values serialize as null, never nonstandard JSON NaN."""</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="n">standard_json</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">standard_json</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s2">"tolist"</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">standard_json</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">value</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">"unserializable_type"</span><span class="p">:</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="vm">__module__</span> <span class="o">+</span> <span class="s2">"."</span> <span class="o">+</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="vm">__qualname__</span><span class="p">,</span>
+        <span class="s2">"repr"</span><span class="p">:</span> <span class="nb">repr</span><span class="p">(</span><span class="n">value</span><span class="p">),</span>
+    <span class="p">}</span></div>
+
+
+
 <div class="viewcode-block" id="RunResult">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.RunResult">[docs]</a>
 <span class="nd">@dataclass</span>
@@ -393,6 +414,10 @@
     <span class="n">timings</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">error</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">created_at</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">))</span>
+    <span class="n">timing_metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="n">timing_record</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="n">metric_metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="n">unavailable_metrics</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
 
 <div class="viewcode-block" id="RunResult.to_dict">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.RunResult.to_dict">[docs]</a>
@@ -401,23 +426,41 @@
 
 <span class="sd">        The ISO-formatted ``created_at`` timestamp is included directly.</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">"seed"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span>
-            <span class="s2">"status"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">,</span>
-            <span class="s2">"metrics"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">,</span>
-            <span class="s2">"history"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">,</span>
-            <span class="s2">"artifacts"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">artifacts</span><span class="p">,</span>
-            <span class="s2">"duration_seconds"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">duration_seconds</span><span class="p">,</span>
-            <span class="s2">"timings"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">timings</span><span class="p">,</span>
-            <span class="s2">"error"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">,</span>
-            <span class="s2">"created_at"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">created_at</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
-        <span class="p">}</span></div>
+        <span class="n">invalid</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unavailable_metrics</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)):</span>
+                    <span class="n">invalid</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">invalid</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">"unavailable"</span><span class="p">)</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">"invalid"</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s2">"success"</span> <span class="ow">and</span> <span class="s2">"best_fitness"</span> <span class="ow">in</span> <span class="n">invalid</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">standard_json</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">"seed"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span>
+                <span class="s2">"status"</span><span class="p">:</span> <span class="n">status</span><span class="p">,</span>
+                <span class="s2">"unavailable_metrics"</span><span class="p">:</span> <span class="n">invalid</span><span class="p">,</span>
+                <span class="s2">"metrics"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">,</span>
+                <span class="s2">"history"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">,</span>
+                <span class="s2">"artifacts"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">artifacts</span><span class="p">,</span>
+                <span class="s2">"duration_seconds"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">duration_seconds</span><span class="p">,</span>
+                <span class="s2">"timings"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">timings</span><span class="p">,</span>
+                <span class="s2">"timing_metadata"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">timing_metadata</span><span class="p">,</span>
+                <span class="s2">"metric_metadata"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric_metadata</span><span class="p">,</span>
+                <span class="s2">"timing_record"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">timing_record</span>
+                <span class="ow">or</span> <span class="p">{</span><span class="s2">"status"</span><span class="p">:</span> <span class="s2">"legacy/unknown"</span><span class="p">,</span> <span class="s2">"reason"</span><span class="p">:</span> <span class="s2">"No versioned timing record"</span><span class="p">},</span>
+                <span class="s2">"error"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">,</span>
+                <span class="s2">"created_at"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">created_at</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+            <span class="p">}</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="RunResult.to_json">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.RunResult.to_json">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span></div>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="n">allow_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
 
     <span class="nd">@property</span>
@@ -453,6 +496,11 @@
             <span class="n">artifacts</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"artifacts"</span><span class="p">,</span> <span class="p">{}),</span>
             <span class="n">duration_seconds</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"duration_seconds"</span><span class="p">),</span>
             <span class="n">timings</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"timings"</span><span class="p">),</span>
+            <span class="n">timing_metadata</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"timing_metadata"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{},</span>
+            <span class="n">metric_metadata</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"metric_metadata"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{},</span>
+            <span class="n">unavailable_metrics</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"unavailable_metrics"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{},</span>
+            <span class="n">timing_record</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"timing_record"</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="p">{</span><span class="s2">"status"</span><span class="p">:</span> <span class="s2">"legacy/unknown"</span><span class="p">,</span> <span class="s2">"reason"</span><span class="p">:</span> <span class="s2">"No versioned timing record"</span><span class="p">},</span>
             <span class="n">error</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"error"</span><span class="p">),</span>
             <span class="n">created_at</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s2">"created_at"</span><span class="p">],</span>
         <span class="p">)</span></div>
@@ -552,19 +600,21 @@
 <div class="viewcode-block" id="ExperimentResult.to_dict">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.ExperimentResult.to_dict">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">"name"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-            <span class="s2">"runs"</span><span class="p">:</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">runs</span><span class="p">],</span>
-            <span class="s2">"metadata"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span>
-            <span class="s2">"created_at"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">created_at</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
-            <span class="s2">"schema_version"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema_version</span><span class="p">,</span>
-        <span class="p">}</span></div>
+        <span class="k">return</span> <span class="n">standard_json</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">"name"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="s2">"runs"</span><span class="p">:</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">runs</span><span class="p">],</span>
+                <span class="s2">"metadata"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span>
+                <span class="s2">"created_at"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">created_at</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+                <span class="s2">"schema_version"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema_version</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ExperimentResult.to_json">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.ExperimentResult.to_json">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span></div>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="n">allow_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ExperimentResult.from_dict">
@@ -688,9 +738,15 @@
 <span class="sd">                std_val = stats['stdev']</span>
 <span class="sd">                print(f"{metric}: {mean_val:.4f} ± {std_val:.4f}")</span>
 <span class="sd">        """</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..core.timing_records</span><span class="w"> </span><span class="kn">import</span> <span class="n">timing_values</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">execution_values</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">timing_values</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">execution_values</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="c1"># Collect numeric metrics across runs</span>
         <span class="n">agg</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">runs</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">run_index</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runs</span><span class="p">):</span>
             <span class="n">virtual_metrics</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">duration_seconds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">"duration_seconds"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">virtual_metrics</span><span class="p">:</span>
                 <span class="n">virtual_metrics</span><span class="p">[</span><span class="s2">"duration_seconds"</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">duration_seconds</span>
@@ -698,7 +754,15 @@
                 <span class="k">for</span> <span class="n">tk</span><span class="p">,</span> <span class="n">tv</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">timings</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="n">virtual_metrics</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="sa">f</span><span class="s2">"time_</span><span class="si">{</span><span class="n">tk</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">tv</span><span class="p">)</span>
 
+            <span class="kn">from</span><span class="w"> </span><span class="nn">..core.timing_records</span><span class="w"> </span><span class="kn">import</span> <span class="n">ALIASES</span>
+
             <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">virtual_metrics</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ALIASES</span> <span class="ow">or</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"time_"</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">"time_execution"</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="k">if</span> <span class="n">execution_values</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="n">v</span> <span class="o">=</span> <span class="n">execution_values</span><span class="p">[</span><span class="n">run_index</span><span class="p">]</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
@@ -726,6 +790,11 @@
                 <span class="n">ci_upper</span> <span class="o">=</span> <span class="n">mean</span> <span class="o">+</span> <span class="n">ci_margin</span>
 
             <span class="n">summary</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">"count"</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">),</span>
+                <span class="s2">"estimator"</span><span class="p">:</span> <span class="s2">"median_across_seeds"</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">"time_execution"</span>
+                <span class="k">else</span> <span class="s2">"mean_across_seeds"</span><span class="p">,</span>
+                <span class="s2">"phase"</span><span class="p">:</span> <span class="s2">"prepared_first_execution"</span> <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">"time_execution"</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="s2">"mean"</span><span class="p">:</span> <span class="n">mean</span><span class="p">,</span>
                 <span class="s2">"median"</span><span class="p">:</span> <span class="n">med</span><span class="p">,</span>
                 <span class="s2">"stdev"</span><span class="p">:</span> <span class="n">stdev</span><span class="p">,</span>
@@ -923,6 +992,19 @@
 <span class="sd">            latex_code = comparison.summary_table(latex=True)</span>
 <span class="sd">            print(latex_code)</span>
 <span class="sd">        """</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..core.timing_records</span><span class="w"> </span><span class="kn">import</span> <span class="n">timing_values</span>
+
+        <span class="n">contracts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">exp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipelines</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">contracts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">timing_values</span><span class="p">(</span><span class="n">exp</span><span class="o">.</span><span class="n">runs</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="n">contracts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">comparable_timing</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">bool</span><span class="p">(</span><span class="n">contracts</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="n">contracts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="n">c</span> <span class="o">==</span> <span class="n">contracts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">contracts</span><span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">table</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">exp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipelines</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">agg</span> <span class="o">=</span> <span class="n">exp</span><span class="o">.</span><span class="n">aggregated_summary</span><span class="p">(</span><span class="n">optimum</span><span class="o">=</span><span class="n">optimum</span><span class="p">)</span>
@@ -930,14 +1012,22 @@
             <span class="c1"># Flatten to the mean; negate fitness keys if needed</span>
             <span class="n">table_row</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">agg</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">"time_execution"</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">comparable_timing</span><span class="p">:</span>
+                    <span class="k">continue</span>
                 <span class="n">mean_val</span> <span class="o">=</span> <span class="p">(</span>
                     <span class="n">v</span><span class="p">[</span><span class="s2">"mean"</span><span class="p">]</span> <span class="o">*</span> <span class="n">s</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_FITNESS_KEYS</span> <span class="ow">and</span> <span class="n">optimum</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">v</span><span class="p">[</span><span class="s2">"mean"</span><span class="p">]</span>
                 <span class="p">)</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">"time_execution"</span><span class="p">:</span>
+                    <span class="n">mean_val</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="s2">"median"</span><span class="p">]</span>
                 <span class="n">table_row</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
                     <span class="s2">"mean"</span><span class="p">:</span> <span class="n">mean_val</span><span class="p">,</span>
-                    <span class="s2">"ci_margin"</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ci_margin"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
-                    <span class="s2">"ci_lower"</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ci_lower"</span><span class="p">,</span> <span class="n">mean_val</span><span class="p">),</span>
-                    <span class="s2">"ci_upper"</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ci_upper"</span><span class="p">,</span> <span class="n">mean_val</span><span class="p">),</span>
+                    <span class="s2">"median"</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"median"</span><span class="p">),</span>
+                    <span class="s2">"count"</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"count"</span><span class="p">),</span>
+                    <span class="s2">"estimator"</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"estimator"</span><span class="p">),</span>
+                    <span class="s2">"phase"</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"phase"</span><span class="p">),</span>
+                    <span class="s2">"ci_margin"</span><span class="p">:</span> <span class="mf">0.0</span> <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">"time_execution"</span> <span class="k">else</span> <span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ci_margin"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+                    <span class="s2">"ci_lower"</span><span class="p">:</span> <span class="n">mean_val</span> <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">"time_execution"</span> <span class="k">else</span> <span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ci_lower"</span><span class="p">,</span> <span class="n">mean_val</span><span class="p">),</span>
+                    <span class="s2">"ci_upper"</span><span class="p">:</span> <span class="n">mean_val</span> <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">"time_execution"</span> <span class="k">else</span> <span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ci_upper"</span><span class="p">,</span> <span class="n">mean_val</span><span class="p">),</span>
                 <span class="p">}</span>
             <span class="n">table</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">table_row</span>
 
@@ -1033,6 +1123,9 @@
                     <span class="n">artifacts</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">artifacts</span><span class="p">,</span>
                     <span class="n">duration_seconds</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">duration_seconds</span><span class="p">,</span>
                     <span class="n">timings</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">timings</span><span class="p">,</span>
+                    <span class="n">timing_metadata</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">timing_metadata</span><span class="p">,</span>
+                    <span class="n">metric_metadata</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">metric_metadata</span><span class="p">,</span>
+                    <span class="n">timing_record</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">timing_record</span><span class="p">,</span>
                     <span class="n">error</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">error</span><span class="p">,</span>
                     <span class="n">created_at</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">created_at</span><span class="p">,</span>
                 <span class="p">)</span>
@@ -1053,24 +1146,20 @@
         <span class="n">base_exp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipelines</span><span class="p">[</span><span class="n">base_pipeline</span><span class="p">]</span>
         <span class="n">target_exp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipelines</span><span class="p">[</span><span class="n">target_pipeline</span><span class="p">]</span>
 
-        <span class="n">base_runs</span> <span class="o">=</span> <span class="p">{</span><span class="n">r</span><span class="o">.</span><span class="n">seed</span><span class="p">:</span> <span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">base_exp</span><span class="o">.</span><span class="n">runs</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">duration_seconds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">}</span>
-        <span class="n">target_runs</span> <span class="o">=</span> <span class="p">{</span><span class="n">r</span><span class="o">.</span><span class="n">seed</span><span class="p">:</span> <span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">target_exp</span><span class="o">.</span><span class="n">runs</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">duration_seconds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">}</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..core.timing_records</span><span class="w"> </span><span class="kn">import</span> <span class="n">timing_values</span>
 
-        <span class="n">common_seeds</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">base_runs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">target_runs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">common_seeds</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"No common seeds with duration data found."</span><span class="p">)</span>
+        <span class="n">timing_values</span><span class="p">(</span><span class="n">base_exp</span><span class="o">.</span><span class="n">runs</span><span class="p">)</span>
+        <span class="n">timing_values</span><span class="p">(</span><span class="n">target_exp</span><span class="o">.</span><span class="n">runs</span><span class="p">)</span>
+        <span class="n">base_runs</span> <span class="o">=</span> <span class="p">{</span><span class="n">r</span><span class="o">.</span><span class="n">seed</span><span class="p">:</span> <span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">base_exp</span><span class="o">.</span><span class="n">runs</span><span class="p">}</span>
+        <span class="n">target_runs</span> <span class="o">=</span> <span class="p">{</span><span class="n">r</span><span class="o">.</span><span class="n">seed</span><span class="p">:</span> <span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">target_exp</span><span class="o">.</span><span class="n">runs</span><span class="p">}</span>
+        <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">base_runs</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">set</span><span class="p">(</span><span class="n">target_runs</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Speedup requires identical seed sets"</span><span class="p">)</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..core.timing_records</span><span class="w"> </span><span class="kn">import</span> <span class="n">paired_timing_summary</span>
 
-        <span class="n">speedups</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">seed</span> <span class="ow">in</span> <span class="n">common_seeds</span><span class="p">:</span>
-            <span class="n">b_dur</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">base_runs</span><span class="p">[</span><span class="n">seed</span><span class="p">]</span><span class="o">.</span><span class="n">duration_seconds</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">)</span>
-            <span class="n">t_dur</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">target_runs</span><span class="p">[</span><span class="n">seed</span><span class="p">]</span><span class="o">.</span><span class="n">duration_seconds</span> <span class="ow">or</span> <span class="mf">1e-9</span><span class="p">)</span>
-            <span class="n">speedups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b_dur</span> <span class="o">/</span> <span class="n">t_dur</span><span class="p">)</span>
-
-        <span class="c1"># Optional: remove the pair with the highest base_duration (warmup)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">speedups</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
-            <span class="n">base_times</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">base_runs</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">duration_seconds</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">common_seeds</span><span class="p">]</span>
-            <span class="n">warmup_idx</span> <span class="o">=</span> <span class="n">base_times</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">base_times</span><span class="p">))</span>
-            <span class="n">speedups</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">warmup_idx</span><span class="p">)</span>
+        <span class="n">summary</span> <span class="o">=</span> <span class="n">paired_timing_summary</span><span class="p">(</span><span class="n">base_exp</span><span class="o">.</span><span class="n">runs</span><span class="p">,</span> <span class="p">[</span><span class="n">target_runs</span><span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">seed</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">base_exp</span><span class="o">.</span><span class="n">runs</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"status"</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">"valid"</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">summary</span><span class="p">[</span><span class="s2">"reason"</span><span class="p">])</span>
+        <span class="n">speedups</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span> <span class="o">/</span> <span class="n">t</span> <span class="k">for</span> <span class="n">b</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">summary</span><span class="p">[</span><span class="s2">"left_values"</span><span class="p">],</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"right_values"</span><span class="p">])]</span>
 
         <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">speedups</span><span class="p">)</span>
         <span class="n">mean_speedup</span> <span class="o">=</span> <span class="n">statistics</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">speedups</span><span class="p">)</span>
@@ -1146,37 +1235,30 @@
 
 <div class="viewcode-block" id="ComparisonResult.timing_data">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.ComparisonResult.timing_data">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">timing_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timing_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"duration_seconds"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">timing_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timing_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"execution"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">"""Collect timing values for each pipeline across all seeds.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        timing_key : str, optional</span>
-<span class="sd">            Which timing channel to collect. ``"duration_seconds"`` gathers</span>
-<span class="sd">            the per-run wall-clock duration. Other keys may be taken from</span>
-<span class="sd">            ``RunResult.timings`` if present.</span>
-<span class="sd">            Default: ``"duration_seconds"``.</span>
+<span class="sd">            Declared execution phase (or its explicit ``execution`` alias).</span>
+<span class="sd">            Legacy, unavailable, mixed, and mismatched records raise ValueError.</span>
+<span class="sd">            Runner wall time and warmup are retained as descriptive raw phases.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        Dict[str, List[float]]</span>
 <span class="sd">            Mapping of pipeline name to a list of timing values.</span>
 <span class="sd">        """</span>
-        <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..core.timing_records</span><span class="w"> </span><span class="kn">import</span> <span class="n">timing_values</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">exp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipelines</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">values</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="n">exp</span><span class="o">.</span><span class="n">runs</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">timing_key</span> <span class="o">==</span> <span class="s2">"duration_seconds"</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">run</span><span class="o">.</span><span class="n">duration_seconds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">duration_seconds</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">run</span><span class="o">.</span><span class="n">timings</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="k">continue</span>
-                    <span class="k">if</span> <span class="n">timing_key</span> <span class="ow">in</span> <span class="n">run</span><span class="o">.</span><span class="n">timings</span><span class="p">:</span>
-                        <span class="k">try</span><span class="p">:</span>
-                            <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">timings</span><span class="p">[</span><span class="n">timing_key</span><span class="p">]))</span>
-                        <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
-                            <span class="k">continue</span>
+            <span class="n">values</span><span class="p">,</span> <span class="n">current</span> <span class="o">=</span> <span class="n">timing_values</span><span class="p">(</span><span class="n">exp</span><span class="o">.</span><span class="n">runs</span><span class="p">,</span> <span class="n">timing_key</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">contract</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">current</span> <span class="o">!=</span> <span class="n">contract</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Incompatible pipeline timing contracts"</span><span class="p">)</span>
+            <span class="n">contract</span> <span class="o">=</span> <span class="n">current</span>
             <span class="n">data</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
@@ -1185,7 +1267,7 @@
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.ComparisonResult.plot_timing_boxplot">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">plot_timing_boxplot</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">timing_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"duration_seconds"</span><span class="p">,</span>
+        <span class="n">timing_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"execution"</span><span class="p">,</span>
         <span class="n">ax</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">title</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">save_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1278,12 +1360,16 @@
 <span class="sd">            Values are sign-normalized for pipelines marked in</span>
 <span class="sd">            ``negate_map``.</span>
 <span class="sd">        """</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..core.timing_records</span><span class="w"> </span><span class="kn">import</span> <span class="n">ALIASES</span>
+
+        <span class="k">if</span> <span class="n">metric_key</span> <span class="ow">in</span> <span class="n">ALIASES</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">timing_data</span><span class="p">(</span><span class="n">metric_key</span><span class="p">)</span>
         <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">exp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipelines</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">values</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">sign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sign</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">if</span> <span class="n">metric_key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_FITNESS_KEYS</span> <span class="k">else</span> <span class="mf">1.0</span>
 
-            <span class="c1"># Sort chronologically so index 0 is the true first run (warmup)</span>
+            <span class="c1"># Preserve chronological display order without excluding observations.</span>
             <span class="n">sorted_runs</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">exp</span><span class="o">.</span><span class="n">runs</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">created_at</span><span class="p">)</span>
 
             <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="n">sorted_runs</span><span class="p">:</span>
@@ -1307,12 +1393,6 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">value</span> <span class="o">=</span> <span class="n">value</span> <span class="o">*</span> <span class="n">sign</span>
                 <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="p">(</span>
-                <span class="n">metric_key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"duration_seconds"</span><span class="p">,</span> <span class="s2">"execution"</span><span class="p">,</span> <span class="s2">"total"</span><span class="p">,</span> <span class="s2">"warmup"</span><span class="p">)</span>
-                <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
-            <span class="p">):</span>
-                <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
 
             <span class="n">data</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span>
         <span class="k">return</span> <span class="n">data</span></div>

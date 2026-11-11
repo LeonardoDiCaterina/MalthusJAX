@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="Evaluator Architecture: Composable Fitness Evaluation" href="evaluator_design.html"><link rel="prev" title="Experiment Orchestration via Composer" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html">
 
-    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.1.1 and Furo 2025.12.19 -->
         <title>Benchmarking Framework: Multi-Seed Execution and Results Schema - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
@@ -377,7 +377,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">output_dir:</span> <span class="pre">Optional[Path]</span></code> (default <code class="docutils literal notranslate"><span class="pre">None</span></code>).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">write_artifacts:</span> <span class="pre">bool</span></code> (default <code class="docutils literal notranslate"><span class="pre">True</span></code>).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">prng_impl:</span> <span class="pre">Optional[str]</span></code> (default <code class="docutils literal notranslate"><span class="pre">None</span></code>) — PRNG backend name (<code class="docutils literal notranslate"><span class="pre">&quot;threefry2x32&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;philox4x32&quot;</span></code>).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">trace_dir:</span> <span class="pre">Optional[Path]</span></code> (default <code class="docutils literal notranslate"><span class="pre">None</span></code>) — Directory for optional JAX trace output.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trace_dir:</span> <span class="pre">Optional[Path]</span></code> (default <code class="docutils literal notranslate"><span class="pre">None</span></code>) — Legacy compatibility option; currently disabled and produces no profiler output. Use separate diagnostic profiling outside comparative timing.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">serialize_history:</span> <span class="pre">bool</span></code> (default <code class="docutils literal notranslate"><span class="pre">True</span></code>) — If <code class="docutils literal notranslate"><span class="pre">False</span></code>, drops per-generation history arrays to conserve memory during large sweeps.</p></li>
 </ul>
 </li>

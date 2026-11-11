@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
 
-    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.1.1 and Furo 2025.12.19 -->
         <title>malthusjax.composer.mo_factory - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
@@ -354,6 +354,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.genome.binary_genome</span><span class="w"> </span><span class="kn">import</span> <span class="n">BinaryGenomeConfig</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.genome.real_genome</span><span class="w"> </span><span class="kn">import</span> <span class="n">RealGenome</span><span class="p">,</span> <span class="n">RealGenomeConfig</span><span class="p">,</span> <span class="n">RealPopulation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.timing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TimingCapture</span><span class="p">,</span> <span class="n">block_until_ready</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.engine.mo.mo_engine</span><span class="w"> </span><span class="kn">import</span> <span class="n">MOEngine</span><span class="p">,</span> <span class="n">MOEngineParams</span>
 
 
@@ -380,6 +381,7 @@
 <a class="viewcode-back" href="../../../api/malthusjax.composer.html#malthusjax.composer.MOEngineAdapter.run_once">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">run_once</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="n">t_warmup_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+        <span class="n">capture</span> <span class="o">=</span> <span class="n">TimingCapture</span><span class="p">()</span>
 
         <span class="c1"># Determine population initialization</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_population</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -391,12 +393,18 @@
 
         <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mo_engine</span><span class="o">.</span><span class="n">init_state</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">pop</span><span class="p">)</span>
 
-        <span class="c1"># JIT Warmup</span>
-        <span class="n">_ws</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mo_engine</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="n">capture</span><span class="o">.</span><span class="n">initialized</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mo_engine</span><span class="p">)</span>
+        <span class="n">prepared</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mo_engine</span><span class="o">.</span><span class="n">prepare_run</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="n">capture</span><span class="o">.</span><span class="n">prepared</span><span class="p">()</span>
+        <span class="n">t_warmup_end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
 
         <span class="n">t_exec_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
-        <span class="n">final_state</span><span class="p">,</span> <span class="n">scan_history</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mo_engine</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">time_it</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">compile</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">final_state</span><span class="p">,</span> <span class="n">scan_history</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mo_engine</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">state</span><span class="p">,</span> <span class="n">time_it</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="nb">compile</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">prepared_run</span><span class="o">=</span><span class="n">prepared</span>
+        <span class="p">)</span>
+        <span class="n">block_until_ready</span><span class="p">((</span><span class="n">final_state</span><span class="p">,</span> <span class="n">scan_history</span><span class="p">),</span> <span class="n">effects</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">t_exec_end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+        <span class="n">capture</span><span class="o">.</span><span class="n">executed</span><span class="p">()</span>
 
         <span class="n">num_gens</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mo_engine</span><span class="o">.</span><span class="n">engine_params</span><span class="o">.</span><span class="n">num_generations</span><span class="p">)</span>
         <span class="n">history</span> <span class="o">=</span> <span class="p">[]</span>
@@ -425,20 +433,17 @@
             <span class="p">),</span>
         <span class="p">}</span>
 
-        <span class="c1"># Timings</span>
-        <span class="c1"># We did not strictly isolate JIT from execution for brevity in the adapter,</span>
-        <span class="c1"># but time_it=False compile=True internally compiles inside run().</span>
-        <span class="c1"># Actually, let's just record total time.</span>
-        <span class="n">t_total_end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
         <span class="n">timings</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"warmup"</span><span class="p">:</span> <span class="n">t_warmup_end</span> <span class="o">-</span> <span class="n">t_warmup_start</span><span class="p">,</span>
             <span class="s2">"execution"</span><span class="p">:</span> <span class="n">t_exec_end</span> <span class="o">-</span> <span class="n">t_exec_start</span><span class="p">,</span>
-            <span class="s2">"total"</span><span class="p">:</span> <span class="n">t_total_end</span> <span class="o">-</span> <span class="n">t_warmup_start</span><span class="p">,</span>
+            <span class="s2">"total"</span><span class="p">:</span> <span class="n">t_exec_end</span> <span class="o">-</span> <span class="n">t_warmup_start</span><span class="p">,</span>
         <span class="p">}</span>
 
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">"history"</span><span class="p">:</span> <span class="n">history</span><span class="p">,</span>
             <span class="s2">"summary"</span><span class="p">:</span> <span class="n">summary</span><span class="p">,</span>
             <span class="s2">"timings"</span><span class="p">:</span> <span class="n">timings</span><span class="p">,</span>
+            <span class="s2">"timing_metadata"</span><span class="p">:</span> <span class="n">capture</span><span class="o">.</span><span class="n">metadata</span><span class="p">(),</span>
         <span class="p">}</span></div>
 </div>
 

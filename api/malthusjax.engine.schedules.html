@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.operators package" href="malthusjax.operators.html"><link rel="prev" title="malthusjax.engine.resource_mapper module" href="malthusjax.engine.resource_mapper.html">
 
-    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.1.1 and Furo 2025.12.19 -->
         <title>malthusjax.engine.schedules module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -374,7 +374,7 @@ ConcretizationTypeError or silently froze schedule values.</p>
 </div>
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.engine.schedules.ScheduleType">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.schedules.</span></span><span class="sig-name descname"><span class="pre">ScheduleType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/schedules.html#ScheduleType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.schedules.ScheduleType" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.schedules.</span></span><span class="sig-name descname"><span class="pre">ScheduleType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/schedules.html#ScheduleType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.schedules.ScheduleType" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.IntEnum" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntEnum</span></code></a></p>
 <p>Mutation strength schedule type.</p>
 <p>Each variant maps to a row in the vectorized schedule lookup table
@@ -406,7 +406,7 @@ field — the JIT static fingerprint changes only if the schedule
 
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.engine.schedules.TrackBest">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.schedules.</span></span><span class="sig-name descname"><span class="pre">TrackBest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/schedules.html#TrackBest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.schedules.TrackBest" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.schedules.</span></span><span class="sig-name descname"><span class="pre">TrackBest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/schedules.html#TrackBest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.schedules.TrackBest" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.IntEnum" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntEnum</span></code></a></p>
 <p>Controls how the Hall-of-Fame (best individual) is tracked during
 the <code class="docutils literal notranslate"><span class="pre">jax.lax.scan</span></code> evolution loop.</p>
@@ -452,7 +452,7 @@ of <code class="docutils literal notranslate"><span class="pre">jax.lax.cond</sp
 
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.engine.schedules.TrackMetrics">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.schedules.</span></span><span class="sig-name descname"><span class="pre">TrackMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/schedules.html#TrackMetrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.schedules.TrackMetrics" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.engine.schedules.</span></span><span class="sig-name descname"><span class="pre">TrackMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/engine/schedules.html#TrackMetrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.engine.schedules.TrackMetrics" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.IntEnum" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntEnum</span></code></a></p>
 <p>Controls how fitness metrics are tracked during the evolution loop.</p>
 <dl class="simple">
@@ -503,7 +503,7 @@ depend on it.</p>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><em>Array</em></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><em>Array</em></a></p>
 </dd>
 </dl>
 </dd></dl>

@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../../genindex.html"><link rel="search" title="Search" href="../../../../search.html">
 
-    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.1.1 and Furo 2025.12.19 -->
         <title>malthusjax.engine.island_model.base - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=7bdb33bb" />
@@ -344,6 +344,7 @@
         <article role="main" id="furo-main-content">
           <h1>Source code for malthusjax.engine.island_model.base</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numbers</span><span class="w"> </span><span class="kn">import</span> <span class="n">Integral</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">TypeVar</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">chex</span>
@@ -362,12 +363,7 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">BaseIslandModel</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">E</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">"""A Meta-Engine that distributes a standard MalthusJAX Engine across isolated islands.</span>
 
-<span class="sd">    **WIP / ARCHITECTURAL NOTE: Host Synchronization**</span>
-<span class="sd">    This model currently runs the inner evolutionary loop inside `jax.vmap` for `migration_interval`</span>
-<span class="sd">    generations, but then drops out to the Python host to perform topological migration before</span>
-<span class="sd">    dispatching the next JAX kernel. Future work should attempt to fully fuse the migration logic</span>
-<span class="sd">    inside an outer `jax.lax.scan` to achieve a 100% compiled end-to-end evolutionary kernel</span>
-<span class="sd">    without host synchronization bottlenecks.</span>
+<span class="sd">    Local evolution and migration are JAX-traceable and fused by the adapter.</span>
 
 <span class="sd">    This wrapper seamlessly upgrades any 1D `BaseEngine` into a 2D Island Model by</span>
 <span class="sd">    wrapping the engine's init and step methods in `jax.vmap` across the `num_islands` axis,</span>
@@ -379,6 +375,29 @@
     <span class="n">migration_interval</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">num_migrants</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">pytree_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">lower</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">"num_islands"</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="s2">"migration_interval"</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="s2">"num_migrants"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Integral</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">or</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="n">lower</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> must be an integer &gt;= </span><span class="si">{</span><span class="n">lower</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BaseIslandModel.evolve_one">
+<a class="viewcode-back" href="../../../../api/malthusjax.engine.html#malthusjax.engine.BaseIslandModel.evolve_one">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">evolve_one</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">multi_state</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">step</span><span class="p">)(</span><span class="n">multi_state</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BaseIslandModel.migrate_state">
+<a class="viewcode-back" href="../../../../api/malthusjax.engine.html#malthusjax.engine.BaseIslandModel.migrate_state">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">migrate_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evolved_state</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_migrants</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">evolved_state</span>
+        <span class="n">migration_key</span><span class="p">,</span> <span class="n">new_key</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">evolved_state</span><span class="o">.</span><span class="n">rng_key</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">population</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">migrate</span><span class="p">(</span><span class="n">migration_key</span><span class="p">,</span> <span class="n">evolved_state</span><span class="o">.</span><span class="n">population</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">evolved_state</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">population</span><span class="o">=</span><span class="n">population</span><span class="p">,</span>
+            <span class="n">rng_key</span><span class="o">=</span><span class="n">evolved_state</span><span class="o">.</span><span class="n">rng_key</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">new_key</span><span class="p">))</span></div>
+
+
 <div class="viewcode-block" id="BaseIslandModel.init_state">
 <a class="viewcode-back" href="../../../../api/malthusjax.engine.html#malthusjax.engine.BaseIslandModel.init_state">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">init_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
@@ -386,6 +405,8 @@
         <span class="n">keys</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_islands</span><span class="p">)</span>
         <span class="c1"># multi_state contains the 2D population</span>
         <span class="n">multi_state</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">init_state</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,))(</span><span class="n">keys</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_migrants</span> <span class="o">&gt;</span> <span class="n">multi_state</span><span class="o">.</span><span class="n">population</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"num_migrants exceeds the per-island population"</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">multi_state</span></div>
 
 
@@ -419,20 +440,7 @@
         <span class="c1"># 1. Evolve all islands independently in parallel</span>
         <span class="n">evolved_state</span><span class="p">,</span> <span class="n">history</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_island_loop</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,))(</span><span class="n">multi_state</span><span class="p">)</span>
 
-        <span class="c1"># 2. Extract population, migrate, and inject back into state</span>
-        <span class="c1"># We need a global key for migration. We can take it from the first island's rng_key</span>
-        <span class="c1"># and split it to ensure diversity.</span>
-        <span class="n">migration_key</span><span class="p">,</span> <span class="n">new_island_0_key</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">evolved_state</span><span class="o">.</span><span class="n">rng_key</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">migrated_pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">migrate</span><span class="p">(</span><span class="n">migration_key</span><span class="p">,</span> <span class="n">evolved_state</span><span class="o">.</span><span class="n">population</span><span class="p">)</span>
-
-        <span class="c1"># 3. Update the state with the migrated population</span>
-        <span class="n">next_state</span> <span class="o">=</span> <span class="n">evolved_state</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">population</span><span class="o">=</span><span class="n">migrated_pop</span><span class="p">)</span>
-
-        <span class="c1"># Replace the first island's key to advance the rng stream</span>
-        <span class="n">new_rng_keys</span> <span class="o">=</span> <span class="n">next_state</span><span class="o">.</span><span class="n">rng_key</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">new_island_0_key</span><span class="p">)</span>
-        <span class="n">next_state</span> <span class="o">=</span> <span class="n">next_state</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">rng_key</span><span class="o">=</span><span class="n">new_rng_keys</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">next_state</span><span class="p">,</span> <span class="n">history</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">migrate_state</span><span class="p">(</span><span class="n">evolved_state</span><span class="p">),</span> <span class="n">history</span></div>
 </div>
 
 </pre></div>

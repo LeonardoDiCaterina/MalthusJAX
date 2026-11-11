@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
 
-    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.1.1 and Furo 2025.12.19 -->
         <title>malthusjax.composer.composer - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
@@ -790,7 +790,7 @@
         <span class="n">out_dir</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">Path</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">output_dir</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">output_dir</span>
-            <span class="k">else</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"results"</span><span class="p">)</span> <span class="o">/</span> <span class="n">config</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">experiment_name</span>
+            <span class="k">else</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"results"</span><span class="p">)</span> <span class="o">/</span> <span class="n">config</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">experiment_name</span> <span class="o">/</span> <span class="nb">__import__</span><span class="p">(</span><span class="s2">"uuid"</span><span class="p">)</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span>
         <span class="p">)</span>
         <span class="n">tr_dir</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">Path</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">trace_dir</span><span class="p">)</span> <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">trace_dir</span> <span class="k">else</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"results/traces"</span><span class="p">)</span>
@@ -804,6 +804,7 @@
             <span class="n">prng_impl</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">execution</span><span class="o">.</span><span class="n">prng_impl</span><span class="p">,</span>
             <span class="n">trace_dir</span><span class="o">=</span><span class="n">tr_dir</span><span class="p">,</span>
             <span class="n">serialize_history</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"serialize_history"</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+            <span class="n">configuration</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span>
         <span class="p">)</span>
 
         <span class="n">normalized_seeds</span> <span class="o">=</span> <span class="n">normalize_seeds</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">execution</span><span class="o">.</span><span class="n">seeds</span><span class="p">)</span>

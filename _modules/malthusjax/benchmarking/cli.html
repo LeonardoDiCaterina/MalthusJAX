@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
 
-    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.1.1 and Furo 2025.12.19 -->
         <title>malthusjax.benchmarking.cli - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
@@ -500,7 +500,7 @@
             <span class="k">return</span> <span class="mi">1</span>
 
         <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="o">=</span> <span class="n">pipe_names</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pipe_names</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Running statistical parity analysis for </span><span class="si">%s</span><span class="s2"> vs </span><span class="si">%s</span><span class="s2">..."</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Running paired difference analysis for </span><span class="si">%s</span><span class="s2"> vs </span><span class="si">%s</span><span class="s2">..."</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span>
         <span class="n">spec</span> <span class="o">=</span> <span class="n">StatisticalComparisonSpec</span><span class="p">(</span>
             <span class="n">metric_name</span><span class="o">=</span><span class="s2">"best_fitness"</span><span class="p">,</span>
             <span class="n">hypothesis_kind</span><span class="o">=</span><span class="n">HypothesisKind</span><span class="p">(</span><span class="s2">"location_shift"</span><span class="p">),</span>
@@ -520,7 +520,7 @@
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">analysis_dir</span> <span class="o">/</span> <span class="s2">"parity_summary.md"</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">md_text</span><span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">--- Parity Summary ---"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">--- Paired Difference Summary ---"</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">md_text</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">"----------------------</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Analysis generated in </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="n">analysis_dir</span><span class="p">)</span>
@@ -594,7 +594,7 @@
 
     <span class="c1"># Try to generate the timings boxplot</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">comparison</span><span class="o">.</span><span class="n">plot_boxplots</span><span class="p">(</span><span class="n">metric_key</span><span class="o">=</span><span class="s2">"duration_seconds"</span><span class="p">,</span> <span class="n">save_path</span><span class="o">=</span><span class="n">plot_dir</span> <span class="o">/</span> <span class="s2">"timings.png"</span><span class="p">)</span>
+        <span class="n">comparison</span><span class="o">.</span><span class="n">plot_boxplots</span><span class="p">(</span><span class="n">metric_key</span><span class="o">=</span><span class="s2">"execution"</span><span class="p">,</span> <span class="n">save_path</span><span class="o">=</span><span class="n">plot_dir</span> <span class="o">/</span> <span class="s2">"timings.png"</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Generated </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="n">plot_dir</span> <span class="o">/</span> <span class="s2">"timings.png"</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Could not generate timings boxplot: </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
@@ -653,7 +653,10 @@
     <span class="n">meta</span><span class="o">.</span><span class="n">plot_boxplot_grid</span><span class="p">(</span><span class="n">save_path</span><span class="o">=</span><span class="n">plot_dir</span> <span class="o">/</span> <span class="s2">"fitness_distribution_grid.png"</span><span class="p">)</span>
 
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Generating aggregate timings grid..."</span><span class="p">)</span>
-    <span class="n">meta</span><span class="o">.</span><span class="n">plot_boxplot_grid</span><span class="p">(</span><span class="n">metric_key</span><span class="o">=</span><span class="s2">"duration_seconds"</span><span class="p">,</span> <span class="n">save_path</span><span class="o">=</span><span class="n">plot_dir</span> <span class="o">/</span> <span class="s2">"timings_grid.png"</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">meta</span><span class="o">.</span><span class="n">plot_boxplot_grid</span><span class="p">(</span><span class="n">metric_key</span><span class="o">=</span><span class="s2">"execution"</span><span class="p">,</span> <span class="n">save_path</span><span class="o">=</span><span class="n">plot_dir</span> <span class="o">/</span> <span class="s2">"timings_grid.png"</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Timing grid unavailable: </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
 
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Generating aggregate summary JSON..."</span><span class="p">)</span>
     <span class="n">summary</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">summary_table</span><span class="p">()</span>

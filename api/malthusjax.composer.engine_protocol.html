@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="malthusjax.composer.backend_provider module" href="malthusjax.composer.backend_provider.html"><link rel="prev" title="malthusjax.composer.engine_factory module" href="malthusjax.composer.engine_factory.html">
 
-    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.1.1 and Furo 2025.12.19 -->
         <title>malthusjax.composer.engine_protocol module - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -401,6 +401,21 @@ Every adapter, backend, and custom engine implements this protocol.</p>
 <span class="sig-name descname"><span class="pre">timings</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.15)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.composer.engine_protocol.RunOutput.timings" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.composer.engine_protocol.RunOutput.metric_metadata">
+<span class="sig-name descname"><span class="pre">metric_metadata</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.15)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.composer.engine_protocol.RunOutput.metric_metadata" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.composer.engine_protocol.RunOutput.timing_metadata">
+<span class="sig-name descname"><span class="pre">timing_metadata</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.15)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.composer.engine_protocol.RunOutput.timing_metadata" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.composer.engine_protocol.RunOutput.timing_record">
+<span class="sig-name descname"><span class="pre">timing_record</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.15)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.composer.engine_protocol.RunOutput.timing_record" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -436,7 +451,7 @@ This replaces implicit and duplicate protocol definitions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>key</strong> (<em>Array</em><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>key</strong> (<a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><em>Array</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
 <li><p><strong>kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
 </ul>
 </dd>
@@ -517,6 +532,9 @@ This replaces implicit and duplicate protocol definitions.</p>
 <li><a class="reference internal" href="#malthusjax.composer.engine_protocol.RunOutput.history"><code class="docutils literal notranslate"><span class="pre">RunOutput.history</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.composer.engine_protocol.RunOutput.summary"><code class="docutils literal notranslate"><span class="pre">RunOutput.summary</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.composer.engine_protocol.RunOutput.timings"><code class="docutils literal notranslate"><span class="pre">RunOutput.timings</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.engine_protocol.RunOutput.metric_metadata"><code class="docutils literal notranslate"><span class="pre">RunOutput.metric_metadata</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.engine_protocol.RunOutput.timing_metadata"><code class="docutils literal notranslate"><span class="pre">RunOutput.timing_metadata</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.engine_protocol.RunOutput.timing_record"><code class="docutils literal notranslate"><span class="pre">RunOutput.timing_record</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#malthusjax.composer.engine_protocol.Engine"><code class="docutils literal notranslate"><span class="pre">Engine</span></code></a><ul>

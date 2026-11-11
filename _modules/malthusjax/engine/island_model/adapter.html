@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../../genindex.html"><link rel="search" title="Search" href="../../../../search.html">
 
-    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.1.1 and Furo 2025.12.19 -->
         <title>malthusjax.engine.island_model.adapter - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=7bdb33bb" />
@@ -348,6 +348,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numbers</span><span class="w"> </span><span class="kn">import</span> <span class="n">Integral</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">chex</span>
@@ -356,6 +357,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">flax</span><span class="w"> </span><span class="kn">import</span> <span class="n">struct</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">StepLoggingConfig</span><span class="p">,</span> <span class="n">get_logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.timing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TimingCapture</span><span class="p">,</span> <span class="n">block_until_ready</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.engine.island_model.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseIslandModel</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="s2">"engine.island_model.adapter"</span><span class="p">)</span>
@@ -399,6 +401,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">maximize</span> <span class="o">=</span> <span class="n">maximize</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">history_metrics</span> <span class="o">=</span> <span class="n">history_metrics</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">step_logging</span> <span class="o">=</span> <span class="n">step_logging</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_compiled_run</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_compiled_spec</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">engine</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
@@ -419,17 +423,22 @@
 <div class="viewcode-block" id="IslandEngineAdapter.run">
 <a class="viewcode-back" href="../../../../api/malthusjax.engine.html#malthusjax.engine.IslandEngineAdapter.run">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_state</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">IslandEvolutionState</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">"""Runs the island model for total generations, executing outer migration intervals."""</span>
-        <span class="n">mig_interval</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">island_model</span><span class="o">.</span><span class="n">migration_interval</span><span class="p">))</span>
-        <span class="n">num_outer_steps</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generations</span> <span class="o">//</span> <span class="n">mig_interval</span><span class="p">))</span>
+<span class="w">        </span><span class="sd">"""Execute exactly the horizon, migrating only at completed boundaries.</span>
 
-        <span class="k">def</span><span class="w"> </span><span class="nf">train_loop</span><span class="p">(</span><span class="n">carry_state</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">_</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-            <span class="n">next_state</span><span class="p">,</span> <span class="n">history_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">island_model</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">carry_state</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">next_state</span><span class="p">,</span> <span class="n">history_output</span>
-
-        <span class="n">final_multi_state</span><span class="p">,</span> <span class="n">history</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">lax</span><span class="o">.</span><span class="n">scan</span><span class="p">(</span>
-            <span class="n">train_loop</span><span class="p">,</span> <span class="n">init_state</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="n">num_outer_steps</span>
-        <span class="p">)</span>
+<span class="sd">        History's leading axes are (generations, islands), including remainders.</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generations</span><span class="p">,</span> <span class="n">Integral</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generations</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">generations</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"generations must be a nonnegative integer"</span><span class="p">)</span>
+        <span class="n">interval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">island_model</span><span class="o">.</span><span class="n">migration_interval</span>
+        <span class="k">if</span> <span class="n">interval</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"migration_interval must be positive"</span><span class="p">)</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">train_loop</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+            <span class="n">evolved</span><span class="p">,</span> <span class="n">history</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">island_model</span><span class="o">.</span><span class="n">evolve_one</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+            <span class="n">migrated</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">lax</span><span class="o">.</span><span class="n">cond</span><span class="p">((</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">interval</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">island_model</span><span class="o">.</span><span class="n">migrate_state</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="n">evolved</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">migrated</span><span class="p">,</span> <span class="n">history</span>
+        <span class="n">final_multi_state</span><span class="p">,</span> <span class="n">history</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">lax</span><span class="o">.</span><span class="n">scan</span><span class="p">(</span><span class="n">train_loop</span><span class="p">,</span> <span class="n">init_state</span><span class="p">,</span>
+                                                 <span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generations</span><span class="p">))</span>
 
         <span class="c1"># Extract global best genome and fitness across all islands and individuals</span>
         <span class="c1"># final_multi_state.population.fitness shape: (num_islands, pop_size)</span>
@@ -460,9 +469,23 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""BenchmarkRunner protocol implementation."""</span>
         <span class="n">t_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+        <span class="n">capture</span> <span class="o">=</span> <span class="n">TimingCapture</span><span class="p">()</span>
         <span class="n">init_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_state</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-        <span class="n">final_state</span><span class="p">,</span> <span class="n">history</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">init_state</span><span class="p">)</span>
+        <span class="n">block_until_ready</span><span class="p">(</span><span class="n">init_state</span><span class="p">,</span> <span class="n">effects</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">capture</span><span class="o">.</span><span class="n">initialized</span><span class="p">(</span><span class="n">init_state</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generations</span><span class="p">,</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">island_model</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">island_model</span><span class="o">.</span><span class="n">migration_interval</span><span class="p">,</span>
+                <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">island_model</span><span class="p">,</span> <span class="s2">"num_migrants"</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compiled_spec</span> <span class="o">!=</span> <span class="n">spec</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_compiled_run</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_compiled_spec</span> <span class="o">=</span> <span class="n">spec</span>
+        <span class="n">prepared</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compiled_run</span><span class="o">.</span><span class="n">lower</span><span class="p">(</span><span class="n">init_state</span><span class="p">)</span><span class="o">.</span><span class="n">compile</span><span class="p">()</span>
+        <span class="n">capture</span><span class="o">.</span><span class="n">prepared</span><span class="p">()</span>
+        <span class="n">t_warmup_end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+        <span class="n">t_execution_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+        <span class="n">final_state</span><span class="p">,</span> <span class="n">history</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">prepared</span><span class="p">(</span><span class="n">init_state</span><span class="p">)</span>
+        <span class="n">block_until_ready</span><span class="p">((</span><span class="n">final_state</span><span class="p">,</span> <span class="n">history</span><span class="p">),</span> <span class="n">effects</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">t_end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+        <span class="n">capture</span><span class="o">.</span><span class="n">executed</span><span class="p">()</span>
 
         <span class="n">best_fit</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">final_state</span><span class="o">.</span><span class="n">best_fitness</span><span class="p">)</span>
         <span class="n">sign</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">maximize</span> <span class="k">else</span> <span class="mf">1.0</span>
@@ -471,16 +494,22 @@
         <span class="n">summary</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">"best_fitness"</span><span class="p">:</span> <span class="n">reported_best</span><span class="p">,</span>
             <span class="s2">"final_generation"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">generations</span><span class="p">,</span>
+            <span class="s2">"total_evaluations"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">generations</span> <span class="o">*</span> <span class="n">final_state</span><span class="o">.</span><span class="n">population</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="n">timings</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">"total"</span><span class="p">:</span> <span class="n">t_end</span> <span class="o">-</span> <span class="n">t_start</span><span class="p">,</span>
-            <span class="s2">"execution"</span><span class="p">:</span> <span class="n">t_end</span> <span class="o">-</span> <span class="n">t_start</span><span class="p">,</span>
-            <span class="s2">"warmup"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="s2">"warmup"</span><span class="p">:</span> <span class="n">t_warmup_end</span> <span class="o">-</span> <span class="n">t_start</span><span class="p">,</span>
         <span class="p">}</span>
+        <span class="n">unavailable</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">step_logging</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">step_logging</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">unavailable</span> <span class="o">=</span> <span class="s2">"Island step logging is not implemented by this adapter"</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">timings</span><span class="p">[</span><span class="s2">"execution"</span><span class="p">]</span> <span class="o">=</span> <span class="n">t_end</span> <span class="o">-</span> <span class="n">t_execution_start</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">"history"</span><span class="p">:</span> <span class="p">[],</span>
             <span class="s2">"summary"</span><span class="p">:</span> <span class="n">summary</span><span class="p">,</span>
             <span class="s2">"timings"</span><span class="p">:</span> <span class="n">timings</span><span class="p">,</span>
+            <span class="s2">"timing_metadata"</span><span class="p">:</span> <span class="n">capture</span><span class="o">.</span><span class="n">metadata</span><span class="p">(</span><span class="n">unavailable</span><span class="p">),</span>
         <span class="p">}</span></div>
 
 

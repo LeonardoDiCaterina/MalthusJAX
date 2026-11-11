@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="Core Abstractions: Genomes, Populations, and Fitness" href="2-CORE_ABSTRACTIONS.html"><link rel="prev" title="Quick Start" href="quickstart.html">
 
-    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.1.1 and Furo 2025.12.19 -->
         <title>Architecture Deep Dive: MalthusJAX Framework - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
@@ -376,7 +376,7 @@
 <ul class="simple">
 <li><p><strong>Type checking</strong>: <code class="docutils literal notranslate"><span class="pre">mypy</span> <span class="pre">--strict</span></code> with zero tolerance for untyped code or type: ignore exceptions.</p></li>
 <li><p><strong>Linting</strong>: <code class="docutils literal notranslate"><span class="pre">ruff</span> <span class="pre">check</span></code> enforces style consistency and catches common errors.</p></li>
-<li><p><strong>Test coverage</strong>: ≥80% statement coverage on all modules; critical paths (operators, engine kernels) approach 100%.</p></li>
+<li><p><strong>Test coverage</strong>: production scientific paths, including the genetic engine, are included in measurement. The scoped scientific baseline is 48.82%; this is not full-suite coverage. See <code class="docutils literal notranslate"><span class="pre">docs/audit_remediation/P11.md</span></code> for checks and exclusions.</p></li>
 </ul>
 <p>These checks are non-negotiable preconditions for code acceptance.</p>
 </section>

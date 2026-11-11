@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="Experiment Orchestration via Composer" href="5-COMPOSER_EXPERIMENT_ORCHESTRATION.html"><link rel="prev" title="Genetic Operators: Selection, Variation, and Emitters" href="3-GENETIC_OPERATORS.html">
 
-    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.1.1 and Furo 2025.12.19 -->
         <title>The Engine: Orchestration and Compilation - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
@@ -465,14 +465,9 @@ Scores the population via <code class="docutils literal notranslate"><span class
 <section id="distributed-island-models-baseislandmodel">
 <h2>4.6. Distributed Island Models (<code class="docutils literal notranslate"><span class="pre">BaseIslandModel</span></code>)<a class="headerlink" href="#distributed-island-models-baseislandmodel" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">BaseIslandModel</span></code> upgrades any 1D engine into a 2D multi-island model by wrapping engine methods in <code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code> across an island dimension of size <code class="docutils literal notranslate"><span class="pre">num_islands</span></code>.</p>
-<section id="host-synchronization-execution-pattern">
-<h3>Host Synchronization Execution Pattern<a class="headerlink" href="#host-synchronization-execution-pattern" title="Link to this heading">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">BaseIslandModel.step()</span></code> executes using a hybrid JAX/Python loop:</p>
-<ol class="arabic simple">
-<li><p><strong>Local Evolution</strong>: Runs <code class="docutils literal notranslate"><span class="pre">self.engine.step</span></code> across all islands in parallel for <code class="docutils literal notranslate"><span class="pre">migration_interval</span></code> generations using <code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code> over an inner <code class="docutils literal notranslate"><span class="pre">jax.lax.scan</span></code>.</p></li>
-<li><p><strong>Host Dropout &amp; Migration</strong>: Drops out of JAX execution back to the Python host to execute <code class="docutils literal notranslate"><span class="pre">migrate(key,</span> <span class="pre">multi_pop)</span></code>.</p></li>
-<li><p><strong>Re-injection</strong>: Re-injects the migrated population PyTree into the island state and launches the next JAX execution kernel.</p></li>
-</ol>
+<section id="prepared-island-execution">
+<h3>Prepared island execution<a class="headerlink" href="#prepared-island-execution" title="Link to this heading">¶</a></h3>
+<p>The production adapter prepares one scan over exactly the requested number of generations, applying <code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code> to local engine steps. Migration runs within the compiled schedule at completed interval boundaries. A final partial interval evolves without an extra migration; zero generations leaves state unchanged. History has leading <code class="docutils literal notranslate"><span class="pre">(generation,</span> <span class="pre">island)</span></code> axes. Prepared execution uses the shared timing/readiness protocol; it does not drop to the host between migration intervals. <code class="docutils literal notranslate"><span class="pre">BaseIslandModel.step()</span></code> remains a complete interval convenience operation.</p>
 </section>
 <section id="topological-migration-policies-topologies-py">
 <h3>Topological Migration Policies (<code class="docutils literal notranslate"><span class="pre">topologies.py</span></code>)<a class="headerlink" href="#topological-migration-policies-topologies-py" title="Link to this heading">¶</a></h3>
@@ -557,7 +552,7 @@ Scores the population via <code class="docutils literal notranslate"><span class
 <li><a class="reference internal" href="#multi-objective-engine-moengine">4.4. Multi-Objective Engine (<code class="docutils literal notranslate"><span class="pre">MOEngine</span></code>)</a></li>
 <li><a class="reference internal" href="#quality-diversity-engine-mapelitesengine">4.5. Quality-Diversity Engine (<code class="docutils literal notranslate"><span class="pre">MapElitesEngine</span></code>)</a></li>
 <li><a class="reference internal" href="#distributed-island-models-baseislandmodel">4.6. Distributed Island Models (<code class="docutils literal notranslate"><span class="pre">BaseIslandModel</span></code>)</a><ul>
-<li><a class="reference internal" href="#host-synchronization-execution-pattern">Host Synchronization Execution Pattern</a></li>
+<li><a class="reference internal" href="#prepared-island-execution">Prepared island execution</a></li>
 <li><a class="reference internal" href="#topological-migration-policies-topologies-py">Topological Migration Policies (<code class="docutils literal notranslate"><span class="pre">topologies.py</span></code>)</a></li>
 </ul>
 </li>

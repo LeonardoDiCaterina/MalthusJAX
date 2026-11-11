@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../../genindex.html"><link rel="search" title="Search" href="../../../../search.html">
 
-    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.1.1 and Furo 2025.12.19 -->
         <title>malthusjax.engine.island_model.topologies - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=7bdb33bb" />
@@ -370,6 +370,10 @@
 <div class="viewcode-block" id="RingTopologyIsland.migrate">
 <a class="viewcode-back" href="../../../../api/malthusjax.engine.html#malthusjax.engine.RingTopologyIsland.migrate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">migrate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">multi_pop</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_migrants</span> <span class="o">&gt;</span> <span class="n">multi_pop</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"num_migrants exceeds per-island population"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_migrants</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">multi_pop</span>
         <span class="c1"># multi_pop.fitness shape: (num_islands, island_size)</span>
         <span class="c1"># Lower fitness is better uniformly across all engines and evaluators</span>
         <span class="n">sorted_indices</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">multi_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
@@ -421,6 +425,10 @@
 <div class="viewcode-block" id="FullyConnectedIsland.migrate">
 <a class="viewcode-back" href="../../../../api/malthusjax.engine.html#malthusjax.engine.FullyConnectedIsland.migrate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">migrate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">,</span> <span class="n">multi_pop</span><span class="p">:</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BasePopulation</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_migrants</span> <span class="o">&gt;</span> <span class="n">multi_pop</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"num_migrants exceeds per-island population"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_migrants</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">multi_pop</span>
         <span class="c1"># Lower fitness is better uniformly across all engines and evaluators</span>
         <span class="n">sorted_indices</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">multi_pop</span><span class="o">.</span><span class="n">fitness</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
 
