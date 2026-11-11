@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "suite": "part1_confirmatory",
   "status": "pilot_ready_bounds_and_margin_pending_freeze",
   "libraries": ["evosax", "qdax"],
@@ -17,20 +17,29 @@
     "populations": [128],
     "sensitivity_populations": [512],
     "generations": [50, 150, 500],
-    "seeds_range": [3000, 3099],
-    "candidate_n": 100
+    "seeds_range": [2000, 2099],
+    "candidate_n": 100,
+    "timing_repetitions": 5
   },
   "pilot_grid": {
     "functions": [
       "sphere",
       "rastrigin",
-      "rosenbrock"
+      "rosenbrock",
+      "ellipsoidal_rotated",
+      "schaffers_f7",
+      "gallagher_101_me"
     ],
     "instances": [1],
     "dims": [10, 50],
     "populations": [128],
-    "generations": [50, 150],
-    "seeds": [1000, 1001, 1002, 1003, 1004],
+    "generations": [50, 150, 500],
+    "seeds": [
+      1000, 1001, 1002, 1003, 1004,
+      1005, 1006, 1007, 1008, 1009,
+      1010, 1011, 1012, 1013, 1014,
+      1015, 1016, 1017, 1018, 1019
+    ],
     "timing_repetitions": 5
   },
   "smoke_grid": {
@@ -39,15 +48,21 @@
     "dims": [10],
     "populations": [16],
     "generations": [2],
-    "seeds": [1000],
-    "timing_repetitions": 1
+    "seeds": [1000, 1001],
+    "timing_repetitions": 2
   },
   "bounds": [-5.0, 5.0],
   "primary_metric": {
     "name": "log10_error",
     "formula": "log10(max(final_objective - f_opt, epsilon))",
     "epsilon": 1e-8,
-    "candidate_equivalence_margin": 0.05
+    "candidate_equivalence_margin": 0.05,
+    "sensitivity_margins": [0.025, 0.05, 0.10]
+  },
+  "qd_metrics": {
+    "primary": ["qd_score", "coverage", "max_fitness", "archive_entropy"],
+    "candidate_relative_margin": 0.05,
+    "candidate_coverage_margin_pct": 5.0
   },
   "conditions": {
     "evosax": ["evosax_direct", "evosax_adapter", "evosax_native"],
@@ -68,6 +83,7 @@
     "warmup_calls": 1,
     "steady_repetitions": 5,
     "counterbalanced_order": true,
-    "separate_jit": true
+    "separate_jit": true,
+    "retain_compiled_executable_per_cell": true
   }
 }

@@ -18,6 +18,9 @@ stage="pilot"
 config="configs/publication/part1_confirmatory.json"
 expected_revision=""
 output_dir=""
+shard_index="${SLURM_ARRAY_TASK_ID:-0}"
+num_shards="${SLURM_ARRAY_TASK_COUNT:-1}"
+extra_args=()
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -40,6 +43,18 @@ while [[ $# -gt 0 ]]; do
         --output)
             output_dir="$2"
             shift 2
+            ;;
+        --shard-index)
+            shard_index="$2"
+            shift 2
+            ;;
+        --num-shards)
+            num_shards="$2"
+            shift 2
+            ;;
+        --resume)
+            extra_args+=("--resume")
+            shift 1
             ;;
         *)
             echo "Unknown argument: $1" >&2
@@ -76,6 +91,7 @@ echo "Part:        $part"
 echo "Stage:       $stage"
 echo "Config:      $config"
 echo "Output:      $output_dir"
+echo "Shard:       $shard_index / $num_shards"
 echo "Python:      $(command -v python)"
 echo "CUDA_VISIBLE_DEVICES: ${CUDA_VISIBLE_DEVICES:-none}"
 echo "=========================================================="
@@ -85,7 +101,10 @@ case "$part" in
         exec python -u scripts/run_publication_part1_confirmatory.py \
             --config "$config" \
             --stage "$stage" \
-            --output "$output_dir"
+            --output "$output_dir" \
+            --shard-index "$shard_index" \
+            --num-shards "$num_shards" \
+            "${extra_args[@]+"${extra_args[@]}"}"
         ;;
     2)
         exec python -u scripts/audit_publication_part2.py \
