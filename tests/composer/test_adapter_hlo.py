@@ -73,28 +73,31 @@ class TestEvosaxHLOEquivalence:
         problem = BBOBProblem(fn_name="sphere", num_dims=num_dims, seed=42)
         strategy = strategy_cls(population_size=pop_size, solution=jnp.zeros(num_dims))
         params = strategy.default_params
+        p_state = evalr.env._state
 
-        def raw_run(rng, state_init, p_state):
+        def raw_run(rng, state_init):
             def scan_step(carry, _):
-                rng, state, p_state = carry
+                rng, state = carry
                 rng, key_step = jr.split(rng)
                 k_ask, k_eval, k_tell = jr.split(key_step, 3)
                 x, new_state = strategy.ask(k_ask, state, params)
                 fit, _, _ = problem.eval(k_eval, x, p_state)
-                new_state, metrics = strategy.tell(k_tell, x, fit, new_state, params)
-                return (rng, new_state, p_state), metrics
+                mean_fit = jnp.mean(fit)
+                std_fit = jnp.std(fit)
+                new_state, tell_metrics = strategy.tell(k_tell, x, fit, new_state, params)
+                metrics = {
+                    "best_fitness": tell_metrics["best_fitness"],
+                    "mean_fitness": mean_fit,
+                    "std_fitness": std_fit,
+                }
+                return (rng, new_state), metrics
 
-            carry = (rng, state_init, p_state)
+            carry = (rng, state_init)
             carry, metrics = jax.lax.scan(scan_step, carry, None, length=generations)
             return carry[1], metrics
 
-        p_state = problem.init(key_init)
-        init_x = jnp.zeros((pop_size, num_dims))
-        init_fit = jnp.zeros(pop_size)
-        state_init = strategy.init(key_init, init_x, init_fit, params)
-
         jit_raw = jax.jit(raw_run)
-        lowered_raw = jit_raw.lower(key_run, state_init, p_state)
+        lowered_raw = jit_raw.lower(key_run, init_res)
         compiled_raw = lowered_raw.compile()
 
         hlo_unopt_raw = lowered_raw.as_text()
@@ -113,16 +116,15 @@ class TestEvosaxHLOEquivalence:
             f"While loop count mismatch: adapter={hlo_unopt_adapter.count('while')}, raw={hlo_unopt_raw.count('while')}"
         )
 
-        # 3. Unoptimized StableHLO IR size ratio is within 5%
+        # 3. Unoptimized StableHLO IR size ratio is within 2% (observed ~0.5%)
         size_ratio = len(hlo_unopt_adapter) / len(hlo_unopt_raw)
-        assert 0.95 <= size_ratio <= 1.05, f"Unoptimized HLO size ratio diverged: {size_ratio:.4f}"
+        assert 0.98 <= size_ratio <= 1.02, f"Unoptimized HLO size ratio diverged: {size_ratio:.4f}"
 
-        # 4. Compiled XLA fusion kernel count does not bloat (>10%) and stays within [0.80, 1.10]
-        # (On XLA:GPU, BBOBEnv's static problem state enables more aggressive fusion than carrying p_state in scan, yielding ~0.858)
+        # 4. Compiled XLA fusion kernel count matches (100% parity)
         fusions_adapter = hlo_compiled_adapter.count("fusion")
         fusions_raw = hlo_compiled_raw.count("fusion")
         fusion_ratio = fusions_adapter / fusions_raw
-        assert 0.80 <= fusion_ratio <= 1.10, (
+        assert 0.95 <= fusion_ratio <= 1.05, (
             f"Compiled HLO fusion count diverged: adapter={fusions_adapter}, raw={fusions_raw} (ratio={fusion_ratio:.4f})"
         )
 
