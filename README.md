@@ -130,12 +130,34 @@ graph TD
     end
 ```
 
-### 📊 H100 Benchmarks & Validation
-MalthusJAX was designed with rigorous empirical validation and statistical parity in mind. It has been validated on an **NVIDIA H100 GPU** over **72,000+ experimental runs** across 4 publication benchmark suites.
+### Benchmark results
 
-- **~2.14x Generation Speedup**: Fusing generation loops into pure JAX kernels executes in **18.9 ms** vs native EvoSAX's **40.6 ms** per run on an H100.
-- **Optimization Quality Parity**: TOST equivalence tests support practical equivalence with EvoSAX ($p > 0.05$ across standard BBOB functions).
-- **Zero-Overhead Abstractions**: Swapping individual genetic operators shows $p_{\text{holm}} = 1.0$ across function timing regressions, demonstrating zero performance hit from our modular composition.
+The full Phase 1 GPU study contains **64,800 runs** over 108 settings.
+It compares direct upstream execution, the MalthusJAX adapter, and the native
+mimic for EvoSAX SimpleGA and QDax MAP-Elites. The grid crosses six BBOB
+functions, two instance seeds, dimensions 10/20/50, and generation budgets
+50/150/500 at population 128, with 100 matched seeds per setting.
+
+| Native vs. adapter | EvoSAX SimpleGA | QDax MAP-Elites |
+|---|---:|---:|
+| Pooled log₁₀ objective error difference | +0.00192 | −0.00502 |
+| 90% CI lower bound | −0.00201 | −0.01210 |
+| 90% CI upper bound | +0.00585 | +0.00206 |
+| Settings meeting the ±0.05 equivalence bound | 85/108 | 53/108 |
+| Geometric mean steady GPU speedup | 1.8175× | 0.9964× |
+| 95% CI lower bound for speedup | 1.8169× | 0.9961× |
+| 95% CI upper bound for speedup | 1.8180× | 0.9966× |
+
+All six pooled objective contrasts met the equivalence bound. Adapter versus
+direct upstream met it in all 108 settings for both libraries. QDax native
+versus adapter archive coverage met the ±5 percentage point bound in all 108
+settings. The frozen relative QD-score test was inconclusive.
+
+Speedup is reference time divided by contender time, using the median of five
+synchronized steady executions per run. Compilation and warm-up were measured
+separately. The intervals use paired estimates clustered by seed.
+[Study protocol](configs/publication/part1_confirmatory.json) ·
+[Artifact specification](docs/part1_confirmatory_v2_artifact_spec.md)
 
 > [!NOTE]
 > **Optimization Direction Convention & Benchmark Re-run Advisory**:
