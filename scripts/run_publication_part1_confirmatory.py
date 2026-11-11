@@ -615,6 +615,107 @@ def build_cell_runners(
     return runners
 
 
+def extract_block_records(
+    block_data: Dict[str, Any], epsilon: float = 1e-8
+) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
+    """Extract paired contrast record and tidy CSV run rows from a block dictionary."""
+    cell_id = block_data["cell_id"]
+    cell_coord = block_data.get("coordinate", cell_id.rsplit("_s", 1)[0])
+    fn_name = block_data["function"]
+    inst_seed = block_data["instance"]
+    dim = block_data["dim"]
+    pop = block_data["pop_size"]
+    gens = block_data["generations"]
+    seed = block_data["seed"]
+    f_opt = block_data["f_opt"]
+
+    rec: Dict[str, Any] = {
+        "cell_id": cell_id,
+        "coordinate": cell_coord,
+        "function": fn_name,
+        "instance": inst_seed,
+        "dim": dim,
+        "pop_size": pop,
+        "generations": gens,
+        "seed": seed,
+    }
+    runs_map = block_data.get("runs", {})
+    if all(
+        k in runs_map and runs_map[k].get("status") == "success"
+        for k in ("evosax_direct", "evosax_adapter", "evosax_native")
+    ):
+        r_d, r_b, r_c = runs_map["evosax_direct"], runs_map["evosax_adapter"], runs_map["evosax_native"]
+        rec["evosax_B_minus_A_log10"] = r_b["log10_error"] - r_d["log10_error"]
+        rec["evosax_C_minus_B_log10"] = r_c["log10_error"] - r_b["log10_error"]
+        rec["evosax_C_minus_A_log10"] = r_c["log10_error"] - r_d["log10_error"]
+        rec["evosax_speedup_C_vs_B"] = r_b.get("steady_median_seconds", 1.0) / max(
+            r_c.get("steady_median_seconds", 1.0), 1e-12
+        )
+        rec["evosax_speedup_C_vs_A"] = r_d.get("steady_median_seconds", 1.0) / max(
+            r_c.get("steady_median_seconds", 1.0), 1e-12
+        )
+
+    if all(
+        k in runs_map and runs_map[k].get("status") == "success"
+        for k in ("qdax_direct", "qdax_adapter", "qdax_native")
+    ):
+        q_d, q_b, q_c = runs_map["qdax_direct"], runs_map["qdax_adapter"], runs_map["qdax_native"]
+        rec["qdax_B_minus_A_log10"] = q_b["log10_error"] - q_d["log10_error"]
+        rec["qdax_C_minus_B_log10"] = q_c["log10_error"] - q_b["log10_error"]
+        rec["qdax_C_minus_A_log10"] = q_c["log10_error"] - q_d["log10_error"]
+        rec["qdax_B_minus_A_qd_score"] = q_b.get("qd_score", 0.0) - q_d.get("qd_score", 0.0)
+        rec["qdax_C_minus_B_qd_score"] = q_c.get("qd_score", 0.0) - q_b.get("qd_score", 0.0)
+        q_b_qd = q_b.get("qd_score", 0.0)
+        rec["qdax_C_minus_B_qd_score_rel"] = (q_c.get("qd_score", 0.0) - q_b_qd) / max(
+            abs(q_b_qd), 1.0
+        )
+        rec["qdax_C_minus_B_coverage"] = q_c.get("coverage", 0.0) - q_b.get("coverage", 0.0)
+        rec["qdax_C_minus_B_entropy"] = q_c.get("archive_entropy", 0.0) - q_b.get("archive_entropy", 0.0)
+        rec["qdax_speedup_C_vs_B"] = q_b.get("steady_median_seconds", 1.0) / max(
+            q_c.get("steady_median_seconds", 1.0), 1e-12
+        )
+        rec["qdax_speedup_C_vs_A"] = q_d.get("steady_median_seconds", 1.0) / max(
+            q_c.get("steady_median_seconds", 1.0), 1e-12
+        )
+
+    run_rows: List[Dict[str, Any]] = []
+    for cond_name, res_dict in runs_map.items():
+        run_rows.append({
+            "cell_id": cell_id,
+            "coordinate": cell_coord,
+            "function": fn_name,
+            "instance": inst_seed,
+            "dim": dim,
+            "pop_size": pop,
+            "generations": gens,
+            "seed": seed,
+            "condition": cond_name,
+            "execution_order_rank": res_dict.get("execution_order_rank", 0),
+            "status": res_dict.get("status", "unknown"),
+            "best_fitness": res_dict.get("best_fitness"),
+            "f_opt": f_opt,
+            "delta_f": res_dict.get("delta_f"),
+            "log10_error": res_dict.get("log10_error"),
+            "floor_hit": res_dict.get("floor_hit", False),
+            "qd_score": res_dict.get("qd_score"),
+            "coverage": res_dict.get("coverage"),
+            "max_fitness": res_dict.get("max_fitness"),
+            "archive_entropy": res_dict.get("archive_entropy"),
+            "occupied_cells": res_dict.get("occupied_cells"),
+            "setup_seconds": res_dict.get("setup_seconds", 0.0),
+            "compile_seconds": res_dict.get("compile_seconds", 0.0),
+            "init_state_seconds": res_dict.get("init_state_seconds", 0.0),
+            "first_call_seconds": res_dict.get("first_call_seconds", 0.0),
+            "warmup_seconds": res_dict.get("warmup_seconds", 0.0),
+            "steady_median_seconds": res_dict.get("steady_median_seconds", 0.0),
+            "steady_iqr_seconds": res_dict.get("steady_iqr_seconds", 0.0),
+            "steady_mean_seconds": res_dict.get("steady_mean_seconds", 0.0),
+            "steady_std_seconds": res_dict.get("steady_std_seconds", 0.0),
+            "evaluations_per_second": res_dict.get("evaluations_per_second", 0.0),
+        })
+    return rec, run_rows
+
+
 def holm_bonferroni(p_values: List[float]) -> List[float]:
     """Step-down Holm-Bonferroni FWER adjustment."""
     m = len(p_values)
@@ -921,6 +1022,40 @@ def main() -> int:
         cell_coord = f"{fn_name}_i{inst_seed}_d{dim}_p{pop}_g{gens}"
         t_cell_start = time.perf_counter()
 
+        # Fast cell-level resume check: if all seeds are already completed, bypass AOT compile entirely
+        if args.resume:
+            all_seeds_cached = True
+            cell_cached_blocks = []
+            for seed in seeds:
+                b_path = args.output / f"{cell_coord}_s{seed}" / "block.json"
+                if not b_path.exists():
+                    all_seeds_cached = False
+                    break
+                try:
+                    with open(b_path, "r", encoding="utf-8") as f:
+                        cb = json.load(f)
+                    if not all(r.get("status") == "success" for r in cb.get("runs", {}).values()):
+                        all_seeds_cached = False
+                        break
+                    cell_cached_blocks.append(cb)
+                except Exception:
+                    all_seeds_cached = False
+                    break
+
+            if all_seeds_cached and len(cell_cached_blocks) == len(seeds):
+                for cb in cell_cached_blocks:
+                    blocks.append(cb)
+                    p_rec, r_rows = extract_block_records(cb, epsilon)
+                    paired_records.append(p_rec)
+                    run_csv_rows.extend(r_rows)
+                cell_elapsed = time.perf_counter() - t_cell_start
+                print(
+                    f"[Cell {cell_idx + 1}/{len(my_cells)}: {cell_coord}] "
+                    f"Cached ({len(seeds)} seeds loaded in {cell_elapsed:.3f}s)",
+                    flush=True,
+                )
+                continue
+
         # Clear caches at cell boundary so each cell records genuine cold compilation
         jax.clear_caches()
 
@@ -957,6 +1092,9 @@ def main() -> int:
                     cached_block = json.load(f)
                 if all(r.get("status") == "success" for r in cached_block.get("runs", {}).values()):
                     blocks.append(cached_block)
+                    p_rec, r_rows = extract_block_records(cached_block, epsilon)
+                    paired_records.append(p_rec)
+                    run_csv_rows.extend(r_rows)
                     continue
 
             block_dir.mkdir(parents=True, exist_ok=True)
