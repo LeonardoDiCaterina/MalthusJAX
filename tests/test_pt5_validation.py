@@ -61,6 +61,8 @@ class Adapter:
 
 
 def setup_fake(monkeypatch, *, contamination=False, disagree=False):
+    real_devices = list(jax.devices())
+    monkeypatch.setattr(validation.jax, "devices", lambda: [real_devices[0]])
     monkeypatch.setattr(
         validation,
         "environment_identity",

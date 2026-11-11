@@ -9,7 +9,7 @@ import jax.numpy as jnp
 
 from malthusjax.core.genome.binary_genome import BinaryGenomeConfig
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
-from malthusjax.core.timing import TimingCapture, block_until_ready, execution_metadata
+from malthusjax.core.timing import TimingCapture, block_until_ready
 from malthusjax.engine.mo.mo_engine import MOEngine, MOEngineParams
 
 

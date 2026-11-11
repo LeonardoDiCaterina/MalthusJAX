@@ -1,16 +1,17 @@
 """Study-family integrity, actual mutation schedule and Pareto orientation."""
 
 import json
-from pathlib import Path
-import sys
 import subprocess
+import sys
+from pathlib import Path
 
 import jax
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from analyze_publication_study import CONDITIONS, nondominated, ranking, phase1_estimation
+from analyze_publication_study import CONDITIONS, nondominated, phase1_estimation, ranking
 from run_publication_study import work_units
+
 from malthusjax.core.genome.real_genome import RealGenomeConfig
 from malthusjax.engine.schedules import ScheduleType
 from malthusjax.operators.mutation.real import GaussianMutation

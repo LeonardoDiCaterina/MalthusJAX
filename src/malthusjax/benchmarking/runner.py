@@ -9,10 +9,10 @@ is specified here for engines to implement, and a simple deterministic
 
 from __future__ import annotations
 
-import time
 import copy
 import hashlib
 import json
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
@@ -20,9 +20,9 @@ from typing import Any, Dict, List, Optional, Sequence
 import chex
 import jax
 
-from ..core.timing_records import TimingPolicy, TimingRecord, environment_identity, json_safe
 from ..core.logger import get_logger
 from ..core.random import create_key, resolve_prng_impl
+from ..core.timing_records import TimingPolicy, TimingRecord, environment_identity, json_safe
 from .io import write_experiment_artifacts
 from .results import ExperimentResult, RunResult, standard_json
 
@@ -137,11 +137,12 @@ class BenchmarkRunner:
                     else "prepared_execution_repeat",
                 )
                 record["trials"].append(trial)
-                objective = lambda row: {
-                    k: v
-                    for k, v in row.metrics.items()
-                    if k != "duration_seconds" and not k.startswith("time_")
-                }
+                def objective(row: RunResult) -> dict[str, Any]:
+                    return {
+                        k: v
+                        for k, v in row.metrics.items()
+                        if k != "duration_seconds" and not k.startswith("time_")
+                    }
                 agrees = (
                     objective(repeat) == objective(run_result)
                     and repeat.history == run_result.history

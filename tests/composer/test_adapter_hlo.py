@@ -28,6 +28,7 @@ class TestEvosaxHLOEquivalence:
     def test_evosax_adapter_vs_raw_hlo_isomorphism(self):
         """Prove that EvosaxEngineAdapter and raw evosax lower to virtually identical HLO."""
         from evosax.problems import BBOBProblem
+
         from malthusjax.composer.evosax_adapter import EVOSAX_STRATEGIES, build_evosax_engine
         from malthusjax.core.fitness.composable.base import IdentityTransform, ScalarOutput
         from malthusjax.core.fitness.composable.environments import BBOBEnv
@@ -140,10 +141,12 @@ class TestQDaxHLOEquivalence:
     def test_qdax_adapter_vs_raw_hlo_isomorphism(self):
         """Prove that QDaxEngineAdapter and raw QDax MAP-Elites lower to virtually identical HLO."""
         import functools
+
         from qdax.core.containers.mapelites_repertoire import compute_cvt_centroids
         from qdax.core.emitters.standard_emitters import MixingEmitter
         from qdax.core.map_elites import MAPElites
         from qdax.utils.metrics import default_qd_metrics
+
         from tests.composer.test_qdax_adapter import TestQDaxAdapter
 
         # --- A. Adapter Lowering ---

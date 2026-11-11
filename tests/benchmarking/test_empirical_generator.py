@@ -9,6 +9,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
+
 from tests.timing_records_helpers import record
 
 SCRIPT = Path(__file__).resolve().parents[2] / "examples/generate_empirical_paper_curves.py"

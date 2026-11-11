@@ -1,7 +1,7 @@
 """Independent routing-budget and rollout termination/anomaly contracts."""
-import sys
 import json
 import subprocess
+import sys
 from pathlib import Path
 
 import jax
@@ -10,8 +10,8 @@ import numpy as np
 from flax import struct
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from run_publication_phase3 import adjacency, migration_routes
 from publication_rl import InstrumentedRLEvaluator
+from run_publication_phase3 import adjacency, migration_routes
 
 
 def test_cluster_dry_run_never_uses_cpu_smoke_or_launches_workers(tmp_path):

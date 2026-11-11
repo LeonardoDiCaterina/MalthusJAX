@@ -22,7 +22,7 @@ from malthusjax.core.logger import (
     _host_log_step,
     get_logger,
 )
-from malthusjax.core.timing import TimingCapture, block_until_ready, execution_metadata
+from malthusjax.core.timing import TimingCapture, block_until_ready
 
 logger = get_logger("composer.adapters")
 

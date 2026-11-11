@@ -18,8 +18,8 @@ from malthusjax.composer.engine_registry import get_registry as get_engine_regis
 @pytest.fixture(autouse=True)
 def restore_registries():
     """Keep temporary decorator registrations local to each test."""
-    from malthusjax.composer._registry import _OPERATOR_REGISTRY
     from malthusjax.composer._genome_registry import _GENOME_REGISTRY
+    from malthusjax.composer._registry import _OPERATOR_REGISTRY
     from malthusjax.composer.engine_registry import _ENGINE_REGISTRY
 
     registries = (_OPERATOR_REGISTRY, _GENOME_REGISTRY, _ENGINE_REGISTRY)

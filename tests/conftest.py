@@ -15,6 +15,46 @@ os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
 os.environ.setdefault("VECLIB_MAXIMUM_THREADS", "1")
 os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
 
+# Prevent JAX greedy memory preallocation on shared cluster GPUs
+os.environ.setdefault("XLA_PYTHON_CLIENT_PREALLOCATE", "false")
+
+# Disable CUDA command buffer capture during large test suites to avoid CUDA graph OOM
+_xla_flags = os.environ.get("XLA_FLAGS", "")
+if "--xla_gpu_enable_command_buffer" not in _xla_flags:
+    os.environ["XLA_FLAGS"] = f"{_xla_flags} --xla_gpu_enable_command_buffer=".strip()
+
+
+def _get_best_available_gpu() -> str | None:
+    try:
+        import subprocess
+
+        out = subprocess.check_output(
+            ["nvidia-smi", "--query-gpu=index,memory.free", "--format=csv,noheader,nounits"],
+            stderr=subprocess.DEVNULL,
+            encoding="utf-8",
+        )
+        candidates = []
+        for line in out.strip().splitlines():
+            parts = [p.strip() for p in line.split(",")]
+            if len(parts) == 2:
+                candidates.append((parts[0], int(parts[1])))
+        if candidates:
+            candidates.sort(key=lambda x: x[1], reverse=True)
+            return candidates[0][0]
+    except Exception:
+        pass
+    return None
+
+
+if (
+    "CUDA_VISIBLE_DEVICES" not in os.environ
+    and "SLURM_STEP_GPUS" not in os.environ
+    and "SLURM_JOB_ID" not in os.environ
+):
+    _best_gpu = _get_best_available_gpu()
+    if _best_gpu is not None:
+        os.environ["CUDA_VISIBLE_DEVICES"] = _best_gpu
+
 # Ensure src/ is in PYTHONPATH for the remote benchmarking script
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 
@@ -363,8 +403,12 @@ def engine_with_prng(prng_impl: PRNGImpl, key_derivation: KeyDerivationStrategy)
 
 
 def pytest_runtest_teardown(item, nextitem):
-    """Clear JAX caches after every test to prevent GPU OOM during parameter sweeps."""
+    """Clear JAX caches and collect garbage to prevent GPU OOM across test suites."""
+    import gc
+
     import jax
 
     if hasattr(jax, "clear_caches"):
         jax.clear_caches()
+    if nextitem is None or getattr(item, "fspath", None) != getattr(nextitem, "fspath", None):
+        gc.collect()

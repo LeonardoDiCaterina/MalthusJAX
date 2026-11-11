@@ -40,7 +40,7 @@ import jax
 import jax.numpy as jnp
 import jax.random as jr
 
-from malthusjax.core.timing import TimingCapture, block_until_ready, execution_metadata
+from malthusjax.core.timing import TimingCapture, block_until_ready
 
 try:
     import evosax

@@ -1,4 +1,5 @@
 from typing import Any
+
 import jax
 from flax import struct
 

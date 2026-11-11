@@ -12,11 +12,11 @@ import hashlib
 import importlib.metadata
 import json
 import os
-from pathlib import Path
 import platform
 import subprocess
 import sys
 import time
+from pathlib import Path
 
 
 def digest(array):
@@ -31,11 +31,13 @@ def collect_prepared_timing(options, seed, repetitions):
     TimingCapture is an existing observation hook. The local patch stops the
     adapter before compilation/execution; no production source is modified.
     """
-    from unittest.mock import patch
     import logging
+    from unittest.mock import patch
+
     import jax
     import jax.numpy as jnp
     import numpy as np
+
     from malthusjax.composer.engine_factory_v2 import EngineFactory
     from malthusjax.composer.experiment_config import ExperimentConfig
     from malthusjax.core.timing import TimingCapture, block_until_ready
@@ -197,14 +199,16 @@ def main():
     import jax
     import jax.numpy as jnp
     import numpy as np
+
+    from malthusjax.benchmarking.results import standard_json
     from malthusjax.composer import Composer
     from malthusjax.composer.strategies.core import MapElitesStrategy, QDAXStrategy
-    from malthusjax.benchmarking.results import standard_json
 
     if args.library in ("both", "qdax"):
         from qdax.core.emitters.standard_emitters import MixingEmitter
-        from malthusjax.operators.emitters.qdax_replica import QDAXReplicaMixingEmitter
+
         from malthusjax.core.genome.real_genome import RealGenomeConfig
+        from malthusjax.operators.emitters.qdax_replica import QDAXReplicaMixingEmitter
 
     def installed_version(name):
         try:

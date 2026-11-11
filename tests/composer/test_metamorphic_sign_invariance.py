@@ -351,7 +351,6 @@ def test_kozax_metamorphic_sign_invariance():
         num_populations=1,
         fitness_function=MinFF(),
         variable_list=[["x0", "x1"]],
-        operator_list=["add", "mul", "sub"],
         max_nodes=15,
     )
 
@@ -361,7 +360,6 @@ def test_kozax_metamorphic_sign_invariance():
         num_populations=1,
         fitness_function=MaxFF(),
         variable_list=[["x0", "x1"]],
-        operator_list=["add", "mul", "sub"],
         max_nodes=15,
     )
 

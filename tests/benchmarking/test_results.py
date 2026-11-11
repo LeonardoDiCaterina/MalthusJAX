@@ -101,8 +101,9 @@ def test_comparison_timing_data_and_boxplot():
     exp = ExperimentResult(name="ex", runs=[r1, r2])
     comparison = ComparisonResult(pipelines={"GA": exp})
 
-    from tests.timing_records_helpers import record
     import pytest
+
+    from tests.timing_records_helpers import record
     with pytest.raises(ValueError, match="legacy/unknown"):
         comparison.timing_data()
     r1.timing_record = record(1.1, seed=0)

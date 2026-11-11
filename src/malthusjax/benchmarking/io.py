@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import csv
 import hashlib
-import uuid
 import json
+import uuid
 from pathlib import Path
 from typing import Dict
 

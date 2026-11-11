@@ -1,8 +1,10 @@
 import json
+
 import numpy as np
 import pytest
-from malthusjax.benchmarking.runner import BenchmarkRunner, StubEngine
+
 from malthusjax.benchmarking.results import RunResult
+from malthusjax.benchmarking.runner import BenchmarkRunner, StubEngine
 
 
 @pytest.mark.parametrize("value", [float("nan"), float("inf")])

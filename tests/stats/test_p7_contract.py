@@ -1,9 +1,11 @@
 import numpy as np
 import pandas as pd
 import pytest
-from malthusjax.stats.dataset_builder import synthesize_regression_dataset, build_design_matrix
-from malthusjax.stats.regression import fit_ols
+
 from malthusjax.stats.core import RegressionDataset
+from malthusjax.stats.dataset_builder import build_design_matrix, synthesize_regression_dataset
+from malthusjax.stats.regression import fit_ols
+
 
 def test_duplicates_cannot_expand_join():
     row=dict(fn_name="sphere",seed=1,D=2,P=3,G=4)

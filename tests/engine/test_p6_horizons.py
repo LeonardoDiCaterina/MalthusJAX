@@ -1,11 +1,12 @@
 import jax
-import jax.numpy as jnp
 import numpy as np
 import pytest
 from flax import struct
-from malthusjax.engine.island_model.base import BaseIslandModel
+
 from malthusjax.engine.island_model.adapter import IslandEngineAdapter
-from tests.engine.test_island_model import DummyEngine, DummyEvaluator, DummyConfig
+from malthusjax.engine.island_model.base import BaseIslandModel
+from tests.engine.test_island_model import DummyConfig, DummyEngine, DummyEvaluator
+
 
 @struct.dataclass
 class CountMigrations(BaseIslandModel):

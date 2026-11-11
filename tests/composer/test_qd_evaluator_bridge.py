@@ -5,7 +5,6 @@ import jax.numpy as jnp
 import pytest
 from flax import struct
 
-from malthusjax.core.base import BasePopulation
 from malthusjax.core.fitness.composable.base import (
     BaseDescriptorFn,
     GenotypeBoxDescriptorFn,
@@ -19,7 +18,6 @@ from malthusjax.core.fitness.composable.environments import SphereEnv
 from malthusjax.core.fitness.composable.evaluators import OptimizationEvaluator
 from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 from malthusjax.core.fitness.qd.evaluator import (
-    BaseQDEvaluator,
     ProjectedQDEvaluator,
     ensure_qd_evaluator,
     to_repertoire_fitness,

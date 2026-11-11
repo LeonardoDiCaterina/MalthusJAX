@@ -216,7 +216,7 @@ class RLEvaluator(
                     if hasattr(leaf, "dtype") and jnp.issubdtype(leaf.dtype, jnp.floating)
                 ]
                 obs_has_nan = (
-                    jnp.any(jnp.stack([jnp.any(jnp.isnan(l)) for l in float_leaves]))
+                    jnp.any(jnp.stack([jnp.any(jnp.isnan(leaf_node)) for leaf_node in float_leaves]))
                     if float_leaves
                     else jnp.array(False, dtype=bool)
                 )

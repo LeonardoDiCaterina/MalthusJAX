@@ -1,12 +1,10 @@
 import jax
 import jax.numpy as jnp
 from flax import struct
-import pytest
 
 from malthusjax.engine.base import AbstractEngine, AbstractEngineParams
-from malthusjax.engine.genetic_fastengine import GeneticEngine
-from malthusjax.engine.qd.map_elites import MapElitesEngine, MapElitesEngineParams
 from malthusjax.engine.mo.mo_engine import MOEngine, MOEngineParams
+from malthusjax.engine.qd.map_elites import MapElitesEngine, MapElitesEngineParams
 
 
 def test_abstract_engine_subclass_hash_inheritance():

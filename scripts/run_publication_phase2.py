@@ -154,6 +154,7 @@ def run(args):
     import jax
     import jax.numpy as jnp
     import numpy as np
+    from publication_rl import InstrumentedRLEvaluator as RLEvaluator
 
     from malthusjax.composer.engine_factory_v2 import EngineFactory
     from malthusjax.composer.experiment_config import ExperimentConfig
@@ -163,7 +164,6 @@ def run(args):
         RLActionSummaryDescriptorFn,
         ScalarOutput,
     )
-    from publication_rl import InstrumentedRLEvaluator as RLEvaluator
     from malthusjax.core.fitness.composable.interpreters import MLPInterpreter
     from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig
     from malthusjax.core.timing import block_until_ready

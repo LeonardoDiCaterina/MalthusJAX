@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import gc
 import os
-import sys
 import time
 
 # Ensure dynamic memory allocation if not explicitly set
@@ -21,7 +20,6 @@ if "XLA_PYTHON_CLIENT_PREALLOCATE" not in os.environ:
     os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
 
 import jax
-import jax.numpy as jnp
 
 from malthusjax.composer import Composer
 
@@ -30,7 +28,7 @@ def get_gpu_memory_info() -> dict[str, float]:
     """Retrieve memory stats in Megabytes from JAX / CUDA runtime."""
     devices = jax.devices()
     default_dev = devices[0]
-    
+
     info: dict[str, float] = {"backend": jax.default_backend()}
     if default_dev.platform == "gpu":
         try:
@@ -108,7 +106,7 @@ def run_vram_stress_test() -> None:
     for cycle in range(1, 4):
         t0 = time.time()
         print(f"\n>>> Running Cycle {cycle}/3...")
-        comparison = composer.compare(
+        composer.compare(
             pipelines=pipelines,
             seeds=seeds,
             shared_initial_population=True,

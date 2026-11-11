@@ -1,7 +1,6 @@
 """Contracts for extracting scientific evidence without GPU integrations."""
 
 from types import SimpleNamespace
-from tests.timing_records_helpers import record
 
 import numpy as np
 import pytest
@@ -12,6 +11,7 @@ from malthusjax.benchmarking.empirical import (
     prepare_output_paths,
     timing_comparison,
 )
+from tests.timing_records_helpers import record
 
 
 def comparison(values=(-10.0, -2.0), execution=2.0):

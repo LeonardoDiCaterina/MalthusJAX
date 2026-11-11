@@ -24,7 +24,7 @@ from ..core.genome.binary_genome import BinaryGenomeConfig
 from ..core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
 from ..core.logger import StepLoggingConfig, get_logger
 from ..core.random import resolve_prng_impl
-from ..core.timing import TimingCapture, block_until_ready, execution_metadata
+from ..core.timing import TimingCapture, block_until_ready
 from ..engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
 from ..engine.schedules import TrackBest
 

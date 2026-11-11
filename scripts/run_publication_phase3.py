@@ -133,10 +133,10 @@ def main() -> int:
         from malthus_neat.genomes.neat_genome import NeatGenomeConfig
         from malthus_neat.interpreters.neat_interpreter import NeatInterpreter
         from malthus_neat.operators.neat_emitter import NeatEmitter
+        from publication_rl import InstrumentedRLEvaluator as RLEvaluator
 
         from malthusjax.core.fitness.composable.base import ScalarOutput
         from malthusjax.core.fitness.composable.environments import MuJoCoMJXEnv
-        from publication_rl import InstrumentedRLEvaluator as RLEvaluator
         from malthusjax.core.genome.mo.population import MOPopulation
         from malthusjax.engine.mo.mo_engine import MOEngine, MOEngineParams
 

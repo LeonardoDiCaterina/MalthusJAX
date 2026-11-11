@@ -31,11 +31,13 @@ echo "Started at:  $(date)"
 echo "=========================================================="
 
 # 1. Activate Conda Environment (Cluster setup)
-if command -v conda &> /dev/null; then
-    eval "$(conda shell.bash hook)"
-    conda activate post_sub 2>/dev/null || conda activate malthusjax 2>/dev/null || true
-elif [ -d "/home/20240485/.conda/envs/post_sub" ]; then
-    export PATH="/home/20240485/.conda/envs/post_sub/bin:$PATH"
+if [ -z "${PT5_TEST_CAPTURE:-}" ]; then
+    if command -v conda &> /dev/null; then
+        eval "$(conda shell.bash hook)"
+        conda activate post_sub 2>/dev/null || conda activate malthusjax 2>/dev/null || true
+    elif [ -d "/home/20240485/.conda/envs/post_sub" ]; then
+        export PATH="/home/20240485/.conda/envs/post_sub/bin:$PATH"
+    fi
 fi
 
 # 2. Hardware and Environment Safety Guards

@@ -100,7 +100,7 @@ def test_comparator_small_sample_error():
     arr1 = np.random.randn(3)
     arr2 = np.random.randn(3)
 
-    from malthusjax.stats.core import StatisticalComparisonSpec, StatisticalSpecError
+    from malthusjax.stats.core import StatisticalComparisonSpec
 
     spec = StatisticalComparisonSpec(min_paired_seeds=20)
 
@@ -285,7 +285,7 @@ def test_comparator_decision_error():
 
     spec = StatisticalComparisonSpec(min_paired_seeds=2, include_tests=("unknown_test",))
     with pytest.raises(ValueError, match="Unknown statistical test"):
-        res = compare_paired_arrays(
+        compare_paired_arrays(
             label="err_test",
             left_name="L",
             right_name="R",

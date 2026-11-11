@@ -70,7 +70,6 @@ class TestKozaxAdapterRealIntegration(BaseAdapterTestSuite):
             num_populations=1,
             fitness_function=ff,
             variable_list=[["x0", "x1"]],
-            operator_list=["add", "mul", "sub"],
             max_nodes=15,
         )
 

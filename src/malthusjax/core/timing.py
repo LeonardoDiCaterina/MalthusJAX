@@ -70,6 +70,7 @@ class TimingCapture:
 
     def initialized(self, inputs: Any, executable: Any) -> None:
         from time import perf_counter
+
         from .timing_records import input_signature
 
         block_until_ready(inputs, effects=True)

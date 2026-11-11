@@ -2,7 +2,7 @@ import time
 from typing import Any
 
 from malthusjax.composer.adapters.metrics import archive_metric_metadata
-from malthusjax.core.timing import TimingCapture, block_until_ready, execution_metadata
+from malthusjax.core.timing import TimingCapture, block_until_ready
 
 
 class MapElitesEngineAdapter:

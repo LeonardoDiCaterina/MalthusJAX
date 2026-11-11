@@ -16,7 +16,6 @@ import jax
 import jax.lax as lax
 import jax.numpy as jnp
 
-
 _PHILOX_REGISTERED = False
 
 

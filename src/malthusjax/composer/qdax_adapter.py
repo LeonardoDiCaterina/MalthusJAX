@@ -108,7 +108,7 @@ def _qdax_malthusjax_eval(
     return scoring_fn
 
 
-from malthusjax.composer.adapters.metrics import archive_metric_specs, archive_metric_metadata
+from malthusjax.composer.adapters.metrics import archive_metric_metadata, archive_metric_specs
 from malthusjax.core.fitness.qd.metrics import archive_metrics
 
 QDAX_METRICS = archive_metric_specs()

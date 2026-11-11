@@ -1,9 +1,9 @@
 """Retained-result identity and no-execution planning guarantees."""
 
 import json
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 

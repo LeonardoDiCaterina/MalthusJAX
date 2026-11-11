@@ -6,7 +6,6 @@ from typing import Any, Tuple
 
 import chex
 import jax
-import jax.numpy as jnp
 from flax import struct
 
 from malthusjax.core.base import BasePopulation

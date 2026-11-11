@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 
 import pytest
-from tests.timing_records_helpers import record
 
 from malthusjax.benchmarking.results import (
     ComparisonResult,
@@ -12,6 +11,7 @@ from malthusjax.benchmarking.results import (
     MetaComparison,
     RunResult,
 )
+from tests.timing_records_helpers import record
 
 
 def _make_sample_comparison() -> ComparisonResult:
