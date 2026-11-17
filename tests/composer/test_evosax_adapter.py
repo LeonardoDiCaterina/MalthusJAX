@@ -272,9 +272,6 @@ class TestEvosaxAdapter(BaseAdapterTestSuite):
         else:
 
             class DummyEval(BaseEvaluator):
-                def evaluate_population(self, population):
-                    return population
-
                 def evaluate(self, genome):
                     return jnp.zeros((), dtype=jnp.float32)
 

@@ -28,6 +28,7 @@ from malthusjax.core.fitness.composable.evaluators import (
 )
 from malthusjax.core.fitness.composable.interpreters import IdentityInterpreter
 from malthusjax.core.genome.binary_genome import BinaryGenome, BinaryGenomeConfig, BinaryPopulation
+from malthusjax.core.genome.categorical_genome import CategoricalGenomeConfig
 from malthusjax.core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
 from malthusjax.operators.base import (
     BaseCrossover,
@@ -97,7 +98,13 @@ class TestRegisteredOperatorsCompliance:
                     op = op.replace(input_length=pop_size)
 
                 is_binary = name in ("uniform_binary", "single_point")
-                if is_binary:
+                if name == "order_crossover":
+                    cfg = CategoricalGenomeConfig(
+                        num_categories=gene_dim, shape=(gene_dim,), is_permutation=True
+                    )
+                    p1 = cfg.init_population(jax.random.key(41), pop_size)
+                    p2 = cfg.init_population(jax.random.key(42), pop_size)
+                elif is_binary:
                     genes1 = jnp.zeros((pop_size, gene_dim), dtype=bool)
                     genes2 = jnp.ones((pop_size, gene_dim), dtype=bool)
                     cfg = BinaryGenomeConfig(shape=(gene_dim,))

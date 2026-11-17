@@ -68,3 +68,24 @@ class CustomMutation(BaseMutation):
    ```
 
 We look forward to seeing what you build!
+
+## Run the full test suite
+
+Use `make test` for coverage or `make test-fast` for the same suite without
+coverage. Install development and integration dependencies together with the
+chosen JAX backend so the resolver keeps the CUDA plugin aligned.
+
+```bash
+python -m pip install -e '.[dev,all-integrations,cuda13]'
+JAX_PLATFORMS=cuda,cpu make test
+```
+
+On a CPU machine use the `cpu` extra and `JAX_PLATFORMS=cpu`. On a cluster,
+run these test commands inside the appropriate scheduler allocation. CUDA
+tests with logging callbacks also need a CPU backend, hence `cuda,cpu`.
+After adding integrations to an existing GPU environment, run
+`python scripts/check_test_environment.py`. `pip check` alone can miss a
+mismatch between jaxlib and a separately installed CUDA plugin.
+
+The default suite excludes `tests/benchmarks`; `make test-bench` runs those
+benchmarks separately.

@@ -28,7 +28,9 @@ def test_quick_run_genome_fallback(monkeypatch):
 
     # Mock the actual execution to return a dummy ExperimentResult
     def mock_run(*args, **kwargs):
-        return ExperimentResult(name="test", runs=[])
+        return ExperimentResult(
+            name="test", runs=[], metadata={"output_options": {"write_history_csv": True}}
+        )
 
     monkeypatch.setattr("malthusjax.benchmarking.runner.BenchmarkRunner.run", mock_run)
 

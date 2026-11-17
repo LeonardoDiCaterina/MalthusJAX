@@ -27,7 +27,8 @@ class CategoricalGenomeConfig:
         dtype: JAX dtype for category indices; typically jnp.int32.
     """
 
-    num_categories: int
+    # Cardinality determines permutation shapes and must remain static under JIT.
+    num_categories: int = struct.field(pytree_node=False)
     shape: Tuple[int, ...] = struct.field(pytree_node=False, default_factory=lambda: ())  # type: ignore[no-untyped-call]
     dtype: jnp.dtype[Any] = struct.field(
         pytree_node=False,

@@ -4,6 +4,18 @@ import jax.numpy as jnp
 import jax.random as jr
 import pytest
 
+ADAPTER_OUTPUT_KEYS = {
+    "history",
+    "summary",
+    "timings",
+    "timing_metadata",
+    "metric_metadata",
+    "unavailable_metrics",
+    "initialization",
+    "solution",
+    "archive",
+}
+
 
 class BaseAdapterTestSuite(abc.ABC):
     """Base test suite for MalthusJAX engine adapters.
@@ -50,7 +62,7 @@ class BaseAdapterTestSuite(abc.ABC):
         """Verify the output of run_once contains exactly the required keys."""
         result = small_adapter.run_once(jr.PRNGKey(0))
         assert {"history", "summary", "timings", "timing_metadata"} <= set(result)
-        assert set(result) <= {"history", "summary", "timings", "timing_metadata", "metric_metadata"}
+        assert set(result) <= ADAPTER_OUTPUT_KEYS
         metadata = result["timing_metadata"]
         if metadata["status"] == "valid":
             assert metadata["phase"] == "prepared_first_execution"
@@ -171,5 +183,5 @@ class BaseAdapterTestSuite(abc.ABC):
 
         result = small_adapter_mjx.run_once(jr.PRNGKey(0))
         assert {"history", "summary", "timings", "timing_metadata"} <= set(result)
-        assert set(result) <= {"history", "summary", "timings", "timing_metadata", "metric_metadata"}
+        assert set(result) <= ADAPTER_OUTPUT_KEYS
         assert len(result["history"]) > 0

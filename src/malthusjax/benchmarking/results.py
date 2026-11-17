@@ -13,6 +13,7 @@ import json
 import math
 import statistics
 
+import jax
 import numpy as np
 
 try:
@@ -34,7 +35,7 @@ def standard_json(value):
         return {str(k): standard_json(v) for k, v in value.items()}
     if isinstance(value, (tuple, list)):
         return [standard_json(v) for v in value]
-    if hasattr(value, "tolist"):
+    if isinstance(value, (np.ndarray, np.generic, jax.Array)):
         return standard_json(value.tolist())
     if isinstance(value, float) and not math.isfinite(value):
         return None
