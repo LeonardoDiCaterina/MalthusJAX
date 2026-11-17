@@ -1,0 +1,17 @@
+[experiment]
+name = "corridor_sensors"
+shared_initial_population = false
+
+[experiment.shared]
+fitness = "research_corridor:worst_weight=0.30"
+bounds = [0.0, 1.0]
+genome_length = 2
+pop_size = 32
+generations = 35
+seeds = [11, 22, 33, 44, 55]
+
+[pipelines.low_mutation]
+mutation = "gaussian:mutation_rate=0.05,mutation_strength=0.1"
+
+[pipelines.high_mutation]
+mutation = "gaussian:mutation_rate=0.50,mutation_strength=0.1"

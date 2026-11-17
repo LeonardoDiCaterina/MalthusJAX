@@ -68,6 +68,9 @@ class RunResult:
     timing_record: Dict[str, Any] = field(default_factory=dict)
     metric_metadata: Dict[str, Any] = field(default_factory=dict)
     unavailable_metrics: Dict[str, str] = field(default_factory=dict)
+    solution: Optional[Dict[str, Any]] = None
+    initialization: Dict[str, Any] = field(default_factory=dict)
+    output_status: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize the object to a JSON-friendly dictionary.
@@ -93,6 +96,9 @@ class RunResult:
                 "metrics": self.metrics,
                 "history": self.history,
                 "artifacts": self.artifacts,
+                "solution": self.solution,
+                "initialization": self.initialization,
+                "output_status": self.output_status,
                 "duration_seconds": self.duration_seconds,
                 "timings": self.timings,
                 "timing_metadata": self.timing_metadata,
@@ -136,6 +142,9 @@ class RunResult:
             metrics=d.get("metrics", {}),
             history=d.get("history", []),
             artifacts=d.get("artifacts", {}),
+            solution=d.get("solution"),
+            initialization=d.get("initialization") or {},
+            output_status=d.get("output_status") or {},
             duration_seconds=d.get("duration_seconds"),
             timings=d.get("timings"),
             timing_metadata=d.get("timing_metadata") or {},
@@ -536,7 +545,9 @@ class ComparisonResult:
 
     # -- internal helper ---------------------------------------------------
 
-    _FITNESS_KEYS = frozenset({"best_fitness", "mean_fitness", "fitness_auc"})
+    _FITNESS_KEYS = frozenset(
+        {"best_fitness", "mean_fitness", "fitness_auc", "first_generation_best_fitness"}
+    )
 
     def _sign(self, pipeline_name: str) -> float:
         """Return ``-1.0`` if *pipeline_name* should be negated, else ``1.0``."""
@@ -730,6 +741,10 @@ class ComparisonResult:
                     metrics=normalized_metrics,
                     history=normalized_history,
                     artifacts=run.artifacts,
+                    solution=run.solution,
+                    initialization=run.initialization,
+                    output_status=run.output_status,
+                    unavailable_metrics=run.unavailable_metrics,
                     duration_seconds=run.duration_seconds,
                     timings=run.timings,
                     timing_metadata=run.timing_metadata,

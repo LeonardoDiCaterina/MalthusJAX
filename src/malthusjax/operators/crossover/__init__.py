@@ -9,6 +9,7 @@ from typing import Any
 
 from .binary import SinglePointCrossover
 from .binary import UniformCrossover as BinaryUniformCrossover
+from .categorical import OrderCrossover
 
 try:
     from .evosax_crossover import BatchedEvosaxUniformWrapper, EvosaxUniformCrossoverWrapper
@@ -43,6 +44,7 @@ __all__ = [
     "RealUniformCrossover",
     "RealUniformCrossover_injection",
     "SinglePointCrossover",
+    "OrderCrossover",
     "BlendCrossover",
     "BlendCrossover_injection",
     "BinomialCrossover",
@@ -71,6 +73,7 @@ def register_crossover_catalog(register_table_fn: Any) -> None:
         ("batched_uniform_crossover", BatchedUniformCrossover, {}),
         ("uniform_binary", BinaryUniformCrossover, {}),
         ("single_point", SinglePointCrossover, {}),
+        ("order_crossover", OrderCrossover, {}),
     ]
     if _HAS_EVOSAX:
         table.extend(

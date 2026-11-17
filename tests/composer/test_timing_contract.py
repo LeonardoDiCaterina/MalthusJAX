@@ -190,7 +190,9 @@ def test_island_adapter_reports_unsupported_budget_timing_explicitly():
             return state
 
     for generations in (0, 2, 3, 4, 10):
-        result = IslandEngineAdapter(ToyIslands(), generations=generations).run_once(jax.random.key(42))
+        result = IslandEngineAdapter(ToyIslands(), generations=generations).run_once(
+            jax.random.key(42)
+        )
         assert result["summary"]["final_generation"] == generations
         assert result["timing_metadata"]["status"] == "valid"
         assert result["timings"]["warmup"] > 0
@@ -313,3 +315,104 @@ def test_genetic_finalization_does_not_compile_after_preparation(monkeypatch, ca
         patch.setattr(module, "time", SimpleNamespace(perf_counter=clock))
         adapter.run_once(jax.random.key(42))
     assert compilation == []
+
+
+def test_universal_disabled_output_hooks_are_never_invoked():
+    from malthusjax.composer import EngineOutputOptions
+
+    adapter = make_universal([])
+    key = jax.random.key(42)
+    calls = []
+
+    def population(state):
+        calls.append("population")
+        return state
+
+    def solution(state):
+        calls.append("solution")
+        return {"value": state}
+
+    def archive(state):
+        calls.append("archive")
+        return {"fitness": state}
+
+    adapter.population_extractor = population
+    adapter.solution_extractor = solution
+    adapter.archive_extractor = archive
+    full = adapter._build_jit_loop()
+    reduced = adapter._build_jit_loop(False)
+    assert full is not reduced
+    initial_state = jnp.float32(0)
+    assert full.lower(key, initial_state).out_info[1]["best_fitness"].shape == (2,)
+    assert reduced.lower(key, initial_state).out_info[1]["best_fitness"].shape == ()
+    result = adapter.run_with_options(
+        key, EngineOutputOptions(collect_history=False, capture_solution=False)
+    )
+    assert result["history"] == []
+    assert calls == []
+    assert adapter._build_jit_loop() is full
+
+    restored = adapter.run_with_options(
+        key, EngineOutputOptions(capture_population_fingerprint=True, export_archive=True)
+    )
+    assert calls == ["population", "solution", "archive"]
+    terminal = restored["summary"]["best_fitness"]
+    assert 0.0 < restored["history"][0]["best_fitness"] < terminal
+    assert result["summary"]["best_fitness"] == terminal
+    assert adapter._build_jit_loop() is full
+
+
+@pytest.mark.parametrize("python_loop", [False, True])
+def test_universal_rejects_missing_terminal_objective(python_loop):
+    from malthusjax.composer import EngineOutputOptions
+
+    adapter = make_universal([], python_loop=python_loop)
+    adapter.metrics_catalog = []
+    with pytest.raises(ValueError, match="terminal best_fitness"):
+        adapter.run_with_options(jax.random.key(42), EngineOutputOptions(collect_history=False))
+
+
+def test_timing_repeats_skip_hooks_and_keep_prepared_signature(tmp_path):
+    from malthusjax.benchmarking.runner import BenchmarkRunner
+    from malthusjax.composer import EngineOutputOptions
+    from malthusjax.core.timing_records import TimingPolicy
+
+    calls = []
+    adapter = make_universal([])
+
+    def population(state):
+        calls.append("population")
+        return state
+
+    def solution(state):
+        calls.append("solution")
+        return {"value": state, "fitness": state}
+
+    def archive(state):
+        calls.append("archive")
+        return {"fitness": state}
+
+    adapter.population_extractor = population
+    adapter.solution_extractor = solution
+    adapter.archive_extractor = archive
+    result = BenchmarkRunner(
+        adapter,
+        output_dir=tmp_path,
+        engine_outputs=EngineOutputOptions(
+            capture_population_fingerprint=True,
+            export_archive=True,
+            collect_history=False,
+        ),
+        timing_policy=TimingPolicy(target_phase="prepared_execution_repeat", repetitions=2),
+    ).run([1])
+    run = result.runs[0]
+    assert run.status == "success", run.error
+    assert calls == ["population", "solution", "archive"]
+    assert run.timing_record["status"] == "valid"
+    assert len(run.timing_record["trial_results"]) == 2
+    for trial in run.timing_record["trial_results"]:
+        assert trial["objective_agreement"]
+        assert trial["timing_record"]["signature"] == run.timing_record["signature"]
+        assert trial["result"]["solution"] is None
+        assert "archive" not in trial["result"]["artifacts"]
+    assert len(list(tmp_path.rglob("archive.npz"))) == 1

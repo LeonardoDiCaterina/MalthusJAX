@@ -6,8 +6,36 @@ in a typed, validated, serializable config tree.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, fields
 from typing import Any, Dict, List, Optional, Tuple
+
+from .engine_protocol import EngineOutputOptions
+
+
+@dataclass(frozen=True)
+class RunArtifactOptions:
+    """Host-side retention and export policy."""
+
+    retain_history: bool = True
+    write_history_csv: bool = True
+
+    def __post_init__(self) -> None:
+        for option in fields(self):
+            if type(getattr(self, option.name)) is not bool:
+                raise ValueError(f"{option.name} must be a boolean")
+
+
+def normalize_output_aliases(options: Dict[str, Any]) -> Dict[str, Any]:
+    """Normalize the legacy history flag within a single configuration scope."""
+    normalized = dict(options)
+    if "serialize_history" in normalized:
+        legacy = normalized.pop("serialize_history")
+        if type(legacy) is not bool:
+            raise ValueError("serialize_history must be a boolean")
+        if normalized.get("retain_history", legacy) != legacy:
+            raise ValueError("Conflicting serialize_history and retain_history values")
+        normalized.setdefault("retain_history", legacy)
+    return normalized
 
 
 @dataclass(frozen=True)
@@ -147,6 +175,9 @@ class ExperimentConfig:
     logging: LoggingConfig = field(default_factory=LoggingConfig)
     output: OutputConfig = field(default_factory=OutputConfig)
 
+    engine_outputs: EngineOutputOptions = field(default_factory=EngineOutputOptions)
+    artifacts: RunArtifactOptions = field(default_factory=RunArtifactOptions)
+
     # ── Serialization ──
 
     def to_dict(self) -> Dict[str, Any]:
@@ -198,6 +229,8 @@ class ExperimentConfig:
                 backend=backend,
                 logging=logging,
                 output=output,
+                engine_outputs=EngineOutputOptions(**d.get("engine_outputs", {})),
+                artifacts=RunArtifactOptions(**d.get("artifacts", {})),
             )
         # Flat dict fallback — convert via from_quick_run_kwargs
         return cls.from_quick_run_kwargs(**d)
@@ -312,6 +345,21 @@ class ExperimentConfig:
             trace_dir=trace_dir,
         )
 
+        kwargs = normalize_output_aliases(kwargs)
+        engine_outputs = EngineOutputOptions(
+            **{
+                option.name: kwargs.pop(option.name)
+                for option in fields(EngineOutputOptions)
+                if option.name in kwargs
+            }
+        )
+        artifacts = RunArtifactOptions(
+            **{
+                option.name: kwargs.pop(option.name)
+                for option in fields(RunArtifactOptions)
+                if option.name in kwargs
+            }
+        )
         # Backend config
         raw_backend = kwargs.get("backend", "malthusjax")
         backend_name = str(raw_backend).lower()
@@ -521,6 +569,8 @@ class ExperimentConfig:
             backend=backend,
             logging=logging,
             output=output,
+            engine_outputs=engine_outputs,
+            artifacts=artifacts,
         )
 
     @classmethod
@@ -553,6 +603,11 @@ class ExperimentConfig:
             If configuration contains invalid bounds, empty seeds,
             non-positive population size/generations, or operator/genome mismatches.
         """
+        if self.execution.use_history_for_final and (
+            not self.engine_outputs.collect_history or not self.artifacts.retain_history
+        ):
+            raise ValueError("use_history_for_final requires collect_history and retain_history")
+
         if self.population.bounds[0] >= self.population.bounds[1]:
             raise ValueError(
                 f"Invalid bounds: lower ({self.population.bounds[0]}) must be strictly "

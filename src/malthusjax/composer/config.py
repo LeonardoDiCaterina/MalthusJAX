@@ -35,7 +35,7 @@ def load_config(path: str, pipeline_name: str) -> Dict[str, Any]:
     return cast(Dict[str, Any], pipeline)
 
 
-_EXPERIMENT_META_KEYS = {"name", "output_dir", "logging"}
+_EXPERIMENT_META_KEYS = {"name", "output_dir", "logging", "shared_initial_population"}
 
 
 @dataclass
@@ -73,6 +73,8 @@ def _parse_data_section(cfg: Dict[str, Any]) -> Dict[str, Any]:
 def load_experiment_config(
     path: str,
     pipelines: Optional[List[str]] = None,
+    *,
+    contents: bytes | None = None,
 ) -> ExperimentLoadResult:
     """Load a Composer-style experiment TOML file.
 
@@ -89,13 +91,17 @@ def load_experiment_config(
     directly to :meth:`Composer.quick_run`.
     """
     try:
-        with open(path, "rb") as f:
-            cfg = toml.load(f)
+        if contents is None:
+            with open(path, "rb") as f:
+                contents = f.read()
+        cfg = toml.loads(contents.decode())
     except FileNotFoundError as e:
         raise FileNotFoundError(f"Config file not found: {path}") from e
 
+    from .experiment_config import normalize_output_aliases
+
     experiment_raw: Dict[str, Any] = cfg.get("experiment", {})
-    shared: Dict[str, Any] = dict(experiment_raw.get("shared", {}))
+    shared: Dict[str, Any] = normalize_output_aliases(experiment_raw.get("shared", {}))
 
     if "bounds" in shared and isinstance(shared["bounds"], list):
         shared["bounds"] = tuple(shared["bounds"])
@@ -124,7 +130,7 @@ def load_experiment_config(
 
     resolved: Dict[str, Dict[str, Any]] = {}
     for name, pipeline_cfg in raw_pipelines.items():
-        merged = {**shared, **pipeline_cfg}
+        merged = {**shared, **normalize_output_aliases(pipeline_cfg)}
         if "bounds" in merged and isinstance(merged["bounds"], list):
             merged["bounds"] = tuple(merged["bounds"])
         if "seeds" in merged and isinstance(merged["seeds"], list):

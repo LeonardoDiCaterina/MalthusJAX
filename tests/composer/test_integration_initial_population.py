@@ -20,9 +20,9 @@ from malthusjax.operators.mutation.evosax_mutation import EvosaxGaussianWrapper
 from malthusjax.operators.selection.elite_pool import ElitePoolSelection
 
 
-def _make_stub_quick_run(self, **kwargs):
+def _make_stub_prepare(self, **kwargs):
     # Return a minimal ExperimentResult without executing heavy runs.
-    return ExperimentResult(name=kwargs.get("experiment_name", "stub"), runs=[])
+    return lambda: ExperimentResult(name=kwargs.get("experiment_name", "stub"), runs=[])
 
 
 def test_compare_shared_initial_population_matches_toy(monkeypatch):
@@ -31,8 +31,8 @@ def test_compare_shared_initial_population_matches_toy(monkeypatch):
     # Toy initial population
     toy_pop = _shared_initial_population(args)
 
-    # Patch Composer.quick_run to avoid executing benchmarks
-    monkeypatch.setattr(Composer, "quick_run", _make_stub_quick_run, raising=False)
+    # Patch Composer preparation to avoid executing benchmarks
+    monkeypatch.setattr(Composer, "_prepare_run", _make_stub_prepare, raising=False)
 
     composer = Composer.create_default()
 
@@ -275,8 +275,8 @@ crossover = "blend:alpha=0.5"
     args = SimpleNamespace(pop_size=12, dimensions=3, seed=0, function="rosenbrock")
     toy_pop = _shared_initial_population(args)
 
-    # Patch Composer.quick_run to avoid heavy runs
-    monkeypatch.setattr(Composer, "quick_run", _make_stub_quick_run, raising=False)
+    # Patch Composer preparation to avoid heavy runs
+    monkeypatch.setattr(Composer, "_prepare_run", _make_stub_prepare, raising=False)
 
     comparison = Composer.from_toml(str(toml_path), shared_initial_population=True, pop_seed=0)
 

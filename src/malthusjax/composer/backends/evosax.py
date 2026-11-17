@@ -87,7 +87,7 @@ def build_composable_evosax_engine(
         num_dims=num_dims,
         bounds=bounds,
         maximize=maximize,
-        strategy_params=kwargs.get("strategy_params"),
+        strategy_params=kwargs.pop("strategy_params", None),
         prng_impl=prng_impl,
         history_metrics=history_metrics,
         step_logging=step_logging,

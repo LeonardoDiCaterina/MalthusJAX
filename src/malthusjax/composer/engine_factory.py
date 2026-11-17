@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import replace
-from typing import Any, Dict, Optional, Sequence, Tuple, Union, cast
+from typing import Any, Dict, Optional, Sequence, Tuple, Union
 
 import chex
 import jax.numpy as jnp
@@ -21,12 +21,14 @@ import jax.numpy as jnp
 from ..core.genome.binary_genome import BinaryGenomeConfig
 
 # for now it only supports real genomes but it will be extended in the future
-from ..core.genome.real_genome import RealGenome, RealGenomeConfig, RealPopulation
+from ..core.genome.real_genome import RealGenomeConfig
 from ..core.logger import StepLoggingConfig, get_logger
 from ..core.random import resolve_prng_impl
 from ..core.timing import TimingCapture, block_until_ready
 from ..engine.genetic_fastengine import GeneticEngine, GeneticEngineParams
-from ..engine.schedules import TrackBest
+from ..engine.schedules import TrackBest, TrackMetrics
+from .engine_protocol import EngineOutputOptions, population_fingerprint
+from .initial_population import prepare_initial_population
 
 logger = get_logger("composer.adapters")
 
@@ -71,6 +73,20 @@ class GeneticEngineAdapter:
     def run_once(
         self, key: chex.Array, step_logging: Optional[StepLoggingConfig] = None
     ) -> Dict[str, Any]:
+        result = self._run(key, EngineOutputOptions(), step_logging)
+        if "solution" in result:
+            result["summary"]["best_solution"] = result["solution"]["value"]
+        return result
+
+    def run_with_options(self, key: chex.Array, options: EngineOutputOptions) -> Dict[str, Any]:
+        return self._run(key, options)
+
+    def _run(
+        self,
+        key: chex.Array,
+        options: EngineOutputOptions,
+        step_logging: Optional[StepLoggingConfig] = None,
+    ) -> Dict[str, Any]:
         """Run one evolutionary experiment and return BenchmarkRunner-compatible results.
 
         Notes
@@ -91,14 +107,14 @@ class GeneticEngineAdapter:
         initial_best = float(state.best_fitness)
 
         if self.initial_population is not None:
-            arr = jnp.asarray(self.initial_population)
-            pop = RealPopulation.from_array(arr, self.genome_config, RealGenome, axis=0)
+            pop = prepare_initial_population(
+                self.initial_population,
+                self.genome_config,
+                self.genetic_engine.engine_params.pop_size,
+            )
             from malthusjax.core.fitness.base import dispatch_evaluate_population
 
-            evaluated_pop = cast(
-                RealPopulation,
-                dispatch_evaluate_population(self.genetic_engine.evaluator, pop, key),
-            )
+            evaluated_pop = dispatch_evaluate_population(self.genetic_engine.evaluator, pop, key)
 
             fitness = evaluated_pop.fitness
             # Engine internals are minimization-based; evaluator-level maximize
@@ -116,18 +132,32 @@ class GeneticEngineAdapter:
             # Update initial_best if initial_population was provided
             initial_best = float(best_fitness)
 
+        initialization = {}
+        fingerprint_seconds = None
+        if options.capture_population_fingerprint:
+            fingerprint_started = time.perf_counter()
+            initialization = population_fingerprint(state.population.genes)
+            fingerprint_seconds = time.perf_counter() - fingerprint_started
+
         # JIT compilation warmup — trigger tracing + XLA optimisation so
         # the cost is captured in the "warmup" bucket, not "execution".
         active_logging = step_logging or self.step_logging
         capture.initialized(state, self.genetic_engine)
-        prepared = self.genetic_engine.prepare_run(state, step_logging=active_logging)
+        prepared = self.genetic_engine.prepare_run(
+            state, step_logging=active_logging, return_history=options.collect_history
+        )
         capture.prepared()
         t_warmup_end = time.perf_counter()
 
         # ---- Execution phase: run the pre-compiled scan (JIT cache warm) ----
         t_exec_start = time.perf_counter()
         final_state, scan_history, _ = self.genetic_engine.run(
-            state, time_it=True, compile=True, step_logging=active_logging, prepared_run=prepared
+            state,
+            time_it=True,
+            compile=True,
+            step_logging=active_logging,
+            prepared_run=prepared,
+            return_history=options.collect_history,
         )
         # GeneticEngine.run performs best-genome finalization after its base scan.
         block_until_ready((final_state, scan_history), effects=True)
@@ -140,11 +170,17 @@ class GeneticEngineAdapter:
 
         track_keys = self.history_metrics or ["best_fitness", "mean_fitness", "std_fitness"]
 
+        track_metrics = self.genetic_engine.engine_params.track_metrics
+        unavailable_metrics = {}
+        if track_metrics == TrackMetrics.NONE:
+            unavailable_metrics["mean_fitness"] = "Mean fitness tracking disabled"
+        if track_metrics in (TrackMetrics.NONE, TrackMetrics.BASIC):
+            unavailable_metrics["std_fitness"] = "Fitness deviation tracking disabled"
         fitness_auc = 0.0
-        for g in range(num_gens):
+        for g in range(num_gens if options.collect_history else 0):
             gen_stats: Dict[str, Any] = {"generation": g + 1}
             for k in track_keys:
-                if hasattr(scan_history, k):
+                if k not in unavailable_metrics and hasattr(scan_history, k):
                     val = getattr(scan_history, k)[g]
                     if k in ("best_fitness", "mean_fitness"):
                         val = val * sign
@@ -156,17 +192,32 @@ class GeneticEngineAdapter:
         total_evals = int(final_state.generation * self.genetic_engine.engine_params.pop_size)
         report_initial = float(sign * initial_best)
         report_best = float(sign * final_state.best_fitness)
-        import jax.flatten_util
-
-        best_genome_flat, _ = jax.flatten_util.ravel_pytree(final_state.best_genome)
         summary = {
             "initial_fitness": report_initial,
             "best_fitness": report_best,
-            "fitness_auc": fitness_auc,
-            "best_solution": best_genome_flat.tolist(),
             "final_generation": int(final_state.generation),
             "total_evaluations": total_evals,
         }
+
+        if options.collect_history and "best_fitness" in track_keys:
+            summary["fitness_auc"] = fitness_auc
+        else:
+            unavailable_metrics["fitness_auc"] = "Best-fitness history was not collected"
+
+        solution = None
+        if options.capture_solution:
+            from jax.flatten_util import ravel_pytree
+
+            best_genome_flat, _ = ravel_pytree(final_state.best_genome)
+            best_seen = self.genetic_engine.engine_params.track_best == TrackBest.FULL
+            solution = {
+                "representation": "encoded_genome",
+                "selection_scope": "best_seen" if best_seen else "final_population_best",
+                "value": best_genome_flat.tolist(),
+                "fitness": report_best
+                if best_seen
+                else float(sign * jnp.min(final_state.population.fitness)),
+            }
 
         # Add gap to optimum if available
         gap = self.genetic_engine.evaluator.get_gap_to_optimum(report_best)
@@ -179,6 +230,9 @@ class GeneticEngineAdapter:
             "total": t_exec_end - t_warmup_start,
         }
 
+        if fingerprint_seconds is not None:
+            timings["population_fingerprint"] = fingerprint_seconds
+
         logger.debug(
             "GeneticEngineAdapter completed in %.4fs (warmup: %.4fs, exec: %.4fs)",
             timings["total"],
@@ -189,6 +243,9 @@ class GeneticEngineAdapter:
         return {
             "history": history,
             "summary": summary,
+            "initialization": initialization,
+            "unavailable_metrics": unavailable_metrics,
+            **({"solution": solution} if solution is not None else {}),
             "timings": timings,
             "timing_metadata": capture.metadata(),
         }
@@ -305,11 +362,23 @@ def build_engine(
         "initial_strength",
         "final_strength",
         "track_best",
+        "track_metrics",
     ]
     schedule_extra: Dict[str, Any] = {k: v for k, v in kwargs.items() if k in _schedule_keys}
 
     if "track_best" not in schedule_extra:
         schedule_extra["track_best"] = TrackBest.LIGHT
+
+    if "track_metrics" in schedule_extra:
+        metrics = schedule_extra["track_metrics"]
+        if isinstance(metrics, bool):
+            metrics = TrackMetrics.ALL if metrics else TrackMetrics.NONE
+        elif isinstance(metrics, str):
+            try:
+                metrics = TrackMetrics[metrics.upper()]
+            except KeyError as exc:
+                raise ValueError(f"Unknown track_metrics mode: {metrics}") from exc
+        schedule_extra["track_metrics"] = TrackMetrics(metrics)
 
     engine_cls = kwargs.pop("engine_cls", GeneticEngine)
     step_logging = kwargs.pop("step_logging", None)

@@ -10,13 +10,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 import jax
 
 from malthusjax.composer.config import infer_genome_length, normalize_seeds
 from malthusjax.composer.engine_factory_v2 import EngineFactory
-from malthusjax.composer.experiment_config import ExperimentConfig
+from malthusjax.composer.experiment_config import ExperimentConfig, normalize_output_aliases
 from malthusjax.composer.strategies.base import BaseStrategy
 
 from ..benchmarking.results import ComparisonResult, ExperimentResult
@@ -379,14 +379,6 @@ class Composer:
         """
         if log_level is not None:
             set_log_level(log_level)
-
-        if step_logging is None and log_interval is not None:
-            step_logging = StepLoggingConfig(
-                log_interval=log_interval,
-                log_nan_watchdog=log_nan_watchdog,
-                logger_name="malthusjax.composer",
-            )
-
         kwargs_dict = {
             "fitness": fitness,
             "selection": selection,
@@ -427,18 +419,42 @@ class Composer:
             **kwargs,
         }
 
+        return self._prepare_run(engine=engine, step_logging=step_logging, **kwargs_dict)()
+
+    def _prepare_run(
+        self,
+        *,
+        engine: Any = None,
+        step_logging: Optional[StepLoggingConfig] = None,
+        _initialization: Optional[Dict[str, Any]] = None,
+        _artifact_dir: Optional[Path] = None,
+        write_artifacts: bool = True,
+        **configuration: Any,
+    ) -> Callable[[], ExperimentResult]:
+        """Validate and build the pipeline without running any optimization."""
+        log_level = configuration.get("log_level")
+        log_interval = configuration.get("log_interval")
+        if step_logging is None and log_interval is not None:
+            step_logging = StepLoggingConfig(
+                log_interval=log_interval,
+                log_nan_watchdog=configuration.get("log_nan_watchdog", True),
+                logger_name="malthusjax.composer",
+            )
+
         # Step 1: CONFIGURE — flat kwargs -> structured config
-        config = ExperimentConfig.from_quick_run_kwargs(**kwargs_dict)
+        config = ExperimentConfig.from_quick_run_kwargs(**configuration)
 
         # Step 2: RESOLVE ENGINE — config -> engine
         if engine is None:
             factory = EngineFactory()
             engine = factory.build(config)
-        elif step_logging is not None and hasattr(engine, "step_logging"):
-            engine.step_logging = step_logging
+        else:
+            config.validate()
+            if step_logging is not None and hasattr(engine, "step_logging"):
+                engine.step_logging = step_logging
 
         # Step 3: EXECUTE — engine -> results
-        out_dir = (
+        out_dir = _artifact_dir or (
             Path(config.output.output_dir)
             if config.output.output_dir
             else Path("results") / config.output.experiment_name / __import__("uuid").uuid4().hex
@@ -451,37 +467,61 @@ class Composer:
             engine=engine,
             experiment_name=config.output.experiment_name,
             output_dir=out_dir,
-            write_artifacts=True,
+            write_artifacts=False,
             prng_impl=config.execution.prng_impl,
             trace_dir=tr_dir,
-            serialize_history=kwargs.get("serialize_history", True),
+            engine_outputs=config.engine_outputs,
+            artifact_options=config.artifacts,
             configuration=config.to_dict(),
         )
 
-        normalized_seeds = normalize_seeds(config.execution.seeds)
-        logger.info(
-            "Starting quick_run: experiment='%s', backend='%s', seeds=%s",
-            config.output.experiment_name,
-            config.backend.name,
-            list(normalized_seeds),
-        )
-        experiment = runner.run(normalized_seeds)
-        logger.info(
-            "Completed quick_run: experiment='%s' across %d seeds",
-            config.output.experiment_name,
-            len(normalized_seeds),
-        )
+        def execute() -> ExperimentResult:
+            if log_level is not None:
+                set_log_level(log_level)
+            normalized_seeds = normalize_seeds(config.execution.seeds)
+            logger.info(
+                "Starting quick_run: experiment='%s', backend='%s', seeds=%s",
+                config.output.experiment_name,
+                config.backend.name,
+                list(normalized_seeds),
+            )
+            experiment = runner.run(normalized_seeds)
+            logger.info(
+                "Completed quick_run: experiment='%s' across %d seeds",
+                config.output.experiment_name,
+                len(normalized_seeds),
+            )
 
-        # Composer-level postprocessing: when engines run with
-        # TrackBest.NONE for speed they may omit or produce an
-        # invalid `summary['best_fitness']`. Allow callers to request
-        # that the final best is derived from the last history entry
-        # (history[-1]) instead. We also auto-fix non-finite summaries.
-        self._postprocess_experiment_final_from_history(
-            experiment, config.execution.use_history_for_final
-        )
+            # Composer-level postprocessing: when engines run with
+            # TrackBest.NONE for speed they may omit or produce an
+            # invalid `summary['best_fitness']`. Allow callers to request
+            # that the final best is derived from the last history entry
+            # (history[-1]) instead. We also auto-fix non-finite summaries.
+            self._postprocess_experiment_final_from_history(
+                experiment, config.execution.use_history_for_final
+            )
 
-        return experiment
+            if _initialization is not None:
+                for run in experiment.runs:
+                    run.initialization = {
+                        **_initialization,
+                        "optimizer_seed": run.seed,
+                        **run.initialization,
+                    }
+            if write_artifacts:
+                from ..benchmarking.io import write_experiment_artifacts
+
+                paths = write_experiment_artifacts(
+                    experiment,
+                    out_dir,
+                    write_history_csv=experiment.metadata["output_options"]["write_history_csv"],
+                )
+                experiment.metadata["artifact_paths"] = {
+                    key: str(path) for key, path in paths.items()
+                }
+            return experiment
+
+        return execute
 
     def _postprocess_experiment_final_from_history(
         self, experiment: Any, force: bool = False
@@ -716,18 +756,24 @@ class Composer:
         negate_map: Dict[str, bool] = {}
         last_init_pop = None
 
+        artifact_root = shared_kwargs.pop("_artifact_root", None)
+        shared_kwargs = normalize_output_aliases(shared_kwargs)
+        prepared_runs: Dict[str, Callable[[], ExperimentResult]] = {}
         iterable = pipelines.items()
         if tqdm is not None:
             iterable = tqdm(iterable, total=len(pipelines), desc="pipelines")
 
         for name, pipeline_kwargs in iterable:
-            merged = {**shared_kwargs, **pipeline_kwargs}
+            merged = {**shared_kwargs, **normalize_output_aliases(pipeline_kwargs)}
             merged["seeds"] = seeds
             merged.setdefault("experiment_name", name)
 
             if trace_base is not None:
                 merged["trace_dir"] = Path(trace_base) / name
 
+            initialization: dict[str, Any] = {"policy": "backend_seeded"}
+            if merged.get("initial_population") is not None:
+                initialization = {"policy": "explicit_population"}
             if shared_initial_population and "initial_population" not in merged:
                 pipeline_init_pop = self._generate_initial_population(merged, pop_seed)
                 if pipeline_init_pop is not None:
@@ -741,8 +787,19 @@ class Composer:
                             )
                     merged["initial_population"] = pipeline_init_pop
                     last_init_pop = pipeline_init_pop
+                    initialization = {"policy": "fixed_population", "population_seed": pop_seed}
+            if artifact_root is not None or merged.get("output_dir") is not None:
+                if not name or "/" in name or "\\" in name:
+                    raise ValueError(f"Invalid pipeline name for result export: {name!r}")
+                if artifact_root is not None:
+                    merged["_artifact_dir"] = artifact_root / f"pipeline_{name}"
+                else:
+                    merged["output_dir"] = Path(merged["output_dir"]) / f"pipeline_{name}"
 
-            results[name] = self.quick_run(**merged)
+            try:
+                prepared_runs[name] = self._prepare_run(_initialization=initialization, **merged)
+            except (ValueError, TypeError, KeyError) as exc:
+                raise ValueError(f"Pipeline {name!r}: {exc}") from exc
             maximize_flag = bool(merged.get("maximize", False))
 
             # Normalize displayed metrics/history to the canonical
@@ -756,6 +813,10 @@ class Composer:
             # avoid regressions when backend internals change.
             negate_map[name] = maximize_flag
 
+        for name in pipelines:
+            prepared = prepared_runs.pop(name)
+            results[name] = prepared()
+            del prepared
             # Clear JAX compilation caches to prevent RESOURCE_EXHAUSTED OOMs
             # on large sweeps (e.g., 100+ pipelines)
 
@@ -778,6 +839,8 @@ class Composer:
         trace_dir: Optional[str | Path] = None,
         log_interval: Optional[int] = None,
         configure_log: bool = True,
+        write_artifacts: bool = True,
+        artifact_root: Path | None = None,
     ) -> ComparisonResult:
         """Load and execute a declarative TOML experiment specification.
 
@@ -914,7 +977,7 @@ class Composer:
         experiment_meta = config_res.meta
         resolved = config_res.pipelines
         data_registry = config_res.data_registry
-        shared = experiment_meta.get("shared", {})
+        shared = dict(experiment_meta.get("shared", {}))
 
         output_dir = experiment_meta.get("output_dir")
         if output_dir:
@@ -935,20 +998,36 @@ class Composer:
             shared["log_interval"] = log_interval
 
         seeds = normalize_seeds(shared.pop("seeds", (42, 43, 44)))
+        shared_policy = shared.pop("shared_initial_population", None)
+        top_policy = experiment_meta.get("shared_initial_population")
+        for policy in (shared_policy, top_policy):
+            if policy is not None and not isinstance(policy, bool):
+                raise ValueError("shared_initial_population must be a boolean")
+        if top_policy is not None and shared_policy is not None and top_policy != shared_policy:
+            raise ValueError(
+                "Conflicting shared_initial_population values in experiment and experiment.shared"
+            )
+        shared_init_pop = experiment_meta.get(
+            "shared_initial_population",
+            shared_initial_population if shared_policy is None else shared_policy,
+        )
 
         pipeline_overrides: Dict[str, Dict[str, Any]] = {}
         for name, merged_cfg in resolved.items():
             overrides = {
                 k: v
                 for k, v in merged_cfg.items()
-                if (k not in shared) or (merged_cfg[k] != shared.get(k))
+                if k != "shared_initial_population" and ((k not in shared) or (v != shared[k]))
             }
+            if not write_artifacts:
+                overrides.pop("output_dir", None)
+                overrides.pop("write_artifacts", None)
             pipeline_overrides[name] = overrides
-
-        shared_init_pop = experiment_meta.get(
-            "shared_initial_population",
-            shared.pop("shared_initial_population", shared_initial_population),
-        )
+        if not write_artifacts:
+            shared.pop("output_dir", None)
+        if artifact_root is not None:
+            shared["_artifact_root"] = artifact_root
+        shared["write_artifacts"] = write_artifacts
 
         composer = cls.create_default()
         return composer.compare(

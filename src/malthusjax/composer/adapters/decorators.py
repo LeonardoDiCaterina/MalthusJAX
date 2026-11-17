@@ -104,8 +104,24 @@ def adapter(
                     step_logging=step_logging,
                 )
 
+                for attribute, method in (
+                    ("population_extractor", "_extract_initial_population"),
+                    ("solution_extractor", "_extract_solution"),
+                    ("archive_extractor", "_extract_archive"),
+                ):
+                    extractor = getattr(self, method, None)
+                    if extractor is not None:
+                        setattr(self.engine, attribute, extractor)
+
             def run_once(self, key: Any, unroll_factor: int = 1, compile: bool = True) -> Any:
                 return self.engine.run_once(key, unroll_factor, compile)
+
+            @property
+            def default_output_options(self):
+                return self.engine.default_output_options
+
+            def run_with_options(self, key, options):
+                return self.engine.run_with_options(key, options)
 
             def get_supported_metrics(self) -> list[Any]:
                 """Returns the catalog of all metrics supported by this engine."""

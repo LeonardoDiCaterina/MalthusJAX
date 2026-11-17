@@ -32,11 +32,9 @@ from malthusjax.core.genome.binary_genome import BinaryGenome, BinaryGenomeConfi
 from malthusjax.operators.emitters.genetic import GeneticCrossoverEmitter, GeneticMutationEmitter
 
 
-def test_build_mo_engine_and_run():
-    """Verify that build_mo_engine creates a working adapter that can run_once."""
-
+def make_mo_adapter(maximize=True):
     # 1. Instantiate the evaluator
-    eval_config = DummyMOConfig(maximize=True)
+    eval_config = DummyMOConfig(maximize=maximize)
     evaluator = DummyMOEvaluator(config=eval_config, data=None)
 
     # 2. Instantiate the emitter
@@ -53,7 +51,7 @@ def test_build_mo_engine_and_run():
     )
 
     # 3. Build the adapter via the composer factory
-    adapter = build_mo_engine(
+    return build_mo_engine(
         fitness_evaluator=evaluator,
         emitter=emitter,
         genome_type="binary",
@@ -62,7 +60,9 @@ def test_build_mo_engine_and_run():
         genome_shape=(10,),
     )
 
-    # 4. Run it
+
+def test_build_mo_engine_and_run():
+    adapter = make_mo_adapter()
     key = jax.random.PRNGKey(42)
     results = adapter.run_once(key)
 

@@ -140,6 +140,15 @@ def _create_bbob_evaluator(**kwargs: _Any) -> "OptimizationEvaluator":
     )
 
 
+def _create_native_sphere_evaluator(**kwargs: _Any) -> "OptimizationEvaluator":
+    return OptimizationEvaluator(
+        env=SphereEnv(),
+        transform=IdentityTransform(),
+        interpreter=IdentityInterpreter(),
+        output=ScalarOutput(maximize=kwargs.get("maximize", False)),
+    )
+
+
 def _create_knapsack_evaluator(**kwargs: _Any) -> "OptimizationEvaluator":
     import jax
     import jax.numpy as jnp
@@ -251,6 +260,7 @@ def register_fitness_catalog(register_table_fn: Any) -> None:
             # General BBOB for custom functions
             ("bbob", _create_bbob_evaluator, {}),
             # Classic evaluators
+            ("native_sphere", _create_native_sphere_evaluator, {}),
             ("binary_sum", _create_binary_sum_evaluator, {}),
             ("knapsack", _create_knapsack_evaluator, {}),
             ("tsp", _create_tsp_evaluator, {}),

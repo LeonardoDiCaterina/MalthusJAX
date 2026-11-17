@@ -147,3 +147,26 @@ The following flags can be passed globally to `mjax` or directly to any subcomma
 | `mjax report` | `results_dir` (Path) | Sequentially executes `handle_analyze` and `handle_plot`. |
 | `mjax aggregate` | `--out_dir` (Path, required), `results_dirs` (Path, 1+) | Combines multiple experiment result directories into an aggregate `MetaComparison` report grid. |
 | `mjax catalog` | — | Lists all registered framework operators. |
+
+### Optional result collection
+
+Pass `engine_outputs=EngineOutputOptions(...)` to `BenchmarkRunner` to control
+engine collection. For typed experiments, use `config.engine_outputs` and
+`artifact_options=config.artifacts`. Population fingerprints and QDax archive
+export are opt-in. Solution capture and per-generation history are enabled
+by default. `RunArtifactOptions` controls retained history and history CSVs.
+The legacy `serialize_history` alias still controls retention. With retention
+disabled, history CSVs are skipped and timing CSVs remain available.
+
+Extensions can opt into `run_with_options(key, options)`. The runner still
+supports `run_once(key)` and reports collection as uncontrolled for those
+engines. Extensions using the universal adapter can implement optional
+`_extract_initial_population(state)`, `_extract_solution(state)`, or
+`_extract_archive(state)` hooks. These are called only when requested.
+A solution should carry its representation, selection scope, and the score
+of the candidate that was actually exported. Timing repeats disable these
+optional extractors.
+
+`collect_history=False` asks the engine to omit the stacked trajectory.
+Logging and optimizer state may still consume per-step metrics. Disabling
+only retention or CSV export leaves engine collection in place.

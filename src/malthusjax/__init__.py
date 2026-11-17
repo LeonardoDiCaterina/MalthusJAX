@@ -5,6 +5,10 @@ MalthusJAX: High-Performance Evolutionary Computation in JAX.
 __version__ = "0.2.0"
 
 import logging
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .composer import Composer
 
 # Runtime stabilization and crash handlers are opted into explicitly
 # by entrypoints/CLIs via malthusjax.stabilize_runtime_environment().
@@ -94,12 +98,12 @@ __all__ = [
     "StepLoggingConfig",
     # High-level declarative Composer
     "Composer",
+    "skill",
 ]
 
 # --- 3. ENGINE (Top Level) ---
 # from .engine.diversity_engine import DiversityAwareEngine
 # --- 4. COMPOSER (Top Level) ---
-from .composer.composer import Composer
 from .engine.base import (
     AbstractEngine,
     AbstractEngineParams,
@@ -108,3 +112,16 @@ from .engine.base import (
 )
 from .engine.genetic_fastengine import GeneticEngine, GeneticEngineParams, GeneticGenerationOutput
 from .engine.schedules import ScheduleType, compute_scheduled_strength
+
+
+def __getattr__(name: str):
+    if name == "skill":
+        from importlib import import_module
+
+        return import_module(".skill", __name__)
+    if name == "Composer":
+        from .composer import Composer
+
+        globals()[name] = Composer
+        return Composer
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

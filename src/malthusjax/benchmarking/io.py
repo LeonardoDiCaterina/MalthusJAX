@@ -111,6 +111,8 @@ def write_experiment_artifacts(
     output_dir: Path | str,
     write_csv: bool = True,
     write_json: bool = True,
+    *,
+    write_history_csv: bool = True,
 ) -> Dict[str, Path]:
     """Emit all standard artifacts for an experiment and report their paths.
 
@@ -127,7 +129,7 @@ def write_experiment_artifacts(
         write_summary_json(experiment_result, json_path)
         written_paths["summary_json"] = json_path
 
-    if write_csv:
+    if write_csv and write_history_csv:
         csv_path = output_dir / "histories_combined.csv"
         write_histories_csv(experiment_result, csv_path)
         written_paths["histories_csv"] = csv_path

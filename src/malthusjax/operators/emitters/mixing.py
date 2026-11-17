@@ -29,6 +29,14 @@ class MixingEmitter(BaseEmitter):
     emitter_b: BaseEmitter = struct.field(pytree_node=False)
 
     @property
+    def genome_config(self) -> Any:
+        first = getattr(self.emitter_a, "genome_config", None)
+        second = getattr(self.emitter_b, "genome_config", None)
+        if first is not None and second is not None and first != second:
+            raise ValueError("MixingEmitter children must use compatible genome configurations")
+        return first if first is not None else second
+
+    @property
     def batch_size(self) -> int:
         return self.emitter_a.batch_size + self.emitter_b.batch_size
 

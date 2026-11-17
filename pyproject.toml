@@ -264,5 +264,5 @@ ablation = "python benchmarks/architecture_ablation.py"
 
 
 [project.scripts]
-mjax = "malthusjax.benchmarking.cli:main"
+mjax = "malthusjax.cli:main"
 malthusdash = "malthusjax.dash.cli:main"

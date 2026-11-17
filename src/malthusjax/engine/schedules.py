@@ -51,7 +51,7 @@ class TrackBest(enum.IntEnum):
     the ``jax.lax.scan`` evolution loop.
 
     Selecting a lighter mode reduces scan-carry size and eliminates
-    per-step ``jnp.argmax`` / ``Gather`` / ``jax.lax.cond`` overhead.
+    per-step ``jnp.argmin`` / ``Gather`` / ``jax.lax.cond`` overhead.
 
     ``NONE``
         Zero extra ops per step.  ``best_fitness`` / ``best_genome`` in
@@ -60,17 +60,17 @@ class TrackBest(enum.IntEnum):
         After ``run()`` completes, a one-shot post-scan finalization
         populates ``best_genome`` and ``best_fitness`` on the final
         state from the last population.  Users can recover the monotonic
-        convergence curve via ``jnp.maximum.accumulate(history.best_fitness)``.
+        convergence curve via ``jax.lax.associative_scan(jnp.minimum, history.best_fitness)``.
 
     ``LIGHT`` *(default)*
-        Per step: one ``jnp.max`` (O(N) reduction) + one ``jnp.maximum``
+        Per step: one ``jnp.min`` (O(N) reduction) + one ``jnp.minimum``
         (scalar).  Both are fusible with the evaluation kernel.
         ``best_genome`` is NOT tracked in the carry — it is populated
-        once after the scan from the final population via ``jnp.argmax``.
-        History ``best_fitness`` is monotonically non-decreasing.
+        once after the scan from the final population via ``jnp.argmin``.
+        History ``best_fitness`` is monotonically non-increasing.
 
     ``FULL``
-        Per step: ``jnp.max`` + ``jnp.argmax`` + Gather + element-wise
+        Per step: ``jnp.min`` + ``jnp.argmin`` + Gather + element-wise
         ``jnp.where`` on genome leaves.  ``best_genome`` is maintained
         in the carry across all generations.  Uses ``jnp.where`` instead
         of ``jax.lax.cond`` to avoid the XLA fusion barrier.
