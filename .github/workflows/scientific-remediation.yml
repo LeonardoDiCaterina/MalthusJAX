@@ -36,7 +36,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python -m pip install -e '.[dev,all-integrations]' -e 'packages/${{ matrix.package }}[dev]'
+      - run: |
+          python -m pip install -e '.[dev,all-integrations]'
+          python -m pip install -e 'packages/${{ matrix.package }}[dev]'
       - run: python -m pytest --no-cov -q packages/${{ matrix.package }}/tests
       - run: python -m pip install build
       - run: python -m build --wheel && python -m build --wheel --outdir dist packages/${{ matrix.package }}
