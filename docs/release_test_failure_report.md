@@ -230,9 +230,17 @@ created and reset the cartpole environment, and executed a JIT-compiled step
 without Brax installed (MuJoCo/MJX 4.0.1, JAX/JAXlib 0.12.1).
 
 The Linux CPU run also exposed a portability issue in the MLP gradient oracle.
-Three depth-four cases had maximum absolute float32 gradient differences between
-`0.000244140625` and `0.0006103515625`, exceeding a fixed `1e-4` absolute bound;
-their forward comparisons passed. The gradient comparison now checks every
-element with `atol=1e-4` and `rtol=1e-5`, and explicitly requires both gradients
-to be finite. This accommodates magnitude-dependent rounding differences while
-preserving the absolute check near zero. The forward tolerance is unchanged.
+Three depth-four cases exceeded a fixed `1e-4` absolute gradient bound. A later
+depth-twelve ReLU case demonstrated cancellation in an unscaled, unit-variance
+weight draw: a gradient entry near `110` differed by about `0.002`, alongside
+entries near `500,000`. Simply increasing tolerances would obscure the
+conditioning of these test inputs.
+
+The oracle now checks both precisions. Float32 cases use fan-in-scaled kernels
+and nonzero random biases, with elementwise `atol=1e-4` and `rtol=1e-5`.
+Float64 cases retain unscaled unit-variance weights, including the deep-network
+stress cases, with tighter `atol=1e-8` and `rtol=1e-10`. Scaling is derived from
+the independent Flax parameter tree, not the interpreter's unflattening logic.
+Both gradients must be finite. The forward tolerance remains `1e-5`.
+All 40 precision/depth/activation cases passed locally. This expands the oracle
+by 20 cases; the 1,871-case baseline totals above refer to the earlier revision.
