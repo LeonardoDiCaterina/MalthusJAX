@@ -28,11 +28,11 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev,stats,evosax,bbobax]"
+          pip install -e ".[dev,stats,evosax,bbobax,mujoco]"
 
       - name: Run Core, Operators, Engine, and Compliance Test Suites
         run: |
-          pytest tests/core tests/operators tests/engine tests/compliance --no-cov -v
+          pytest tests/core tests/operators tests/engine tests/compliance --no-cov -v --maxfail=1
 
   integration-oracles:
     name: 2. Differential Oracles & Adapters (Strict Integrations)

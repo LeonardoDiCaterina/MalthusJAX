@@ -209,3 +209,22 @@ resolved the issue. All 17 tests in the scaffold module passed on retry in
 were again **1,837 passed, 24 skipped, 10 expected failures**, with **86% statement
 coverage** and no unresolved failures. These totals include that targeted retry;
 they do not describe a single all-green invocation.
+
+## Merge-time CI findings
+
+Opening the release PR exercised leaner GitHub Actions environments than the
+all-integrations local and cluster environments. The core/sharding shared
+fixtures import EvoSAX, direction-invariant tests import BBOBAX, and the core
+suite includes MuJoCo MJX lifecycle tests. Their CI installations did not supply
+all of those dependencies. The workflow now explicitly installs the extras
+needed by its selected tests. Satellite CI installs the root integration extras
+before installing satellite packages, making the pinned TensorNEAT Git source
+available before the satellite resolver checks its TensorNEAT requirement.
+
+The Linux CPU run also exposed a portability issue in the MLP gradient oracle.
+Three depth-four cases had maximum absolute float32 gradient differences between
+`0.000244140625` and `0.0006103515625`, exceeding a fixed `1e-4` absolute bound;
+their forward comparisons passed. The gradient comparison now checks every
+element with `atol=1e-4` and `rtol=1e-5`, and explicitly requires both gradients
+to be finite. This accommodates magnitude-dependent rounding differences while
+preserving the absolute check near zero. The forward tolerance is unchanged.
