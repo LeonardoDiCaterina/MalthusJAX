@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import time
+from functools import partial
 from numbers import Integral
-from typing import Any, Dict, Optional, Sequence, Tuple
+from typing import TYPE_CHECKING, Any, Dict, Optional, Sequence, Tuple
 
 import chex
 import jax
@@ -14,6 +15,9 @@ from flax import struct
 from malthusjax.core.logger import StepLoggingConfig, get_logger
 from malthusjax.core.timing import TimingCapture, block_until_ready
 from malthusjax.engine.island_model.base import BaseIslandModel
+
+if TYPE_CHECKING:
+    from malthusjax.composer.engine_protocol import EngineOutputOptions
 
 logger = get_logger("engine.island_model.adapter")
 
@@ -64,23 +68,33 @@ class IslandEngineAdapter:
     def step(self, multi_state: Any) -> Tuple[Any, Any]:
         return self.island_model.step(multi_state)
 
-    def run(self, init_state: Any, **kwargs: Any) -> Tuple[IslandEvolutionState, Any, Any]:
+    def run(
+        self, init_state: Any, *, return_history: bool = True, **kwargs: Any
+    ) -> Tuple[IslandEvolutionState, Any, Any]:
         """Execute exactly the horizon, migrating only at completed boundaries.
 
         History's leading axes are (generations, islands), including remainders.
         """
-        if not isinstance(self.generations, Integral) or isinstance(self.generations, bool) or self.generations < 0:
+        if (
+            not isinstance(self.generations, Integral)
+            or isinstance(self.generations, bool)
+            or self.generations < 0
+        ):
             raise ValueError("generations must be a nonnegative integer")
         interval = self.island_model.migration_interval
         if interval <= 0:
             raise ValueError("migration_interval must be positive")
+
         def train_loop(state, index):
             evolved, history = self.island_model.evolve_one(state)
-            migrated = jax.lax.cond((index + 1) % interval == 0,
-                                   self.island_model.migrate_state, lambda x: x, evolved)
-            return migrated, history
-        final_multi_state, history = jax.lax.scan(train_loop, init_state,
-                                                 jnp.arange(self.generations))
+            migrated = jax.lax.cond(
+                (index + 1) % interval == 0, self.island_model.migrate_state, lambda x: x, evolved
+            )
+            return migrated, history if return_history else None
+
+        final_multi_state, history = jax.lax.scan(
+            train_loop, init_state, jnp.arange(self.generations)
+        )
 
         # Extract global best genome and fitness across all islands and individuals
         # final_multi_state.population.fitness shape: (num_islands, pop_size)
@@ -106,16 +120,37 @@ class IslandEngineAdapter:
     def run_once(
         self, key: chex.Array, step_logging: Optional[StepLoggingConfig] = None
     ) -> Dict[str, Any]:
-        """BenchmarkRunner protocol implementation."""
+        """Preserve the legacy metric-only runner entry point."""
+        from malthusjax.composer.engine_protocol import EngineOutputOptions
+        return self._run(
+            key, EngineOutputOptions(capture_solution=False), step_logging, legacy=True
+        )
+
+    def run_with_options(self, key: chex.Array, options: EngineOutputOptions) -> Dict[str, Any]:
+        return self._run(key, options)
+
+    def _run(
+        self,
+        key: chex.Array,
+        options: EngineOutputOptions,
+        step_logging: Optional[StepLoggingConfig] = None,
+        *,
+        legacy: bool = False,
+    ) -> Dict[str, Any]:
         t_start = time.perf_counter()
         capture = TimingCapture()
         init_state = self.init_state(key)
         block_until_ready(init_state, effects=True)
         capture.initialized(init_state, self)
-        spec = (self.generations, id(self.island_model), self.island_model.migration_interval,
-                getattr(self.island_model, "num_migrants", None))
+        spec = (
+            self.generations,
+            id(self.island_model),
+            self.island_model.migration_interval,
+            getattr(self.island_model, "num_migrants", None),
+            options.collect_history,
+        )
         if self._compiled_spec != spec:
-            self._compiled_run = jax.jit(self.run)
+            self._compiled_run = jax.jit(partial(self.run, return_history=options.collect_history))
             self._compiled_spec = spec
         prepared = self._compiled_run.lower(init_state).compile()
         capture.prepared()
@@ -144,8 +179,36 @@ class IslandEngineAdapter:
             unavailable = "Island step logging is not implemented by this adapter"
         else:
             timings["execution"] = t_end - t_execution_start
+        rows = []
+        if options.collect_history and not legacy and history is not None:
+            tracked = self.history_metrics or ("best_fitness", "mean_fitness", "std_fitness")
+            columns = {
+                name: jax.device_get(getattr(history, name))
+                for name in tracked
+                if hasattr(history, name)
+            }
+            for generation in range(self.generations):
+                row = {"generation": generation + 1}
+                for name, values in columns.items():
+                    per_island = values[generation]
+                    if name == "best_fitness":
+                        row[name] = float(sign * per_island.min())
+                    row[f"island_{name}"] = (
+                        per_island * sign
+                        if name in {"best_fitness", "mean_fitness"}
+                        else per_island
+                    ).tolist()
+                rows.append(row)
+        solution = {}
+        if options.capture_solution:
+            from malthusjax.composer.design_exports import encoded_solution
+
+            solution["solution"] = encoded_solution(
+                final_state.best_genome, reported_best, "final_population_best"
+            )
         return {
-            "history": [],
+            **solution,
+            "history": rows,
             "summary": summary,
             "timings": timings,
             "timing_metadata": capture.metadata(unavailable),

@@ -17,7 +17,13 @@ from .decorators import (
 )
 from .engine_catalog import EngineRegistry
 from .engine_factory_v2 import EngineFactory
-from .engine_protocol import Engine, RunOutput, StepMetrics
+from .engine_protocol import (
+    Engine,
+    EngineOutputOptions,
+    OutputConfigurableEngine,
+    RunOutput,
+    StepMetrics,
+)
 from .evosax_adapter import EvosaxEngineAdapter, build_evosax_engine, list_strategies
 from .experiment_config import (
     BackendConfig,
@@ -38,6 +44,8 @@ from .mo_factory import MOEngineAdapter, build_mo_engine
 __all__ = [
     "Composer",
     "Engine",
+    "EngineOutputOptions",
+    "OutputConfigurableEngine",
     "EngineFactory",
     "EngineRegistry",
     "RunOutput",

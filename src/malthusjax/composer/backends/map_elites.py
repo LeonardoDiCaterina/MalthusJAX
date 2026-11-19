@@ -134,6 +134,9 @@ def build_map_elites_engine(
             key=jr.PRNGKey(42),
         )
     key_deriv = getattr(strategy, "key_derivation", kwargs.get("key_derivation", "fold_in"))
+    track_metrics = kwargs.get("track_metrics", True)
+    if type(track_metrics) is not bool:
+        raise ValueError("Native MAP-Elites track_metrics must be a boolean")
     engine: Any = MapElitesEngine(
         emitter=emitter_obj,
         evaluator=evaluator,
@@ -142,6 +145,7 @@ def build_map_elites_engine(
             num_generations=generations,
             maximize=maximize,
             key_derivation=key_deriv,
+            track_metrics=track_metrics,
         ),
     )
     from malthusjax.composer.adapters.map_elites_adapter import MapElitesEngineAdapter

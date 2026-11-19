@@ -1,9 +1,11 @@
 import json
+from unittest.mock import MagicMock
 
+import jax.numpy as jnp
 import numpy as np
 import pytest
 
-from malthusjax.benchmarking.results import RunResult
+from malthusjax.benchmarking.results import RunResult, standard_json
 from malthusjax.benchmarking.runner import BenchmarkRunner, StubEngine
 
 
@@ -40,3 +42,15 @@ def test_serialized_legacy_nan_cannot_claim_success():
     restored = RunResult.from_dict(json.loads(record.to_json()))
     assert restored.status == "invalid"
     assert restored.unavailable_metrics["best_fitness"] == "nan"
+
+
+def test_standard_json_only_converts_numeric_arrays():
+    unknown = MagicMock()
+    payload = standard_json(
+        {"unknown": unknown, "numpy": np.array([1, np.nan]), "jax": jnp.array([2])}
+    )
+    unknown.tolist.assert_not_called()
+    assert payload["unknown"]["unserializable_type"] == "unittest.mock.MagicMock"
+    assert payload["numpy"] == [1.0, None]
+    assert payload["jax"] == [2]
+    json.dumps(payload, allow_nan=False)

@@ -34,13 +34,13 @@ def test_shared_population_bbob_path():
 def test_compare_injects_same_population_to_all_pipelines():
     """All pipelines in a compare() call must receive the exact same initial_population."""
     injected_pops = []
-    original_quick_run = Composer.quick_run
+    original_prepare = Composer._prepare_run
 
-    def spy_quick_run(self, **kwargs):
+    def spy_prepare(self, **kwargs):
         injected_pops.append(kwargs.get("initial_population"))
-        return original_quick_run(self, **kwargs)
+        return original_prepare(self, **kwargs)
 
-    with patch.object(Composer, "quick_run", spy_quick_run):
+    with patch.object(Composer, "_prepare_run", spy_prepare):
         composer = Composer()
         composer.compare(
             pipelines={"A": {}, "B": {"crossover": "blend:alpha=0.9"}},

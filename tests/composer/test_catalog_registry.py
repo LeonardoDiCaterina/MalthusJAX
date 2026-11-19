@@ -21,6 +21,7 @@ from malthusjax.operators.crossover import (
     BlendCrossover,
     BlendCrossover_injection,
     EvosaxUniformCrossoverWrapper,
+    OrderCrossover,
     RealUniformCrossover,
     RealUniformCrossover_injection,
     SimulatedBinaryCrossover,
@@ -60,7 +61,7 @@ def catalog() -> OperatorCatalog:
 # 1. Completeness — every expected key is registered
 # ---------------------------------------------------------------------------
 
-# 4 selection + 13 crossover + 12 mutation + 8 fitness + 3 evosax strategies = 40
+# Built-in registrations, including optional integration factories.
 EXPECTED_SELECTION = {"tournament", "roulette", "elite_pool", "evosax_mimic_selection"}
 EXPECTED_CROSSOVER = {
     "uniform_real",
@@ -76,6 +77,7 @@ EXPECTED_CROSSOVER = {
     "batched_evosax_uniform",
     "uniform_binary",
     "single_point",
+    "order_crossover",
 }
 EXPECTED_MUTATION = {
     "gaussian",
@@ -95,6 +97,7 @@ EXPECTED_MUTATION = {
 }
 EXPECTED_FITNESS = {
     "sphere",
+    "native_sphere",
     "rastrigin",
     "sphere_minimize",
     "sphere_maximize",
@@ -225,6 +228,7 @@ def test_selection_roundtrip(catalog: OperatorCatalog, key: str, cls: type) -> N
         ("evosax_uniform_crossover", EvosaxUniformCrossoverWrapper),
         ("uniform_binary", BinaryUniformCrossover),
         ("single_point", SinglePointCrossover),
+        ("order_crossover", OrderCrossover),
     ],
 )
 def test_crossover_roundtrip(catalog: OperatorCatalog, key: str, cls: type) -> None:

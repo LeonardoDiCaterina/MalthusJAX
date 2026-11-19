@@ -39,7 +39,7 @@ help:
 	@echo "--- MalthusJAX Development ---"
 	@echo "  make install-dev    Install package + dev/docs/examples deps"
 	@echo "  make install-bench  Install package + benchmark deps (evosax, pandas, scipy)"
-	@echo "  make test           Run full pytest suite with coverage (min 80%)"
+	@echo "  make test           Run full pytest suite with coverage"
 	@echo "  make test-fast      Run full suite, skip coverage (faster iteration)"
 	@echo "  make test-unit      Run fast unit tests only (skips slow tests)"
 	@echo "  make test-layers    Run all 6 architectural layers sequentially (core -> operators -> engine -> composer -> stats -> benchmarking)"
@@ -200,11 +200,13 @@ install-all:
 
 test:
 	@echo "--- Running tests with coverage ---"
-	python -m pytest
+	$(PYTHON) scripts/check_test_environment.py
+	$(PYTHON) -m pytest
 
 test-fast:
 	@echo "--- Running tests without coverage ---"
-	python -m pytest --no-cov -q
+	$(PYTHON) scripts/check_test_environment.py
+	$(PYTHON) -m pytest --no-cov -q
 
 test-unit:
 	@echo "--- Running fast unit tests only ---"

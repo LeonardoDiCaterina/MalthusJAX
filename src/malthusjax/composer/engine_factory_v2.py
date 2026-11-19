@@ -201,6 +201,8 @@ class EngineFactory:
             engine_kwargs.update(config.backend.algorithm_kwargs)
         elif isinstance(config.backend, QdaxBackendConfig):
             engine_kwargs.update(config.backend.algorithm_kwargs)
+            if config.engine_outputs.export_archive:
+                engine_kwargs["export_archive"] = True
         elif isinstance(config.backend, TensorneatBackendConfig):
             engine_kwargs["composable"] = config.backend.composable
             engine_kwargs.update(config.backend.algorithm_kwargs)

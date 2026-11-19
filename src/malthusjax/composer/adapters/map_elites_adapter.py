@@ -1,7 +1,12 @@
 import time
 from typing import Any
 
+import numpy as np
+
 from malthusjax.composer.adapters.metrics import archive_metric_metadata
+from malthusjax.composer.design_exports import encoded_solution, selected_genotypes
+from malthusjax.composer.engine_protocol import EngineOutputOptions
+from malthusjax.composer.initial_population import prepare_initial_population
 from malthusjax.core.timing import TimingCapture, block_until_ready
 
 
@@ -19,6 +24,9 @@ class MapElitesEngineAdapter:
         self.centroids = centroids
 
     def run_once(self, key):
+        return self.run_with_options(key, EngineOutputOptions())
+
+    def run_with_options(self, key, options: EngineOutputOptions):
         import jax
 
         t_warmup_start = time.perf_counter()
@@ -44,8 +52,9 @@ class MapElitesEngineAdapter:
 
         init_pop = self.initial_population
         if init_pop is None:
-            if hasattr(self.engine.emitter, "genome_config"):
-                init_pop = self.engine.emitter.genome_config.init_population(k_init, self.pop_size)
+            genome_config = getattr(self.engine.emitter, "genome_config", None)
+            if genome_config is not None:
+                init_pop = genome_config.init_population(k_init, self.pop_size)
             elif (
                 hasattr(self.engine.emitter, "genome")
                 and "TensorNeat" in self.engine.emitter.__class__.__name__
@@ -80,20 +89,10 @@ class MapElitesEngineAdapter:
                     "Emitter lacks genome_config or genome to generate initial population."
                 )
         elif isinstance(init_pop, jax.numpy.ndarray):
-            # Wrap the shared array into the correct Population PyTree
-            init_pop_copy = jax.numpy.array(init_pop, copy=True)
-            if hasattr(self.engine.emitter, "genome_config"):
-                dummy_pop = self.engine.emitter.genome_config.init_population(k_init, self.pop_size)
-                if hasattr(dummy_pop.genes, "replace"):
-                    new_genes = dummy_pop.genes.replace(values=init_pop_copy)
-                    init_pop = dummy_pop.replace(genes=new_genes)
-                else:
-                    init_pop = dummy_pop.replace(genes=init_pop_copy)
-            else:
-                # If we passed an ndarray for TensorNEAT, it is not well supported, so fail gracefully
-                raise NotImplementedError(
-                    "Passing ndarray init_pop to TensorNeatEmitter is not supported yet."
-                )
+            genome_config = getattr(self.engine.emitter, "genome_config", None)
+            if genome_config is None:
+                raise ValueError("Array initialization requires an emitter genome configuration")
+            init_pop = prepare_initial_population(init_pop, genome_config, self.pop_size)
         elif isinstance(init_pop, tuple) and len(init_pop) == 2:
             # Wrap the TensorNEAT tuple (nodes, conns) in a TensorNeatPopulation
             from malthusjax.core.genome.tensorneat_genome import (
@@ -119,13 +118,17 @@ class MapElitesEngineAdapter:
             state = state.replace(rng_key=k_init_qdax)
 
         capture.initialized(state, self.engine)
-        prepared = self.engine.prepare_run(state)
+        prepared = self.engine.prepare_run(state, return_history=options.collect_history)
         capture.prepared()
         t_warmup_end = time.perf_counter()
 
         t_exec_start = time.perf_counter()
         final_state, scan_history, _ = self.engine.run(
-            state, time_it=True, compile=True, prepared_run=prepared
+            state,
+            time_it=True,
+            compile=True,
+            prepared_run=prepared,
+            return_history=options.collect_history,
         )
         block_until_ready((final_state, scan_history), effects=True)
         t_exec_end = time.perf_counter()
@@ -133,14 +136,33 @@ class MapElitesEngineAdapter:
 
         num_gens = int(self.engine.engine_params.num_generations)
         history = []
-        track_keys = self.history_metrics or ["best_fitness", "mean_fitness", "std_fitness", "qd_score", "coverage"]
+        track_keys = self.history_metrics or [
+            "best_fitness",
+            "mean_fitness",
+            "std_fitness",
+            "qd_score",
+            "coverage",
+        ]
 
         sign = -1.0 if self.maximize else 1.0
 
-        for g in range(num_gens):
+        track_metrics = self.engine.engine_params.track_metrics
+        unavailable_metrics = {}
+        if not track_metrics:
+            unavailable_metrics = {
+                name: "Archive metric tracking disabled"
+                for name in ("mean_fitness", "std_fitness", "qd_score", "coverage")
+            }
+        elif not options.collect_history:
+            unavailable_metrics = {
+                name: "Generation history was not collected"
+                for name in ("mean_fitness", "std_fitness")
+            }
+
+        for g in range(num_gens if options.collect_history else 0):
             gen_stats = {"generation": g + 1}
             for k in track_keys:
-                if hasattr(scan_history, k):
+                if k not in unavailable_metrics and hasattr(scan_history, k):
                     val = getattr(scan_history, k)[g]
                     if k in ("best_fitness", "mean_fitness"):
                         val = val * sign
@@ -157,20 +179,55 @@ class MapElitesEngineAdapter:
         if coverage is None and hasattr(scan_history, "coverage"):
             coverage = scan_history.coverage[-1]
 
+        best_fitness = final_state.best_fitness
+        if not options.collect_history and track_metrics:
+            from malthusjax.core.fitness.qd.metrics import archive_metrics
+
+            terminal = archive_metrics(final_state.repertoire.fitnesses)
+            best_fitness = -terminal["max_fitness"]
+            qd_score, coverage = terminal["qd_score"], terminal["coverage"]
+
         summary = {
-            "best_fitness": float(final_state.best_fitness * sign),
-            "qd_score": float(qd_score) if qd_score is not None else float("nan"),
-            "coverage": float(coverage) if coverage is not None else float("nan"),
+            "best_fitness": float(best_fitness * sign),
             "final_generation": int(final_state.generation),
             "total_evaluations": int(final_state.generation * self.pop_size),
         }
 
-        for name in ("mean_fitness", "std_fitness"):
-            summary[name] = history[-1].get(name, float("nan")) if history else float("nan")
+        if track_metrics:
+            summary["qd_score"] = float(qd_score) if qd_score is not None else float("nan")
+            summary["coverage"] = float(coverage) if coverage is not None else float("nan")
+        if history and track_metrics:
+            for name in ("mean_fitness", "std_fitness"):
+                summary[name] = history[-1].get(name, float("nan"))
+
+        designs = {}
+        if options.capture_solution or options.export_archive:
+            repertoire = final_state.repertoire
+            fitnesses = np.asarray(jax.device_get(repertoire.fitnesses)).reshape(-1)
+            occupied = np.flatnonzero(np.isfinite(fitnesses))
+            if options.capture_solution and occupied.size:
+                index = int(occupied[np.argmax(fitnesses[occupied])])
+                genome = jax.tree.map(lambda leaf: leaf[index], repertoire.genotypes)
+                designs["solution"] = encoded_solution(
+                    genome, float(-sign * fitnesses[index]), "archive_best"
+                )
+            if options.export_archive:
+                descriptors, centroids = jax.device_get(
+                    (repertoire.descriptors, repertoire.centroids)
+                )
+                designs["archive"] = {
+                    "cell_index": occupied,
+                    "archive_fitness": fitnesses[occupied],
+                    "descriptors": descriptors[occupied],
+                    "centroids": centroids,
+                    **selected_genotypes(repertoire.genotypes, occupied),
+                }
 
         return {
+            **designs,
             "history": history,
             "summary": summary,
+            "unavailable_metrics": unavailable_metrics,
             "timing_metadata": capture.metadata(),
             "metric_metadata": archive_metric_metadata(self.maximize),
             "timings": {

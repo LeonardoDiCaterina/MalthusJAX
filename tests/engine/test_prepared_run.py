@@ -9,6 +9,7 @@ import pytest
 
 import malthusjax.composer.adapters.map_elites_adapter as map_adapter
 import malthusjax.engine.base as base
+from malthusjax.composer.engine_protocol import EngineOutputOptions
 from malthusjax.core.logger import StepLoggingConfig
 from tests.timing_helpers import TimingEngine
 
@@ -130,7 +131,10 @@ def test_real_native_adapter_has_no_trace_inside_execution(monkeypatch):
 
         with monkeypatch.context() as patch:
             patch.setattr(map_adapter, "time", SimpleNamespace(perf_counter=clock))
-            result = adapter.run_once(jax.random.key(seed))
+            # This timing-only engine has no archive from which to capture a solution.
+            result = adapter.run_with_options(
+                jax.random.key(seed), EngineOutputOptions(capture_solution=False)
+            )
         assert "execution" not in events
         assert result["summary"]["final_generation"] == 3
 

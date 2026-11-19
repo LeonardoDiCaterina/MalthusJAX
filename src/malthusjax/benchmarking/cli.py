@@ -1,15 +1,19 @@
 """Unified CLI interface for MalthusJAX benchmarking and analysis."""
 
 import argparse
+import csv
 import json
 import shutil
 import sys
+import tempfile
 import time
 from pathlib import Path
 from typing import Any, Callable, List, Optional
 
+from malthusjax.benchmarking.io import write_experiment_artifacts
 from malthusjax.composer import Composer
 from malthusjax.composer.catalog import OperatorCatalog
+from malthusjax.composer.config import load_experiment_config
 from malthusjax.core.diagnostics import print_environment_diagnostics, uninstall_crash_handler
 from malthusjax.core.logger import configure_logging, get_logger
 
@@ -35,56 +39,122 @@ def _dump_results(comparison: Any, out_dir: Path, config_path: Path) -> None:
     data_dir = out_dir / "data"
     data_dir.mkdir(exist_ok=True)
 
-    for pipe_name, exp_result in comparison.pipelines.items():
-        pipe_dir = data_dir / f"pipeline_{pipe_name}"
-        pipe_dir.mkdir(exist_ok=True)
-        for run_result in exp_result.runs:
-            seed = run_result.seed
-            with open(pipe_dir / f"seed_{seed}.json", "w") as f:
-                json.dump(run_result.to_dict(), f, indent=2)
+    manifest: dict[str, Any] = {"schema_version": 1, "pipelines": {}}
+    history_rows = []
+    csv_enabled = False
+    for name, experiment in comparison.pipelines.items():
+        _validate_pipeline_name(name)
+        pipe_dir = data_dir / f"pipeline_{name}"
+        pipe_dir.mkdir()
+        records = {}
+        for run in experiment.runs:
+            for artifact_name in ("archive", "pareto"):
+                if artifact_name in run.artifacts:
+                    run.artifacts[artifact_name] = (
+                        Path(run.artifacts[artifact_name]).relative_to(out_dir).as_posix()
+                    )
+            path = pipe_dir / f"seed_{run.seed}.json"
+            with path.open("x") as stream:
+                json.dump(run.to_dict(), stream, indent=2, allow_nan=False)
+            records[str(run.seed)] = path.relative_to(out_dir).as_posix()
+        options = experiment.metadata.get("output_options", {})
+        write_history = options.get("write_history_csv", True)
+        csv_enabled |= write_history
+        manifest["pipelines"][name] = {
+            "records": records,
+            "output_options": options,
+            "maximize": comparison.negate_map.get(name, False),
+        }
+        write_experiment_artifacts(
+            experiment, out_dir / "exports" / f"pipeline_{name}", write_history_csv=write_history
+        )
+        if write_history:
+            history_rows.extend({**row, "pipeline": name} for row in experiment.combined_history())
+
+    if csv_enabled:
+        fields = {"pipeline", "seed"}
+        fields.update(key for row in history_rows for key in row)
+        with (out_dir / "histories_combined.csv").open("w", newline="") as stream:
+            writer = csv.DictWriter(
+                stream, fieldnames=["pipeline", "seed", *sorted(fields - {"pipeline", "seed"})]
+            )
+            writer.writeheader()
+            writer.writerows(history_rows)
+    (meta_dir / "run_manifest.json").write_text(json.dumps(manifest, indent=2))
+
+
+def _validate_pipeline_name(name: str) -> None:
+    if not name or "/" in name or "\\" in name:
+        raise ValueError(f"Invalid pipeline name for result export: {name!r}")
+
+
+def _run_comparison(args: argparse.Namespace) -> int:
+    config_path = args.config
+    config_bytes = config_path.read_bytes()
+    config = load_experiment_config(str(config_path), contents=config_bytes)
+    for name in config.pipelines:
+        _validate_pipeline_name(name)
+    shared = config.meta["shared"]
+    configured_dir = (
+        getattr(args, "output_dir", None)
+        or shared.get("output_dir")
+        or config.meta.get("output_dir")
+    )
+    out_dir = Path(configured_dir or Path("results") / config_path.stem).absolute()
+    out_dir.parent.mkdir(parents=True, exist_ok=True)
+
+    # Reserve the destination before optimization. The staged directory is on
+    # the same filesystem so publishing it is one rename.
+    lock = out_dir.with_name(f".{out_dir.name}.lock")
+    try:
+        lock.mkdir()
+    except FileExistsError as exc:
+        raise ValueError(
+            f"Result destination is reserved: {out_dir}. Choose a fresh --output-dir."
+        ) from exc
+
+    try:
+        if out_dir.exists() or out_dir.is_symlink():
+            raise ValueError(
+                f"Result directory already exists: {out_dir}. Choose a fresh --output-dir."
+            )
+        with tempfile.TemporaryDirectory(
+            prefix=f".{out_dir.name}-", dir=out_dir.parent
+        ) as temporary:
+            staged = Path(temporary) / "run"
+            snapshot = Path(temporary) / "config_snapshot.toml"
+            snapshot.write_bytes(config_bytes)
+            logger.info("Running experiment from %s...", config_path)
+            started = time.perf_counter()
+            comparison = Composer.from_toml(
+                snapshot,
+                log_interval=getattr(args, "log_interval", None),
+                configure_log=not getattr(args, "_cli_logging_configured", False),
+                write_artifacts=False,
+                artifact_root=staged / "exports",
+            )
+            _dump_results(comparison, staged, snapshot)
+            if out_dir.exists() or out_dir.is_symlink():
+                raise ValueError(f"Result directory appeared during execution: {out_dir}")
+            staged.rename(out_dir)
+            logger.info(
+                "Experiment complete in %.2fs. Results saved to %s",
+                time.perf_counter() - started,
+                out_dir,
+            )
+    finally:
+        lock.rmdir()
+    return 0
 
 
 def handle_run(args: argparse.Namespace) -> int:
     """Handle `mjax run`."""
-    config_path = args.config
-    logger.info("Running experiment from %s...", config_path)
-    t0 = time.time()
-    comparison = Composer.from_toml(
-        config_path,
-        shared_initial_population=True,
-        log_interval=getattr(args, "log_interval", None),
-        configure_log=not getattr(args, "_cli_logging_configured", False),
-    )
-    dur = time.time() - t0
-
-    out_dir = Path("results") / config_path.stem
-    _dump_results(comparison, out_dir, config_path)
-
-    logger.info("Experiment complete in %.2fs.", dur)
-    logger.info("Raw data saved to %s/data", out_dir)
-    return 0
+    return _run_comparison(args)
 
 
 def handle_parity(args: argparse.Namespace) -> int:
     """Handle `mjax parity`."""
-    config_path = args.config
-    logger.info("Running statistical parity execution from %s...", config_path)
-    t0 = time.time()
-    # parity implies enforcing a shared initial pop for exact alignment
-    comparison = Composer.from_toml(
-        config_path,
-        shared_initial_population=True,
-        log_interval=getattr(args, "log_interval", None),
-        configure_log=not getattr(args, "_cli_logging_configured", False),
-    )
-    dur = time.time() - t0
-
-    out_dir = Path("results") / config_path.stem
-    _dump_results(comparison, out_dir, config_path)
-
-    logger.info("Parity execution complete in %.2fs.", dur)
-    logger.info("Raw data saved to %s/data", out_dir)
-    return 0
+    return _run_comparison(args)
 
 
 from malthusjax.benchmarking.results import (
@@ -99,17 +169,50 @@ def _load_comparison(results_dir: Path) -> ComparisonResult:
     """Rebuild a ComparisonResult from the disk schema."""
     data_dir = results_dir / "data"
     pipelines = {}
-    for pipe_dir in data_dir.glob("pipeline_*"):
-        pipe_name = pipe_dir.name.replace("pipeline_", "")
-        runs = []
-        for seed_file in pipe_dir.glob("seed_*.json"):
-            with open(seed_file, "r") as f:
-                data = json.load(f)
-                # handle if it was just dumped via run_result.to_dict()
-                runs.append(RunResult.from_dict(data))
-        pipelines[pipe_name] = ExperimentResult(name=pipe_name, runs=runs)
+    negate_map = {}
+    manifest_path = results_dir / "metadata" / "run_manifest.json"
+    if manifest_path.exists():
+        manifest = json.loads(manifest_path.read_text())
+        if manifest.get("schema_version") != 1:
+            raise ValueError(f"Unsupported run manifest version in {manifest_path}")
+        expected = set()
+        for name, entry in manifest["pipelines"].items():
+            _validate_pipeline_name(name)
+            negate_map[name] = entry["maximize"]
+            runs = []
+            for seed, relative in entry["records"].items():
+                if relative != f"data/pipeline_{name}/seed_{int(seed)}.json":
+                    raise ValueError(f"Invalid seed record path in run manifest: {relative}")
+                expected.add(relative)
+                path = results_dir / relative
+                if not path.is_file():
+                    raise ValueError(f"Missing manifest seed record: {relative}")
+                run = RunResult.from_dict(json.loads(path.read_text()))
+                if run.seed != int(seed):
+                    raise ValueError(f"Seed does not match manifest record: {relative}")
+                runs.append(run)
+            pipelines[name] = ExperimentResult(name=name, runs=runs)
+        actual = {
+            path.relative_to(results_dir).as_posix() for path in data_dir.rglob("seed_*.json")
+        }
+        if actual != expected:
+            raise ValueError(
+                f"Unexpected seed records outside run manifest: {sorted(actual - expected)}"
+            )
+    else:
+        logger.warning(
+            "Legacy result directory %s has no run manifest. Seed membership is unverified.",
+            results_dir,
+        )
+        for pipe_dir in sorted(data_dir.glob("pipeline_*")):
+            pipe_name = pipe_dir.name.removeprefix("pipeline_")
+            runs = [
+                RunResult.from_dict(json.loads(path.read_text()))
+                for path in sorted(pipe_dir.glob("seed_*.json"))
+            ]
+            pipelines[pipe_name] = ExperimentResult(name=pipe_name, runs=runs)
     return ComparisonResult(
-        pipelines=pipelines, shared_config={}, initial_population=None, negate_map={}
+        pipelines=pipelines, shared_config={}, initial_population=None, negate_map=negate_map
     )
 
 
@@ -312,6 +415,12 @@ def handle_catalog(args: argparse.Namespace) -> int:
     return 0
 
 
+def _show_skill(args: argparse.Namespace) -> int:
+    from malthusjax.skill import main as skill_main
+
+    return skill_main([])
+
+
 def main(args: Optional[List[str]] = None) -> int:
     """Main CLI entry point."""
     log_parser = argparse.ArgumentParser(add_help=False)
@@ -366,6 +475,7 @@ def main(args: Optional[List[str]] = None) -> int:
         "run", parents=[log_parser], help="Run an experiment from a TOML config"
     )
     parser_run.add_argument("config", type=Path, help="Path to experiment TOML config")
+    parser_run.add_argument("--output-dir", type=Path, help="Fresh result directory")
     parser_run.set_defaults(func=handle_run)
 
     # 2. PARITY
@@ -375,6 +485,7 @@ def main(args: Optional[List[str]] = None) -> int:
         help="Run seed-aligned statistical parity between pipelines",
     )
     parser_parity.add_argument("config", type=Path, help="Path to parity TOML config")
+    parser_parity.add_argument("--output-dir", type=Path, help="Fresh result directory")
     parser_parity.set_defaults(func=handle_parity)
 
     # 3. ANALYZE
@@ -423,6 +534,9 @@ def main(args: Optional[List[str]] = None) -> int:
         help="One or more experiment result directories",
     )
     parser_aggregate.set_defaults(func=handle_aggregate)
+
+    skill_parser = subparsers.add_parser("skill", help="Print the bundled agent skill")
+    skill_parser.set_defaults(func=_show_skill)
 
     # 7. CATALOG
     parser_catalog = subparsers.add_parser(

@@ -15,6 +15,11 @@ from malthusjax.composer.backends.tensorneat import (
     resolve_tensorneat_problem,
 )
 from malthusjax.composer.strategies.core import MapElitesStrategy, TensorNEATStrategy
+from malthusjax.core.genome.real_genome import RealGenomeConfig
+
+
+def _mock_repertoire(best_fitness):
+    return SimpleNamespace(fitnesses=jnp.array([-best_fitness]), genotypes=jnp.zeros((1, 3)))
 
 
 def test_composer_main():
@@ -52,13 +57,16 @@ def test_map_elites_adapter_run_once_standard():
 
     mock_engine = MagicMock()
     mock_engine.emitter = mock_emitter
-    mock_engine.engine_params = SimpleNamespace(num_generations=2, key_derivation="standard")
+    mock_engine.engine_params = SimpleNamespace(
+        num_generations=2, key_derivation="standard", track_metrics=True
+    )
 
     mock_state = MagicMock()
     mock_state.best_fitness = 10.5
     mock_state.generation = 2
     mock_state.qd_score = 42.0
     mock_state.coverage = 0.8
+    mock_state.repertoire = _mock_repertoire(mock_state.best_fitness)
 
     mock_history = SimpleNamespace(
         best_fitness=jnp.array([5.0, 10.5]),
@@ -93,13 +101,16 @@ def test_map_elites_adapter_run_once_qdax_replica():
 
     mock_engine = MagicMock()
     mock_engine.emitter = mock_emitter
-    mock_engine.engine_params = SimpleNamespace(num_generations=1, key_derivation="qdax_replica")
+    mock_engine.engine_params = SimpleNamespace(
+        num_generations=1, key_derivation="qdax_replica", track_metrics=True
+    )
 
     mock_state = MagicMock()
     mock_state.best_fitness = -2.0
     mock_state.generation = 1
     mock_state.qd_score = 10.0
     mock_state.coverage = 0.2
+    mock_state.repertoire = _mock_repertoire(mock_state.best_fitness)
     mock_state.replace.return_value = mock_state
 
     mock_history = SimpleNamespace(
@@ -126,17 +137,15 @@ def test_map_elites_adapter_init_pop_ndarray_and_tuple():
 
     # 1. ndarray init_pop with genome_config
     mock_emitter = MagicMock()
-    dummy_pop = MagicMock()
-    mock_emitter.genome_config.init_population.return_value = dummy_pop
-    dummy_pop.genes = MagicMock()
-    dummy_pop.genes.replace.return_value = dummy_pop.genes
-    dummy_pop.replace.return_value = dummy_pop
-    dummy_pop.copy.return_value = dummy_pop
+    mock_emitter.genome_config = RealGenomeConfig(shape=(3,))
 
     mock_engine = MagicMock()
     mock_engine.emitter = mock_emitter
-    mock_engine.engine_params = SimpleNamespace(num_generations=1, key_derivation="standard")
+    mock_engine.engine_params = SimpleNamespace(
+        num_generations=1, key_derivation="standard", track_metrics=True
+    )
     mock_state = MagicMock(best_fitness=1.0, generation=1, qd_score=1.0, coverage=0.5)
+    mock_state.repertoire = _mock_repertoire(mock_state.best_fitness)
     mock_engine.init_state.return_value = mock_state
     mock_engine.run.return_value = (mock_state, SimpleNamespace(), {})
 
@@ -150,7 +159,7 @@ def test_map_elites_adapter_init_pop_ndarray_and_tuple():
     res = adapter.run_once(key)
     assert "summary" in res
 
-    # 2. ndarray with emitter without genome_config -> raises NotImplementedError
+    # 2. Array initialization requires an explicit genome configuration.
     mock_engine2 = MagicMock()
     mock_engine2.emitter = object()
     mock_engine2.engine_params = SimpleNamespace(num_generations=1)
@@ -161,7 +170,7 @@ def test_map_elites_adapter_init_pop_ndarray_and_tuple():
         history_metrics=[],
         initial_population=jnp.zeros((4, 3)),
     )
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(ValueError, match="requires an emitter genome configuration"):
         adapter2.run_once(key)
 
     # 3. Emitter lacks genome_config and genome when init_pop is None -> raises AttributeError

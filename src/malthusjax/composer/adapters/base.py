@@ -8,6 +8,7 @@ into MalthusJAX's ecosystem.
 
 from __future__ import annotations
 
+import math
 import time
 from typing import Any, Callable, Dict, Optional, Sequence, Tuple
 
@@ -23,6 +24,8 @@ from malthusjax.core.logger import (
     get_logger,
 )
 from malthusjax.core.timing import TimingCapture, block_until_ready
+
+from ..engine_protocol import EngineOutputOptions, population_fingerprint
 
 logger = get_logger("composer.adapters")
 
@@ -84,11 +87,12 @@ class UniversalAdapterEngine:
         self.use_python_loop = use_python_loop
         self.backend_maximizes = backend_maximizes
         self.step_logging = step_logging
+        self.default_output_options = EngineOutputOptions()
 
-        self._jit_run_loop = None
+        self._jit_run_loops: dict[bool, Any] = {}
         self._jit_run_spec = None
 
-    def _build_jit_loop(self) -> Any:
+    def _build_jit_loop(self, collect_history: bool = True) -> Any:
         """Build and cache the JIT-compiled evolution loop."""
         # Replaced static objects/options require preparation of a new loop.
         # In-place mutation of third-party strategy internals is unsupported;
@@ -108,8 +112,11 @@ class UniversalAdapterEngine:
                 for m in self.metrics_catalog
             ),
         )
-        if self._jit_run_loop is not None and self._jit_run_spec == spec:
-            return self._jit_run_loop
+        if self._jit_run_spec != spec:
+            self._jit_run_loops.clear()
+            self._jit_run_spec = spec
+        if collect_history in self._jit_run_loops:
+            return self._jit_run_loops[collect_history]
 
         def wrapped_eval_translator(*args: Any, **kwargs: Any) -> Any:
             return self.eval_translator(*args, **kwargs)
@@ -196,17 +203,28 @@ class UniversalAdapterEngine:
 
         def run_loop(rng: Any, state_init: Any) -> Tuple[Any, Any]:
             carry = (rng, state_init)
+            if not collect_history:
+                carry, terminal = scan_step(carry, 0)
+
+                def advance(index, previous):
+                    return scan_step(previous[0], index)
+
+                carry, terminal = jax.lax.fori_loop(
+                    1, self.num_generations, advance, (carry, terminal)
+                )
+                return carry[1], terminal
+
             scan_xs = jnp.arange(self.num_generations) if active_step_logging else None
             carry, metrics = jax.lax.scan(
                 scan_step, carry, scan_xs, length=self.num_generations, unroll=1
             )
             return carry[1], metrics
 
-        self._jit_run_loop = jax.jit(run_loop)  # type: ignore[assignment]
-        self._jit_run_spec = spec
-        return self._jit_run_loop
+        compiled_loop = jax.jit(run_loop)
+        self._jit_run_loops[collect_history] = compiled_loop
+        return compiled_loop
 
-    def _build_python_loop(self) -> Any:
+    def _build_python_loop(self, collect_history: bool = True) -> Any:
         """Build a python loop for non-jittable frameworks."""
 
         def wrapped_eval_translator(*args: Any, **kwargs: Any) -> Any:
@@ -247,10 +265,12 @@ class UniversalAdapterEngine:
         def run_loop(rng: Any, state_init: Any) -> Tuple[Any, Any]:
             carry = (rng, state_init)
             metrics_history = []
+            metrics = {}
 
             for g in range(self.num_generations):
                 carry, metrics = scan_step(carry, g)
-                metrics_history.append(metrics)
+                if collect_history:
+                    metrics_history.append(metrics)
                 if (
                     active_step_logging
                     and step_logging is not None
@@ -260,6 +280,9 @@ class UniversalAdapterEngine:
                     best_fit = metrics.get("best_fitness", float("nan"))
                     mean_fit = metrics.get("mean_fitness", float("nan"))
                     _host_log_step(g + 1, best_fit, mean_fit, step_logging.logger_name)
+
+            if not collect_history:
+                return carry[1], metrics
 
             # Stack metrics to match lax.scan output format
             stacked_metrics = {}
@@ -274,7 +297,15 @@ class UniversalAdapterEngine:
     def run_once(
         self, key: chex.Array, unroll_factor: int = 1, compile: bool = True
     ) -> Dict[str, Any]:
+        return self._run(key, self.default_output_options, compile)
+
+    def run_with_options(self, key: chex.Array, options: EngineOutputOptions) -> Dict[str, Any]:
+        return self._run(key, options, True)
+
+    def _run(self, key: chex.Array, options: EngineOutputOptions, compile: bool) -> Dict[str, Any]:
         """Run one evolutionary experiment and return BenchmarkRunner-compatible results."""
+        if self.num_generations < 1:
+            raise ValueError("A terminal objective requires at least one generation")
         logger.debug(
             "UniversalAdapterEngine starting run for %d generations (pop_size=%d)...",
             self.num_generations,
@@ -291,12 +322,28 @@ class UniversalAdapterEngine:
         )
         block_until_ready((key, state_init), effects=True)
 
+        population_extractor = getattr(self, "population_extractor", None)
+        initialization = {}
+        fingerprint_seconds = None
+        if options.capture_population_fingerprint and population_extractor is not None:
+            started = time.perf_counter()
+            genes = population_extractor(state_init)
+            if genes is not None:
+                initialization = population_fingerprint(genes)
+            fingerprint_seconds = time.perf_counter() - started
+
         capture.initialized((key, state_init), self)
         # Build JIT loop or Python loop
         if self.use_python_loop:
-            run_loop = self._build_python_loop()
+            run_loop = (
+                self._build_python_loop()
+                if options.collect_history
+                else self._build_python_loop(False)
+            )
         else:
-            run_loop = self._build_jit_loop()
+            run_loop = (
+                self._build_jit_loop() if options.collect_history else self._build_jit_loop(False)
+            )
             if compile:
                 run_loop = run_loop.lower(key, state_init).compile()
 
@@ -325,7 +372,7 @@ class UniversalAdapterEngine:
             track_keys = list(scan_history.keys())
 
         fitness_auc = 0.0
-        for g in range(self.num_generations):
+        for g in range(self.num_generations if options.collect_history else 0):
             gen_stats: Dict[str, Any] = {"generation": g + 1}
             for k in track_keys:
                 if k in scan_history:
@@ -335,22 +382,31 @@ class UniversalAdapterEngine:
                         fitness_auc += float(val)
             history.append(gen_stats)
 
-        report_best = (
-            float(scan_history["best_fitness"][-1]) if "best_fitness" in scan_history else 0.0
+        terminal = (
+            {name: scan_history[name][-1] for name in track_keys if name in scan_history}
+            if options.collect_history
+            else scan_history
         )
+        if "best_fitness" not in terminal:
+            raise ValueError("Adapter did not report a terminal best_fitness")
+        report_best = float(terminal["best_fitness"])
+        if not math.isfinite(report_best):
+            raise ValueError("Adapter reported a nonfinite terminal best_fitness")
 
         summary = {
             "best_fitness": report_best,
-            "fitness_auc": fitness_auc,
             "final_generation": self.num_generations,
             "total_evaluations": self.num_generations * self.pop_size,
         }
+        unavailable_metrics = {}
+        if options.collect_history:
+            summary["fitness_auc"] = fitness_auc
+        else:
+            unavailable_metrics["fitness_auc"] = "Best-fitness history was not collected"
 
-        # Inject any other tracked metrics
-        for k in track_keys:
-            if k in scan_history:
-                val = scan_history[k][-1]
-                summary[k] = float(val)
+        for name in track_keys:
+            if name != "best_fitness" and name in terminal:
+                summary[name] = float(terminal[name])
 
         mjx_evaluator = getattr(self, "malthusjax_evaluator", None) or self.evaluator
         if mjx_evaluator is not None and hasattr(mjx_evaluator, "get_gap_to_optimum"):
@@ -377,12 +433,31 @@ class UniversalAdapterEngine:
             timings.get("execution", "unavailable"),
         )
 
+        if fingerprint_seconds is not None:
+            timings["population_fingerprint"] = fingerprint_seconds
+        solution_extractor = getattr(self, "solution_extractor", None)
+        solution = (
+            solution_extractor(final_state)
+            if options.capture_solution and solution_extractor
+            else None
+        )
+        archive_extractor = (
+            getattr(self, "archive_extractor", None) if options.export_archive else None
+        )
         return {
             "history": history,
             "summary": summary,
+            "unavailable_metrics": unavailable_metrics,
+            "initialization": initialization,
+            **({"solution": solution} if solution is not None else {}),
+            **({"archive": archive_extractor(final_state)} if archive_extractor else {}),
             "timings": timings,
             "timing_metadata": capture.metadata(unavailable),
-            **({"metric_metadata": self.metric_metadata} if hasattr(self, "metric_metadata") else {}),
+            **(
+                {"metric_metadata": self.metric_metadata}
+                if hasattr(self, "metric_metadata")
+                else {}
+            ),
         }
 
     def get_supported_metrics(self) -> list[Any]:

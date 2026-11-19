@@ -48,13 +48,75 @@ jobs:
 
       - name: Install generated wheel
         run: |
-          python -m pip install dist/*.whl
+          python -m venv "$RUNNER_TEMP/wheel-smoke"
+          "$RUNNER_TEMP/wheel-smoke/bin/python" -m pip install dist/*.whl
 
-      - name: Verify CLI entry points and package import
+      - name: Smoke test the installed wheel on CPU
+        timeout-minutes: 5
+        env:
+          JAX_PLATFORMS: cpu
         run: |
-          python -c "import malthusjax; print('MalthusJAX Version:', malthusjax.__version__)"
-          mjax --help
-          mjax check-env
+          workdir="$(mktemp -d "$RUNNER_TEMP/malthusjax-run.XXXXXX")"
+          cd "$workdir"
+          unset PYTHONPATH PYTHONHOME
+          bin="$RUNNER_TEMP/wheel-smoke/bin"
+          "$bin/python" -m pip check
+          "$bin/mjax" --help
+          "$bin/mjax" check-env
+          "$bin/mjax" --help | grep -q skill
+          mkdir plugins
+          printf 'from pathlib import Path\nPath("plugin-executed").touch()\n' > plugins/skill_canary.py
+          "$bin/mjax" skill > cli-skill.md
+          "$bin/python" -I -m malthusjax.skill > module-skill.md
+          "$bin/python" -I -c 'from malthusjax import skill; print(skill.read(), end="")' > python-skill.md
+          cmp cli-skill.md module-skill.md
+          cmp cli-skill.md python-skill.md
+          test ! -e plugin-executed
+          rm -r plugins
+          "$bin/python" -I - <<'PY'
+          import math
+          import sys
+          from pathlib import Path
+
+          import malthusjax
+          from malthusjax.composer import Composer
+
+          origin = Path(malthusjax.__file__).resolve()
+          assert origin.is_relative_to(Path(sys.prefix).resolve()), origin
+          print(f"MalthusJAX {malthusjax.__version__} loaded from {origin}")
+
+          composer = Composer.create_default()
+          options = dict(
+              fitness="native_sphere",
+              genome_length=4,
+              pop_size=16,
+              generations=2,
+              seeds=(42,),
+          )
+          result = composer.quick_run(**options, output_dir="full")
+          assert len(result.runs) == 1, result.runs
+          run = result.runs[0]
+          assert run.status == "success", run.error
+          assert len(run.history) == 2, run.history
+          assert math.isfinite(run.metrics["best_fitness"]), run.metrics
+          reduced = composer.quick_run(
+              **options,
+              output_dir="reduced",
+              collect_history=False,
+              capture_solution=False,
+              write_history_csv=False,
+          ).runs[0]
+          assert reduced.status == "success", reduced.error
+          assert reduced.history == [] and reduced.solution is None
+          assert run.solution is not None
+          for metric in ("best_fitness", "final_generation", "total_evaluations"):
+              assert reduced.metrics[metric] == run.metrics[metric], metric
+          assert (Path("full") / "histories_combined.csv").is_file()
+          assert not (Path("reduced") / "histories_combined.csv").exists()
+          assert (Path("reduced") / "summary.json").is_file()
+          assert (Path("reduced") / "timing_trials.csv").is_file()
+          print(f"Sphere {run.status}, best fitness {run.metrics['best_fitness']}")
+          PY
 
       - name: Upload distribution artifacts
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'

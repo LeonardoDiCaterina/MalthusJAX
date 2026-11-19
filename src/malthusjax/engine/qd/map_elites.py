@@ -150,6 +150,7 @@ class MapElitesEngine(AbstractEngine[G, P]):
         # Extract best fitness from the repertoire. Since we flipped the sign if minimizing,
         # we flip it back to log the true raw fitness correctly.
         from malthusjax.core.fitness.qd.metrics import archive_metrics
+
         best_fitness = -archive_metrics(repertoire.fitnesses)["max_fitness"]
 
         best_genome_idx = jnp.argmax(repertoire.fitnesses)
@@ -248,8 +249,10 @@ class MapElitesEngine(AbstractEngine[G, P]):
         )
 
         # 5. Extract KPI metrics
+        best_genome_idx = jnp.argmax(new_repertoire.fitnesses)
         if self.engine_params.track_metrics:
             from malthusjax.core.fitness.qd.metrics import archive_metrics
+
             metrics = archive_metrics(new_repertoire.fitnesses)
             # Engines retain lower-is-better objectives; adapters restore requested orientation.
             best_fitness = -metrics["max_fitness"]
@@ -259,13 +262,12 @@ class MapElitesEngine(AbstractEngine[G, P]):
             qd_score = metrics["qd_score"]
 
         else:
-            best_fitness = cast(chex.Array, jnp.nan)
+            best_fitness = -jnp.squeeze(new_repertoire.fitnesses[best_genome_idx])
             mean_fitness = cast(chex.Array, jnp.nan)
             std_fitness = cast(chex.Array, jnp.nan)
             coverage = cast(chex.Array, jnp.nan)
             qd_score = cast(chex.Array, jnp.nan)
 
-        best_genome_idx = jnp.argmax(new_repertoire.fitnesses)
         best_genome_values = jax.tree_util.tree_map(
             lambda x: x[best_genome_idx], new_repertoire.genotypes
         )

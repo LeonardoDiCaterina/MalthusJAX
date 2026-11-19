@@ -89,7 +89,7 @@ config.validate()
 The `EngineFactory` acts as the single dependency-injection boundary. It takes an `ExperimentConfig` and resolves it into an `Engine`:
 
 ```python
-from malthusjax.composer.engine_factory import EngineFactory
+from malthusjax.composer import EngineFactory
 
 # Build engine directly
 engine = EngineFactory.build(config)
