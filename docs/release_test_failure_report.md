@@ -221,6 +221,14 @@ needed by its selected tests. Satellite CI installs the root integration extras
 before installing satellite packages, making the pinned TensorNEAT Git source
 available before the satellite resolver checks its TensorNEAT requirement.
 
+A minimal installation also showed that the `mujoco` extra omitted the separate
+`mujoco-mjx` distribution required for `from mujoco import mjx`. Full-integration
+environments had obtained it transitively through Brax, masking the incomplete
+extra. The extra now declares `mujoco-mjx` explicitly.
+A fresh local installation of only `.[mujoco]` successfully imported MJX,
+created and reset the cartpole environment, and executed a JIT-compiled step
+without Brax installed (MuJoCo/MJX 4.0.1, JAX/JAXlib 0.12.1).
+
 The Linux CPU run also exposed a portability issue in the MLP gradient oracle.
 Three depth-four cases had maximum absolute float32 gradient differences between
 `0.000244140625` and `0.0006103515625`, exceeding a fixed `1e-4` absolute bound;
