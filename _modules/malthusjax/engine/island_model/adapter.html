@@ -193,6 +193,8 @@
   <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../toml_guide.html">TOML experiments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../research_workflows.html">Research workflows</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../2-CORE_ABSTRACTIONS.html">Core Abstractions: Genomes, Populations, and Fitness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../3-GENETIC_OPERATORS.html">Genetic Operators: Selection, Variation, and Emitters</a></li>
@@ -203,6 +205,7 @@
 <p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../extension_cli_guide.html">Develop a local extension</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
@@ -260,10 +263,8 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../api/malthusjax.core.html">malthusjax.core package</a><input aria-label="Toggle navigation of malthusjax.core package" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../../../api/malthusjax.core.fitness.html">malthusjax.core.fitness package</a><input aria-label="Toggle navigation of malthusjax.core.fitness package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../../api/malthusjax.core.fitness.base.html">malthusjax.core.fitness.base module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../../api/malthusjax.core.fitness.bbob_evaluator.html">malthusjax.core.fitness.bbob_evaluator module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../../api/malthusjax.core.fitness.binary_evaluators.html">malthusjax.core.fitness.binary_evaluators module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../../api/malthusjax.core.fitness.linear_gp_evaluator.html">malthusjax.core.fitness.linear_gp_evaluator module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../../api/malthusjax.core.fitness.real_evaluators.html">malthusjax.core.fitness.real_evaluators module</a></li>
 </ul>
 </li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../../../api/malthusjax.core.genome.html">malthusjax.core.genome package</a><input aria-label="Toggle navigation of malthusjax.core.genome package" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -348,8 +349,9 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">numbers</span><span class="w"> </span><span class="kn">import</span> <span class="n">Integral</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">chex</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
@@ -359,6 +361,9 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">StepLoggingConfig</span><span class="p">,</span> <span class="n">get_logger</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.timing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TimingCapture</span><span class="p">,</span> <span class="n">block_until_ready</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.engine.island_model.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseIslandModel</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.engine_protocol</span><span class="w"> </span><span class="kn">import</span> <span class="n">EngineOutputOptions</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="s2">"engine.island_model.adapter"</span><span class="p">)</span>
 
@@ -422,23 +427,33 @@
 
 <div class="viewcode-block" id="IslandEngineAdapter.run">
 <a class="viewcode-back" href="../../../../api/malthusjax.engine.html#malthusjax.engine.IslandEngineAdapter.run">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_state</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">IslandEvolutionState</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">init_state</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">return_history</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">IslandEvolutionState</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Execute exactly the horizon, migrating only at completed boundaries.</span>
 
 <span class="sd">        History's leading axes are (generations, islands), including remainders.</span>
 <span class="sd">        """</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generations</span><span class="p">,</span> <span class="n">Integral</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generations</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">generations</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generations</span><span class="p">,</span> <span class="n">Integral</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generations</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">generations</span> <span class="o">&lt;</span> <span class="mi">0</span>
+        <span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"generations must be a nonnegative integer"</span><span class="p">)</span>
         <span class="n">interval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">island_model</span><span class="o">.</span><span class="n">migration_interval</span>
         <span class="k">if</span> <span class="n">interval</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"migration_interval must be positive"</span><span class="p">)</span>
+
         <span class="k">def</span><span class="w"> </span><span class="nf">train_loop</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
             <span class="n">evolved</span><span class="p">,</span> <span class="n">history</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">island_model</span><span class="o">.</span><span class="n">evolve_one</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-            <span class="n">migrated</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">lax</span><span class="o">.</span><span class="n">cond</span><span class="p">((</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">interval</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span>
-                                   <span class="bp">self</span><span class="o">.</span><span class="n">island_model</span><span class="o">.</span><span class="n">migrate_state</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="n">evolved</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">migrated</span><span class="p">,</span> <span class="n">history</span>
-        <span class="n">final_multi_state</span><span class="p">,</span> <span class="n">history</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">lax</span><span class="o">.</span><span class="n">scan</span><span class="p">(</span><span class="n">train_loop</span><span class="p">,</span> <span class="n">init_state</span><span class="p">,</span>
-                                                 <span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generations</span><span class="p">))</span>
+            <span class="n">migrated</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">lax</span><span class="o">.</span><span class="n">cond</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">interval</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">island_model</span><span class="o">.</span><span class="n">migrate_state</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="n">evolved</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">migrated</span><span class="p">,</span> <span class="n">history</span> <span class="k">if</span> <span class="n">return_history</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="n">final_multi_state</span><span class="p">,</span> <span class="n">history</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">lax</span><span class="o">.</span><span class="n">scan</span><span class="p">(</span>
+            <span class="n">train_loop</span><span class="p">,</span> <span class="n">init_state</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generations</span><span class="p">)</span>
+        <span class="p">)</span>
 
         <span class="c1"># Extract global best genome and fitness across all islands and individuals</span>
         <span class="c1"># final_multi_state.population.fitness shape: (num_islands, pop_size)</span>
@@ -467,16 +482,41 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">run_once</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">step_logging</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">StepLoggingConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">"""BenchmarkRunner protocol implementation."""</span>
+<span class="w">        </span><span class="sd">"""Preserve the legacy metric-only runner entry point."""</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.engine_protocol</span><span class="w"> </span><span class="kn">import</span> <span class="n">EngineOutputOptions</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">(</span>
+            <span class="n">key</span><span class="p">,</span> <span class="n">EngineOutputOptions</span><span class="p">(</span><span class="n">capture_solution</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="n">step_logging</span><span class="p">,</span> <span class="n">legacy</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="IslandEngineAdapter.run_with_options">
+<a class="viewcode-back" href="../../../../api/malthusjax.engine.html#malthusjax.engine.IslandEngineAdapter.run_with_options">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run_with_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="n">EngineOutputOptions</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span>
+        <span class="n">options</span><span class="p">:</span> <span class="n">EngineOutputOptions</span><span class="p">,</span>
+        <span class="n">step_logging</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">StepLoggingConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">legacy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="n">t_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
         <span class="n">capture</span> <span class="o">=</span> <span class="n">TimingCapture</span><span class="p">()</span>
         <span class="n">init_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_state</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
         <span class="n">block_until_ready</span><span class="p">(</span><span class="n">init_state</span><span class="p">,</span> <span class="n">effects</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">capture</span><span class="o">.</span><span class="n">initialized</span><span class="p">(</span><span class="n">init_state</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
-        <span class="n">spec</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generations</span><span class="p">,</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">island_model</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">island_model</span><span class="o">.</span><span class="n">migration_interval</span><span class="p">,</span>
-                <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">island_model</span><span class="p">,</span> <span class="s2">"num_migrants"</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">generations</span><span class="p">,</span>
+            <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">island_model</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">island_model</span><span class="o">.</span><span class="n">migration_interval</span><span class="p">,</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">island_model</span><span class="p">,</span> <span class="s2">"num_migrants"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">options</span><span class="o">.</span><span class="n">collect_history</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compiled_spec</span> <span class="o">!=</span> <span class="n">spec</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_compiled_run</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_compiled_run</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">,</span> <span class="n">return_history</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">collect_history</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_compiled_spec</span> <span class="o">=</span> <span class="n">spec</span>
         <span class="n">prepared</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compiled_run</span><span class="o">.</span><span class="n">lower</span><span class="p">(</span><span class="n">init_state</span><span class="p">)</span><span class="o">.</span><span class="n">compile</span><span class="p">()</span>
         <span class="n">capture</span><span class="o">.</span><span class="n">prepared</span><span class="p">()</span>
@@ -505,13 +545,40 @@
             <span class="n">unavailable</span> <span class="o">=</span> <span class="s2">"Island step logging is not implemented by this adapter"</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">timings</span><span class="p">[</span><span class="s2">"execution"</span><span class="p">]</span> <span class="o">=</span> <span class="n">t_end</span> <span class="o">-</span> <span class="n">t_execution_start</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">collect_history</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">legacy</span> <span class="ow">and</span> <span class="n">history</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">tracked</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">history_metrics</span> <span class="ow">or</span> <span class="p">(</span><span class="s2">"best_fitness"</span><span class="p">,</span> <span class="s2">"mean_fitness"</span><span class="p">,</span> <span class="s2">"std_fitness"</span><span class="p">)</span>
+            <span class="n">columns</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">name</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">device_get</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">history</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">tracked</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">history</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="p">}</span>
+            <span class="k">for</span> <span class="n">generation</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generations</span><span class="p">):</span>
+                <span class="n">row</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"generation"</span><span class="p">:</span> <span class="n">generation</span> <span class="o">+</span> <span class="mi">1</span><span class="p">}</span>
+                <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">columns</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">per_island</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">generation</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"best_fitness"</span><span class="p">:</span>
+                        <span class="n">row</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">sign</span> <span class="o">*</span> <span class="n">per_island</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+                    <span class="n">row</span><span class="p">[</span><span class="sa">f</span><span class="s2">"island_</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">per_island</span> <span class="o">*</span> <span class="n">sign</span>
+                        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">"best_fitness"</span><span class="p">,</span> <span class="s2">"mean_fitness"</span><span class="p">}</span>
+                        <span class="k">else</span> <span class="n">per_island</span>
+                    <span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+        <span class="n">solution</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">capture_solution</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.design_exports</span><span class="w"> </span><span class="kn">import</span> <span class="n">encoded_solution</span>
+
+            <span class="n">solution</span><span class="p">[</span><span class="s2">"solution"</span><span class="p">]</span> <span class="o">=</span> <span class="n">encoded_solution</span><span class="p">(</span>
+                <span class="n">final_state</span><span class="o">.</span><span class="n">best_genome</span><span class="p">,</span> <span class="n">reported_best</span><span class="p">,</span> <span class="s2">"final_population_best"</span>
+            <span class="p">)</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">"history"</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="o">**</span><span class="n">solution</span><span class="p">,</span>
+            <span class="s2">"history"</span><span class="p">:</span> <span class="n">rows</span><span class="p">,</span>
             <span class="s2">"summary"</span><span class="p">:</span> <span class="n">summary</span><span class="p">,</span>
             <span class="s2">"timings"</span><span class="p">:</span> <span class="n">timings</span><span class="p">,</span>
             <span class="s2">"timing_metadata"</span><span class="p">:</span> <span class="n">capture</span><span class="o">.</span><span class="n">metadata</span><span class="p">(</span><span class="n">unavailable</span><span class="p">),</span>
-        <span class="p">}</span></div>
-
+        <span class="p">}</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">island_model</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div>

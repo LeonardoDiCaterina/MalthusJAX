@@ -193,6 +193,8 @@
   <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../toml_guide.html">TOML experiments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../research_workflows.html">Research workflows</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../2-CORE_ABSTRACTIONS.html">Core Abstractions: Genomes, Populations, and Fitness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../3-GENETIC_OPERATORS.html">Genetic Operators: Selection, Variation, and Emitters</a></li>
@@ -203,6 +205,7 @@
 <p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extension_cli_guide.html">Develop a local extension</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
@@ -260,10 +263,8 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/malthusjax.core.html">malthusjax.core package</a><input aria-label="Toggle navigation of malthusjax.core package" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/malthusjax.core.fitness.html">malthusjax.core.fitness package</a><input aria-label="Toggle navigation of malthusjax.core.fitness package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.base.html">malthusjax.core.fitness.base module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.bbob_evaluator.html">malthusjax.core.fitness.bbob_evaluator module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.binary_evaluators.html">malthusjax.core.fitness.binary_evaluators module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.linear_gp_evaluator.html">malthusjax.core.fitness.linear_gp_evaluator module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.real_evaluators.html">malthusjax.core.fitness.real_evaluators module</a></li>
 </ul>
 </li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/malthusjax.core.genome.html">malthusjax.core.genome package</a><input aria-label="Toggle navigation of malthusjax.core.genome package" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -355,13 +356,13 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">infer_genome_length</span><span class="p">,</span> <span class="n">normalize_seeds</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.engine_factory_v2</span><span class="w"> </span><span class="kn">import</span> <span class="n">EngineFactory</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.experiment_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExperimentConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.experiment_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExperimentConfig</span><span class="p">,</span> <span class="n">normalize_output_aliases</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.strategies.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseStrategy</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">..benchmarking.results</span><span class="w"> </span><span class="kn">import</span> <span class="n">ComparisonResult</span><span class="p">,</span> <span class="n">ExperimentResult</span>
@@ -383,7 +384,7 @@
 
 
 <div class="viewcode-block" id="Composer">
-<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.Composer">[docs]</a>
+<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.composer.Composer">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Composer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""High-level interface for running evolutionary algorithms.</span>
@@ -462,7 +463,7 @@
     <span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Composer.quick_run">
-<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.Composer.quick_run">[docs]</a>
+<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.composer.Composer.quick_run">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">quick_run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">seeds</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
@@ -728,14 +729,6 @@
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="n">log_level</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">set_log_level</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">step_logging</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">log_interval</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">step_logging</span> <span class="o">=</span> <span class="n">StepLoggingConfig</span><span class="p">(</span>
-                <span class="n">log_interval</span><span class="o">=</span><span class="n">log_interval</span><span class="p">,</span>
-                <span class="n">log_nan_watchdog</span><span class="o">=</span><span class="n">log_nan_watchdog</span><span class="p">,</span>
-                <span class="n">logger_name</span><span class="o">=</span><span class="s2">"malthusjax.composer"</span><span class="p">,</span>
-            <span class="p">)</span>
-
         <span class="n">kwargs_dict</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">"fitness"</span><span class="p">:</span> <span class="n">fitness</span><span class="p">,</span>
             <span class="s2">"selection"</span><span class="p">:</span> <span class="n">selection</span><span class="p">,</span>
@@ -776,18 +769,43 @@
             <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
         <span class="p">}</span>
 
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_run</span><span class="p">(</span><span class="n">engine</span><span class="o">=</span><span class="n">engine</span><span class="p">,</span> <span class="n">step_logging</span><span class="o">=</span><span class="n">step_logging</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs_dict</span><span class="p">)()</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_prepare_run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">engine</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">step_logging</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">StepLoggingConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">_initialization</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">_artifact_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">write_artifacts</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">configuration</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">ExperimentResult</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Validate and build the pipeline without running any optimization."""</span>
+        <span class="n">log_level</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"log_level"</span><span class="p">)</span>
+        <span class="n">log_interval</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"log_interval"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">step_logging</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">log_interval</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">step_logging</span> <span class="o">=</span> <span class="n">StepLoggingConfig</span><span class="p">(</span>
+                <span class="n">log_interval</span><span class="o">=</span><span class="n">log_interval</span><span class="p">,</span>
+                <span class="n">log_nan_watchdog</span><span class="o">=</span><span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"log_nan_watchdog"</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+                <span class="n">logger_name</span><span class="o">=</span><span class="s2">"malthusjax.composer"</span><span class="p">,</span>
+            <span class="p">)</span>
+
         <span class="c1"># Step 1: CONFIGURE — flat kwargs -&gt; structured config</span>
-        <span class="n">config</span> <span class="o">=</span> <span class="n">ExperimentConfig</span><span class="o">.</span><span class="n">from_quick_run_kwargs</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs_dict</span><span class="p">)</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">ExperimentConfig</span><span class="o">.</span><span class="n">from_quick_run_kwargs</span><span class="p">(</span><span class="o">**</span><span class="n">configuration</span><span class="p">)</span>
 
         <span class="c1"># Step 2: RESOLVE ENGINE — config -&gt; engine</span>
         <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">factory</span> <span class="o">=</span> <span class="n">EngineFactory</span><span class="p">()</span>
             <span class="n">engine</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">step_logging</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="s2">"step_logging"</span><span class="p">):</span>
-            <span class="n">engine</span><span class="o">.</span><span class="n">step_logging</span> <span class="o">=</span> <span class="n">step_logging</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">step_logging</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="s2">"step_logging"</span><span class="p">):</span>
+                <span class="n">engine</span><span class="o">.</span><span class="n">step_logging</span> <span class="o">=</span> <span class="n">step_logging</span>
 
         <span class="c1"># Step 3: EXECUTE — engine -&gt; results</span>
-        <span class="n">out_dir</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">out_dir</span> <span class="o">=</span> <span class="n">_artifact_dir</span> <span class="ow">or</span> <span class="p">(</span>
             <span class="n">Path</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">output_dir</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">output_dir</span>
             <span class="k">else</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"results"</span><span class="p">)</span> <span class="o">/</span> <span class="n">config</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">experiment_name</span> <span class="o">/</span> <span class="nb">__import__</span><span class="p">(</span><span class="s2">"uuid"</span><span class="p">)</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span>
@@ -800,38 +818,61 @@
             <span class="n">engine</span><span class="o">=</span><span class="n">engine</span><span class="p">,</span>
             <span class="n">experiment_name</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">experiment_name</span><span class="p">,</span>
             <span class="n">output_dir</span><span class="o">=</span><span class="n">out_dir</span><span class="p">,</span>
-            <span class="n">write_artifacts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">write_artifacts</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="n">prng_impl</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">execution</span><span class="o">.</span><span class="n">prng_impl</span><span class="p">,</span>
             <span class="n">trace_dir</span><span class="o">=</span><span class="n">tr_dir</span><span class="p">,</span>
-            <span class="n">serialize_history</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"serialize_history"</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+            <span class="n">engine_outputs</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">engine_outputs</span><span class="p">,</span>
+            <span class="n">artifact_options</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">artifacts</span><span class="p">,</span>
             <span class="n">configuration</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span>
         <span class="p">)</span>
 
-        <span class="n">normalized_seeds</span> <span class="o">=</span> <span class="n">normalize_seeds</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">execution</span><span class="o">.</span><span class="n">seeds</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="s2">"Starting quick_run: experiment='</span><span class="si">%s</span><span class="s2">', backend='</span><span class="si">%s</span><span class="s2">', seeds=</span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span>
-            <span class="n">config</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">experiment_name</span><span class="p">,</span>
-            <span class="n">config</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-            <span class="nb">list</span><span class="p">(</span><span class="n">normalized_seeds</span><span class="p">),</span>
-        <span class="p">)</span>
-        <span class="n">experiment</span> <span class="o">=</span> <span class="n">runner</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">normalized_seeds</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="s2">"Completed quick_run: experiment='</span><span class="si">%s</span><span class="s2">' across </span><span class="si">%d</span><span class="s2"> seeds"</span><span class="p">,</span>
-            <span class="n">config</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">experiment_name</span><span class="p">,</span>
-            <span class="nb">len</span><span class="p">(</span><span class="n">normalized_seeds</span><span class="p">),</span>
-        <span class="p">)</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ExperimentResult</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">log_level</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">set_log_level</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
+            <span class="n">normalized_seeds</span> <span class="o">=</span> <span class="n">normalize_seeds</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">execution</span><span class="o">.</span><span class="n">seeds</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s2">"Starting quick_run: experiment='</span><span class="si">%s</span><span class="s2">', backend='</span><span class="si">%s</span><span class="s2">', seeds=</span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span>
+                <span class="n">config</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">experiment_name</span><span class="p">,</span>
+                <span class="n">config</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="nb">list</span><span class="p">(</span><span class="n">normalized_seeds</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="n">experiment</span> <span class="o">=</span> <span class="n">runner</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">normalized_seeds</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s2">"Completed quick_run: experiment='</span><span class="si">%s</span><span class="s2">' across </span><span class="si">%d</span><span class="s2"> seeds"</span><span class="p">,</span>
+                <span class="n">config</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">experiment_name</span><span class="p">,</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">normalized_seeds</span><span class="p">),</span>
+            <span class="p">)</span>
 
-        <span class="c1"># Composer-level postprocessing: when engines run with</span>
-        <span class="c1"># TrackBest.NONE for speed they may omit or produce an</span>
-        <span class="c1"># invalid `summary['best_fitness']`. Allow callers to request</span>
-        <span class="c1"># that the final best is derived from the last history entry</span>
-        <span class="c1"># (history[-1]) instead. We also auto-fix non-finite summaries.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_postprocess_experiment_final_from_history</span><span class="p">(</span>
-            <span class="n">experiment</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">execution</span><span class="o">.</span><span class="n">use_history_for_final</span>
-        <span class="p">)</span>
+            <span class="c1"># Composer-level postprocessing: when engines run with</span>
+            <span class="c1"># TrackBest.NONE for speed they may omit or produce an</span>
+            <span class="c1"># invalid `summary['best_fitness']`. Allow callers to request</span>
+            <span class="c1"># that the final best is derived from the last history entry</span>
+            <span class="c1"># (history[-1]) instead. We also auto-fix non-finite summaries.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_postprocess_experiment_final_from_history</span><span class="p">(</span>
+                <span class="n">experiment</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">execution</span><span class="o">.</span><span class="n">use_history_for_final</span>
+            <span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">experiment</span></div>
+            <span class="k">if</span> <span class="n">_initialization</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="n">experiment</span><span class="o">.</span><span class="n">runs</span><span class="p">:</span>
+                    <span class="n">run</span><span class="o">.</span><span class="n">initialization</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="o">**</span><span class="n">_initialization</span><span class="p">,</span>
+                        <span class="s2">"optimizer_seed"</span><span class="p">:</span> <span class="n">run</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span>
+                        <span class="o">**</span><span class="n">run</span><span class="o">.</span><span class="n">initialization</span><span class="p">,</span>
+                    <span class="p">}</span>
+            <span class="k">if</span> <span class="n">write_artifacts</span><span class="p">:</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">..benchmarking.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_experiment_artifacts</span>
 
+                <span class="n">paths</span> <span class="o">=</span> <span class="n">write_experiment_artifacts</span><span class="p">(</span>
+                    <span class="n">experiment</span><span class="p">,</span>
+                    <span class="n">out_dir</span><span class="p">,</span>
+                    <span class="n">write_history_csv</span><span class="o">=</span><span class="n">experiment</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">"output_options"</span><span class="p">][</span><span class="s2">"write_history_csv"</span><span class="p">],</span>
+                <span class="p">)</span>
+                <span class="n">experiment</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">"artifact_paths"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="p">}</span>
+            <span class="k">return</span> <span class="n">experiment</span>
+
+        <span class="k">return</span> <span class="n">execute</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_postprocess_experiment_final_from_history</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">experiment</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
@@ -905,7 +946,7 @@
         <span class="k">return</span> <span class="n">generate_initial_population</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">pop_seed</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Composer.compare">
-<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.Composer.compare">[docs]</a>
+<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.composer.Composer.compare">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">compare</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">pipelines</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
@@ -1068,18 +1109,24 @@
         <span class="n">negate_map</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">last_init_pop</span> <span class="o">=</span> <span class="kc">None</span>
 
+        <span class="n">artifact_root</span> <span class="o">=</span> <span class="n">shared_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"_artifact_root"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">shared_kwargs</span> <span class="o">=</span> <span class="n">normalize_output_aliases</span><span class="p">(</span><span class="n">shared_kwargs</span><span class="p">)</span>
+        <span class="n">prepared_runs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">ExperimentResult</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">iterable</span> <span class="o">=</span> <span class="n">pipelines</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">tqdm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">iterable</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">iterable</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">pipelines</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s2">"pipelines"</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">pipeline_kwargs</span> <span class="ow">in</span> <span class="n">iterable</span><span class="p">:</span>
-            <span class="n">merged</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">shared_kwargs</span><span class="p">,</span> <span class="o">**</span><span class="n">pipeline_kwargs</span><span class="p">}</span>
+            <span class="n">merged</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">shared_kwargs</span><span class="p">,</span> <span class="o">**</span><span class="n">normalize_output_aliases</span><span class="p">(</span><span class="n">pipeline_kwargs</span><span class="p">)}</span>
             <span class="n">merged</span><span class="p">[</span><span class="s2">"seeds"</span><span class="p">]</span> <span class="o">=</span> <span class="n">seeds</span>
             <span class="n">merged</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"experiment_name"</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">trace_base</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">merged</span><span class="p">[</span><span class="s2">"trace_dir"</span><span class="p">]</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">trace_base</span><span class="p">)</span> <span class="o">/</span> <span class="n">name</span>
 
+            <span class="n">initialization</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"policy"</span><span class="p">:</span> <span class="s2">"backend_seeded"</span><span class="p">}</span>
+            <span class="k">if</span> <span class="n">merged</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"initial_population"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">initialization</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"policy"</span><span class="p">:</span> <span class="s2">"explicit_population"</span><span class="p">}</span>
             <span class="k">if</span> <span class="n">shared_initial_population</span> <span class="ow">and</span> <span class="s2">"initial_population"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">merged</span><span class="p">:</span>
                 <span class="n">pipeline_init_pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_initial_population</span><span class="p">(</span><span class="n">merged</span><span class="p">,</span> <span class="n">pop_seed</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">pipeline_init_pop</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1093,8 +1140,19 @@
                             <span class="p">)</span>
                     <span class="n">merged</span><span class="p">[</span><span class="s2">"initial_population"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pipeline_init_pop</span>
                     <span class="n">last_init_pop</span> <span class="o">=</span> <span class="n">pipeline_init_pop</span>
+                    <span class="n">initialization</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"policy"</span><span class="p">:</span> <span class="s2">"fixed_population"</span><span class="p">,</span> <span class="s2">"population_seed"</span><span class="p">:</span> <span class="n">pop_seed</span><span class="p">}</span>
+            <span class="k">if</span> <span class="n">artifact_root</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">merged</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"output_dir"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span> <span class="ow">or</span> <span class="s2">"/"</span> <span class="ow">in</span> <span class="n">name</span> <span class="ow">or</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">"</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Invalid pipeline name for result export: </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">artifact_root</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">merged</span><span class="p">[</span><span class="s2">"_artifact_dir"</span><span class="p">]</span> <span class="o">=</span> <span class="n">artifact_root</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"pipeline_</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">merged</span><span class="p">[</span><span class="s2">"output_dir"</span><span class="p">]</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">merged</span><span class="p">[</span><span class="s2">"output_dir"</span><span class="p">])</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"pipeline_</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span>
 
-            <span class="n">results</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quick_run</span><span class="p">(</span><span class="o">**</span><span class="n">merged</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">prepared_runs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_run</span><span class="p">(</span><span class="n">_initialization</span><span class="o">=</span><span class="n">initialization</span><span class="p">,</span> <span class="o">**</span><span class="n">merged</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">)</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Pipeline </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
             <span class="n">maximize_flag</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">merged</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"maximize"</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
 
             <span class="c1"># Normalize displayed metrics/history to the canonical</span>
@@ -1108,6 +1166,10 @@
             <span class="c1"># avoid regressions when backend internals change.</span>
             <span class="n">negate_map</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">maximize_flag</span>
 
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">pipelines</span><span class="p">:</span>
+            <span class="n">prepared</span> <span class="o">=</span> <span class="n">prepared_runs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">results</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">prepared</span><span class="p">()</span>
+            <span class="k">del</span> <span class="n">prepared</span>
             <span class="c1"># Clear JAX compilation caches to prevent RESOURCE_EXHAUSTED OOMs</span>
             <span class="c1"># on large sweeps (e.g., 100+ pipelines)</span>
 
@@ -1122,7 +1184,7 @@
 
 
 <div class="viewcode-block" id="Composer.from_toml">
-<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.Composer.from_toml">[docs]</a>
+<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.composer.Composer.from_toml">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">from_toml</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span>
@@ -1133,6 +1195,8 @@
         <span class="n">trace_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">log_interval</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">configure_log</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">write_artifacts</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">artifact_root</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComparisonResult</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Load and execute a declarative TOML experiment specification.</span>
 
@@ -1269,7 +1333,7 @@
         <span class="n">experiment_meta</span> <span class="o">=</span> <span class="n">config_res</span><span class="o">.</span><span class="n">meta</span>
         <span class="n">resolved</span> <span class="o">=</span> <span class="n">config_res</span><span class="o">.</span><span class="n">pipelines</span>
         <span class="n">data_registry</span> <span class="o">=</span> <span class="n">config_res</span><span class="o">.</span><span class="n">data_registry</span>
-        <span class="n">shared</span> <span class="o">=</span> <span class="n">experiment_meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"shared"</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">shared</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">experiment_meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"shared"</span><span class="p">,</span> <span class="p">{}))</span>
 
         <span class="n">output_dir</span> <span class="o">=</span> <span class="n">experiment_meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"output_dir"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">output_dir</span><span class="p">:</span>
@@ -1290,20 +1354,36 @@
             <span class="n">shared</span><span class="p">[</span><span class="s2">"log_interval"</span><span class="p">]</span> <span class="o">=</span> <span class="n">log_interval</span>
 
         <span class="n">seeds</span> <span class="o">=</span> <span class="n">normalize_seeds</span><span class="p">(</span><span class="n">shared</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"seeds"</span><span class="p">,</span> <span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="mi">43</span><span class="p">,</span> <span class="mi">44</span><span class="p">)))</span>
+        <span class="n">shared_policy</span> <span class="o">=</span> <span class="n">shared</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"shared_initial_population"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">top_policy</span> <span class="o">=</span> <span class="n">experiment_meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"shared_initial_population"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">policy</span> <span class="ow">in</span> <span class="p">(</span><span class="n">shared_policy</span><span class="p">,</span> <span class="n">top_policy</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">policy</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">policy</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"shared_initial_population must be a boolean"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">top_policy</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">shared_policy</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">top_policy</span> <span class="o">!=</span> <span class="n">shared_policy</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">"Conflicting shared_initial_population values in experiment and experiment.shared"</span>
+            <span class="p">)</span>
+        <span class="n">shared_init_pop</span> <span class="o">=</span> <span class="n">experiment_meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s2">"shared_initial_population"</span><span class="p">,</span>
+            <span class="n">shared_initial_population</span> <span class="k">if</span> <span class="n">shared_policy</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">shared_policy</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="n">pipeline_overrides</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">merged_cfg</span> <span class="ow">in</span> <span class="n">resolved</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">overrides</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="n">k</span><span class="p">:</span> <span class="n">v</span>
                 <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">merged_cfg</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-                <span class="k">if</span> <span class="p">(</span><span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">shared</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">merged_cfg</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">!=</span> <span class="n">shared</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">"shared_initial_population"</span> <span class="ow">and</span> <span class="p">((</span><span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">shared</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">v</span> <span class="o">!=</span> <span class="n">shared</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span>
             <span class="p">}</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">write_artifacts</span><span class="p">:</span>
+                <span class="n">overrides</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"output_dir"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">overrides</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"write_artifacts"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="n">pipeline_overrides</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">overrides</span>
-
-        <span class="n">shared_init_pop</span> <span class="o">=</span> <span class="n">experiment_meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-            <span class="s2">"shared_initial_population"</span><span class="p">,</span>
-            <span class="n">shared</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"shared_initial_population"</span><span class="p">,</span> <span class="n">shared_initial_population</span><span class="p">),</span>
-        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">write_artifacts</span><span class="p">:</span>
+            <span class="n">shared</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"output_dir"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">artifact_root</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">shared</span><span class="p">[</span><span class="s2">"_artifact_root"</span><span class="p">]</span> <span class="o">=</span> <span class="n">artifact_root</span>
+        <span class="n">shared</span><span class="p">[</span><span class="s2">"write_artifacts"</span><span class="p">]</span> <span class="o">=</span> <span class="n">write_artifacts</span>
 
         <span class="n">composer</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">create_default</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">composer</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span>
@@ -1318,7 +1398,7 @@
 
 
 <div class="viewcode-block" id="Composer.create_default">
-<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.Composer.create_default">[docs]</a>
+<a class="viewcode-back" href="../../../api/malthusjax.composer.composer.html#malthusjax.composer.Composer.create_default">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">create_default</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"Composer"</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Create a :class:`Composer` instance with default configuration.</span>

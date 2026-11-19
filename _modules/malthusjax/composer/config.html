@@ -193,6 +193,8 @@
   <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../toml_guide.html">TOML experiments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../research_workflows.html">Research workflows</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../2-CORE_ABSTRACTIONS.html">Core Abstractions: Genomes, Populations, and Fitness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../3-GENETIC_OPERATORS.html">Genetic Operators: Selection, Variation, and Emitters</a></li>
@@ -203,6 +205,7 @@
 <p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extension_cli_guide.html">Develop a local extension</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
@@ -260,10 +263,8 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/malthusjax.core.html">malthusjax.core package</a><input aria-label="Toggle navigation of malthusjax.core package" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/malthusjax.core.fitness.html">malthusjax.core.fitness package</a><input aria-label="Toggle navigation of malthusjax.core.fitness package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.base.html">malthusjax.core.fitness.base module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.bbob_evaluator.html">malthusjax.core.fitness.bbob_evaluator module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.binary_evaluators.html">malthusjax.core.fitness.binary_evaluators module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.linear_gp_evaluator.html">malthusjax.core.fitness.linear_gp_evaluator module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.real_evaluators.html">malthusjax.core.fitness.real_evaluators module</a></li>
 </ul>
 </li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/malthusjax.core.genome.html">malthusjax.core.genome package</a><input aria-label="Toggle navigation of malthusjax.core.genome package" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -383,7 +384,7 @@
 
 
 
-<span class="n">_EXPERIMENT_META_KEYS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"name"</span><span class="p">,</span> <span class="s2">"output_dir"</span><span class="p">,</span> <span class="s2">"logging"</span><span class="p">}</span>
+<span class="n">_EXPERIMENT_META_KEYS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"name"</span><span class="p">,</span> <span class="s2">"output_dir"</span><span class="p">,</span> <span class="s2">"logging"</span><span class="p">,</span> <span class="s2">"shared_initial_population"</span><span class="p">}</span>
 
 
 <div class="viewcode-block" id="ExperimentLoadResult">
@@ -426,6 +427,8 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">load_experiment_config</span><span class="p">(</span>
     <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">pipelines</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">contents</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ExperimentLoadResult</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Load a Composer-style experiment TOML file.</span>
 
@@ -442,13 +445,17 @@
 <span class="sd">    directly to :meth:`Composer.quick_run`.</span>
 <span class="sd">    """</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">cfg</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">contents</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">contents</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">contents</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
     <span class="k">except</span> <span class="ne">FileNotFoundError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Config file not found: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.experiment_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">normalize_output_aliases</span>
+
     <span class="n">experiment_raw</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"experiment"</span><span class="p">,</span> <span class="p">{})</span>
-    <span class="n">shared</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">experiment_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"shared"</span><span class="p">,</span> <span class="p">{}))</span>
+    <span class="n">shared</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">normalize_output_aliases</span><span class="p">(</span><span class="n">experiment_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"shared"</span><span class="p">,</span> <span class="p">{}))</span>
 
     <span class="k">if</span> <span class="s2">"bounds"</span> <span class="ow">in</span> <span class="n">shared</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">shared</span><span class="p">[</span><span class="s2">"bounds"</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
         <span class="n">shared</span><span class="p">[</span><span class="s2">"bounds"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">shared</span><span class="p">[</span><span class="s2">"bounds"</span><span class="p">])</span>
@@ -477,7 +484,7 @@
 
     <span class="n">resolved</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">pipeline_cfg</span> <span class="ow">in</span> <span class="n">raw_pipelines</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">merged</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">shared</span><span class="p">,</span> <span class="o">**</span><span class="n">pipeline_cfg</span><span class="p">}</span>
+        <span class="n">merged</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">shared</span><span class="p">,</span> <span class="o">**</span><span class="n">normalize_output_aliases</span><span class="p">(</span><span class="n">pipeline_cfg</span><span class="p">)}</span>
         <span class="k">if</span> <span class="s2">"bounds"</span> <span class="ow">in</span> <span class="n">merged</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">merged</span><span class="p">[</span><span class="s2">"bounds"</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
             <span class="n">merged</span><span class="p">[</span><span class="s2">"bounds"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">merged</span><span class="p">[</span><span class="s2">"bounds"</span><span class="p">])</span>
         <span class="k">if</span> <span class="s2">"seeds"</span> <span class="ow">in</span> <span class="n">merged</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">merged</span><span class="p">[</span><span class="s2">"seeds"</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>

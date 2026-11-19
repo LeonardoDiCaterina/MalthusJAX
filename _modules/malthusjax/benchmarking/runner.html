@@ -193,6 +193,8 @@
   <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../toml_guide.html">TOML experiments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../research_workflows.html">Research workflows</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../2-CORE_ABSTRACTIONS.html">Core Abstractions: Genomes, Populations, and Fitness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../3-GENETIC_OPERATORS.html">Genetic Operators: Selection, Variation, and Emitters</a></li>
@@ -203,6 +205,7 @@
 <p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extension_cli_guide.html">Develop a local extension</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
@@ -260,10 +263,8 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/malthusjax.core.html">malthusjax.core package</a><input aria-label="Toggle navigation of malthusjax.core package" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/malthusjax.core.fitness.html">malthusjax.core.fitness package</a><input aria-label="Toggle navigation of malthusjax.core.fitness package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.base.html">malthusjax.core.fitness.base module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.bbob_evaluator.html">malthusjax.core.fitness.bbob_evaluator module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.binary_evaluators.html">malthusjax.core.fitness.binary_evaluators module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.linear_gp_evaluator.html">malthusjax.core.fitness.linear_gp_evaluator module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.real_evaluators.html">malthusjax.core.fitness.real_evaluators module</a></li>
 </ul>
 </li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/malthusjax.core.genome.html">malthusjax.core.genome package</a><input aria-label="Toggle navigation of malthusjax.core.genome package" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -358,17 +359,19 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">asdict</span><span class="p">,</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">replace</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tempfile</span><span class="w"> </span><span class="kn">import</span> <span class="n">NamedTemporaryFile</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">chex</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">..core.logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..core.random</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_key</span><span class="p">,</span> <span class="n">resolve_prng_impl</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..core.timing_records</span><span class="w"> </span><span class="kn">import</span> <span class="n">TimingPolicy</span><span class="p">,</span> <span class="n">TimingRecord</span><span class="p">,</span> <span class="n">environment_identity</span><span class="p">,</span> <span class="n">json_safe</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_experiment_artifacts</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">ensure_seed_folder</span><span class="p">,</span> <span class="n">write_experiment_artifacts</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.results</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExperimentResult</span><span class="p">,</span> <span class="n">RunResult</span><span class="p">,</span> <span class="n">standard_json</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="s2">"benchmarking.runner"</span><span class="p">)</span>
@@ -396,6 +399,16 @@
     <span class="n">serialize_history</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># If False, drops generation history to save disk space</span>
 
     <span class="n">timing_policy</span><span class="p">:</span> <span class="n">TimingPolicy</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">TimingPolicy</span><span class="p">)</span>
+    <span class="n">engine_outputs</span><span class="p">:</span> <span class="n">EngineOutputOptions</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">artifact_options</span><span class="p">:</span> <span class="n">RunArtifactOptions</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_output_options</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EngineOutputOptions</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine_outputs</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">,</span> <span class="s2">"default_output_options"</span><span class="p">,</span> <span class="n">EngineOutputOptions</span><span class="p">()</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_artifact_options</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RunArtifactOptions</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">artifact_options</span> <span class="ow">or</span> <span class="n">RunArtifactOptions</span><span class="p">(</span><span class="n">retain_history</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">serialize_history</span><span class="p">)</span>
 
 <div class="viewcode-block" id="BenchmarkRunner.run">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.runner.html#malthusjax.benchmarking.BenchmarkRunner.run">[docs]</a>
@@ -418,6 +431,18 @@
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
                 <span class="s2">"Hard timeouts require a subprocess/job boundary; this runner cannot enforce them"</span>
             <span class="p">)</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_options</span><span class="p">()</span>
+        <span class="n">artifacts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_artifact_options</span><span class="p">()</span>
+        <span class="n">dispatch</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">,</span> <span class="s2">"run_with_options"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">export_archive</span> <span class="ow">or</span> <span class="n">options</span><span class="o">.</span><span class="n">export_pareto</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Design artifact export requires a runner output directory"</span><span class="p">)</span>
+        <span class="n">repeats</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span>
+            <span class="n">options</span><span class="p">,</span>
+            <span class="n">capture_solution</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">capture_population_fingerprint</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">export_archive</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">export_pareto</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">runs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">RunResult</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">identity</span> <span class="o">=</span> <span class="n">environment_identity</span><span class="p">()</span>
         <span class="n">configuration_snapshot</span> <span class="o">=</span> <span class="n">standard_json</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configuration</span><span class="p">))</span>
@@ -437,7 +462,15 @@
             <span class="n">key</span> <span class="o">=</span> <span class="n">create_key</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">impl</span><span class="o">=</span><span class="n">impl</span><span class="p">)</span>
             <span class="c1"># Only trace the first seed</span>
             <span class="n">trace_this</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trace_dir</span> <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
-            <span class="n">run_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run_single_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">timeout_seconds</span><span class="p">,</span> <span class="n">trace_dir</span><span class="o">=</span><span class="n">trace_this</span><span class="p">)</span>
+            <span class="n">run_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run_single_seed</span><span class="p">(</span>
+                <span class="n">seed</span><span class="p">,</span>
+                <span class="n">key</span><span class="p">,</span>
+                <span class="n">timeout_seconds</span><span class="p">,</span>
+                <span class="n">trace_dir</span><span class="o">=</span><span class="n">trace_this</span><span class="p">,</span>
+                <span class="n">export_artifacts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>
+                <span class="n">dispatch</span><span class="o">=</span><span class="n">dispatch</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="n">run_result</span><span class="o">.</span><span class="n">timing_record</span> <span class="o">=</span> <span class="n">TimingRecord</span><span class="o">.</span><span class="n">from_producer</span><span class="p">(</span>
                 <span class="n">run_result</span><span class="o">.</span><span class="n">timings</span><span class="p">,</span>
                 <span class="n">run_result</span><span class="o">.</span><span class="n">timing_metadata</span><span class="p">,</span>
@@ -453,7 +486,13 @@
             <span class="k">for</span> <span class="n">trial_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span>
                 <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">timing_policy</span><span class="o">.</span><span class="n">preconditioning</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">timing_policy</span><span class="o">.</span><span class="n">repetitions</span>
             <span class="p">):</span>
-                <span class="n">repeat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run_single_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">create_key</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">impl</span><span class="o">=</span><span class="n">impl</span><span class="p">),</span> <span class="n">timeout_seconds</span><span class="p">)</span>
+                <span class="n">repeat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run_single_seed</span><span class="p">(</span>
+                    <span class="n">seed</span><span class="p">,</span>
+                    <span class="n">create_key</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">impl</span><span class="o">=</span><span class="n">impl</span><span class="p">),</span>
+                    <span class="n">timeout_seconds</span><span class="p">,</span>
+                    <span class="n">options</span><span class="o">=</span><span class="n">repeats</span><span class="p">,</span>
+                    <span class="n">dispatch</span><span class="o">=</span><span class="n">dispatch</span><span class="p">,</span>
+                <span class="p">)</span>
                 <span class="n">repeated_record</span> <span class="o">=</span> <span class="n">TimingRecord</span><span class="o">.</span><span class="n">from_producer</span><span class="p">(</span>
                     <span class="n">repeat</span><span class="o">.</span><span class="n">timings</span><span class="p">,</span>
                     <span class="n">repeat</span><span class="o">.</span><span class="n">timing_metadata</span><span class="p">,</span>
@@ -486,12 +525,14 @@
                     <span class="k">else</span> <span class="s2">"prepared_execution_repeat"</span><span class="p">,</span>
                 <span class="p">)</span>
                 <span class="n">record</span><span class="p">[</span><span class="s2">"trials"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trial</span><span class="p">)</span>
+
                 <span class="k">def</span><span class="w"> </span><span class="nf">objective</span><span class="p">(</span><span class="n">row</span><span class="p">:</span> <span class="n">RunResult</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
                     <span class="k">return</span> <span class="p">{</span>
                         <span class="n">k</span><span class="p">:</span> <span class="n">v</span>
                         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">row</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
                         <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">"duration_seconds"</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"time_"</span><span class="p">)</span>
                     <span class="p">}</span>
+
                 <span class="n">agrees</span> <span class="o">=</span> <span class="p">(</span>
                     <span class="n">objective</span><span class="p">(</span><span class="n">repeat</span><span class="p">)</span> <span class="o">==</span> <span class="n">objective</span><span class="p">(</span><span class="n">run_result</span><span class="p">)</span>
                     <span class="ow">and</span> <span class="n">repeat</span><span class="o">.</span><span class="n">history</span> <span class="o">==</span> <span class="n">run_result</span><span class="o">.</span><span class="n">history</span>
@@ -523,7 +564,16 @@
                 <span class="s2">"seeds"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">seeds</span><span class="p">),</span>
                 <span class="s2">"total_runs"</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">runs</span><span class="p">),</span>
                 <span class="s2">"successful_runs"</span><span class="p">:</span> <span class="nb">len</span><span class="p">([</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">runs</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s2">"success"</span><span class="p">]),</span>
-                <span class="s2">"serialize_history"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">serialize_history</span><span class="p">,</span>
+                <span class="s2">"serialize_history"</span><span class="p">:</span> <span class="n">artifacts</span><span class="o">.</span><span class="n">retain_history</span><span class="p">,</span>
+                <span class="s2">"output_options"</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="o">**</span><span class="n">asdict</span><span class="p">(</span><span class="n">options</span><span class="p">),</span>
+                    <span class="o">**</span><span class="n">asdict</span><span class="p">(</span><span class="n">artifacts</span><span class="p">),</span>
+                    <span class="s2">"write_history_csv"</span><span class="p">:</span> <span class="p">(</span>
+                        <span class="n">artifacts</span><span class="o">.</span><span class="n">write_history_csv</span>
+                        <span class="ow">and</span> <span class="n">artifacts</span><span class="o">.</span><span class="n">retain_history</span>
+                        <span class="ow">and</span> <span class="n">options</span><span class="o">.</span><span class="n">collect_history</span>
+                    <span class="p">),</span>
+                <span class="p">},</span>
                 <span class="s2">"configuration"</span><span class="p">:</span> <span class="n">configuration_snapshot</span><span class="p">,</span>
                 <span class="s2">"configuration_status"</span><span class="p">:</span> <span class="p">(</span>
                     <span class="s2">"partial_runtime_objects"</span>
@@ -540,7 +590,11 @@
 
         <span class="c1"># Write artifacts if requested</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">write_artifacts</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">:</span>
-            <span class="n">written_paths</span> <span class="o">=</span> <span class="n">write_experiment_artifacts</span><span class="p">(</span><span class="n">experiment</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">)</span>
+            <span class="n">written_paths</span> <span class="o">=</span> <span class="n">write_experiment_artifacts</span><span class="p">(</span>
+                <span class="n">experiment</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span>
+                <span class="n">write_history_csv</span><span class="o">=</span><span class="n">experiment</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">"output_options"</span><span class="p">][</span><span class="s2">"write_history_csv"</span><span class="p">],</span>
+            <span class="p">)</span>
             <span class="c1"># Update metadata with paths</span>
             <span class="n">experiment</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">"artifact_paths"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">written_paths</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 
@@ -553,6 +607,9 @@
         <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span>
         <span class="n">timeout_seconds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
         <span class="n">trace_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">export_artifacts</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">options</span><span class="p">:</span> <span class="n">EngineOutputOptions</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">dispatch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RunResult</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Execute the engine for one seed and package the outcome.</span>
 
@@ -565,22 +622,8 @@
         <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
 
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">trace_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="c1"># Tracing during compilation corrupts the XLA executable for subsequent</span>
-                <span class="c1"># seeds that run without tracing, causing CUDA_ERROR_LAUNCH_FAILED.</span>
-                <span class="c1"># Bypassing the profiler to preserve executable portability across seeds.</span>
-                <span class="c1">#</span>
-                <span class="c1"># trace_path = Path(trace_dir)</span>
-                <span class="c1"># trace_path.mkdir(parents=True, exist_ok=True)</span>
-                <span class="c1"># try:</span>
-                <span class="c1">#     with jax.profiler.trace(str(trace_path)):</span>
-                <span class="c1">#         engine_result = self.engine.run_once(key)</span>
-                <span class="c1"># except RuntimeError:</span>
-                <span class="c1">#     print("running without JAX trace due to profiler conflict", flush=True)</span>
-                <span class="c1">#     engine_result = self.engine.run_once(key)</span>
-                <span class="n">engine_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">run_once</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">engine_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">run_once</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="n">options</span> <span class="o">=</span> <span class="n">options</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_options</span><span class="p">()</span>
+            <span class="n">engine_result</span> <span class="o">=</span> <span class="n">dispatch</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span> <span class="k">if</span> <span class="n">dispatch</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">run_once</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
             <span class="c1"># Extract results</span>
             <span class="n">history</span> <span class="o">=</span> <span class="n">engine_result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"history"</span><span class="p">,</span> <span class="p">[])</span>
@@ -590,6 +633,8 @@
             <span class="c1"># Convert summary to metrics (ensure float values)</span>
             <span class="n">metrics</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">summary</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">"best_solution"</span><span class="p">:</span>
+                    <span class="k">continue</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">metrics</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
                 <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
@@ -639,8 +684,78 @@
                     <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
                         <span class="k">pass</span>
 
-            <span class="c1"># Discard massive history arrays if Lightweight Mode is enabled</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">serialize_history</span><span class="p">:</span>
+            <span class="n">unavailable_metrics</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">engine_result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"unavailable_metrics"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
+            <span class="k">if</span> <span class="s2">"initial_fitness"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metrics</span><span class="p">:</span>
+                <span class="n">unavailable_metrics</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span>
+                    <span class="s2">"initial_fitness"</span><span class="p">,</span> <span class="s2">"Adapter did not report fitness before generation one"</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">history</span> <span class="ow">and</span> <span class="n">history</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"generation"</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="s2">"best_fitness"</span> <span class="ow">in</span> <span class="n">history</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">"first_generation_best_fitness"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">history</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"best_fitness"</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">collect_history</span> <span class="ow">and</span> <span class="s2">"first_generation_best_fitness"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metrics</span><span class="p">:</span>
+                <span class="n">unavailable_metrics</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span>
+                    <span class="s2">"first_generation_best_fitness"</span><span class="p">,</span> <span class="s2">"Generation history was not collected"</span>
+                <span class="p">)</span>
+
+            <span class="n">solution</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">capture_solution</span><span class="p">:</span>
+                <span class="n">solution</span> <span class="o">=</span> <span class="n">engine_result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"solution"</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">solution</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">summary</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"best_solution"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">solution</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s2">"representation"</span><span class="p">:</span> <span class="s2">"encoded_genome"</span><span class="p">,</span>
+                        <span class="s2">"selection_scope"</span><span class="p">:</span> <span class="s2">"unknown"</span><span class="p">,</span>
+                        <span class="s2">"value"</span><span class="p">:</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"best_solution"</span><span class="p">],</span>
+                    <span class="p">}</span>
+
+            <span class="n">initialization</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"optimizer_seed"</span><span class="p">:</span> <span class="n">seed</span><span class="p">,</span> <span class="o">**</span><span class="p">(</span><span class="n">engine_result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"initialization"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})}</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">capture_population_fingerprint</span><span class="p">:</span>
+                <span class="n">initialization</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"population_sha256"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">initialization</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"population_hash_scheme"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">unavailable_outputs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">engine_result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"unavailable_outputs"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
+            <span class="k">for</span> <span class="n">requested</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">available</span> <span class="ow">in</span> <span class="p">(</span>
+                <span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">capture_solution</span><span class="p">,</span> <span class="s2">"solution"</span><span class="p">,</span> <span class="n">solution</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="p">(</span>
+                    <span class="n">options</span><span class="o">.</span><span class="n">capture_population_fingerprint</span><span class="p">,</span>
+                    <span class="s2">"population_fingerprint"</span><span class="p">,</span>
+                    <span class="s2">"population_sha256"</span> <span class="ow">in</span> <span class="n">initialization</span><span class="p">,</span>
+                <span class="p">),</span>
+
+            <span class="p">):</span>
+                <span class="k">if</span> <span class="n">requested</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">available</span><span class="p">:</span>
+                    <span class="n">unavailable_outputs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">"Engine did not supply this output"</span><span class="p">)</span>
+            <span class="n">artifacts</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">requested</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">"archive"</span><span class="p">,</span> <span class="n">options</span><span class="o">.</span><span class="n">export_archive</span><span class="p">),</span> <span class="p">(</span><span class="s2">"pareto"</span><span class="p">,</span> <span class="n">options</span><span class="o">.</span><span class="n">export_pareto</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">requested</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">payload</span> <span class="o">=</span> <span class="n">engine_result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">payload</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">unavailable_outputs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">"Engine did not supply this output"</span><span class="p">)</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">export_artifacts</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="n">ensure_seed_folder</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.npz"</span>
+                <span class="n">temporary</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="n">delete</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">stream</span><span class="p">:</span>
+                        <span class="n">temporary</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">savez_compressed</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="o">**</span><span class="n">payload</span><span class="p">)</span>
+                    <span class="n">temporary</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+                <span class="k">finally</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">temporary</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">temporary</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">artifacts</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">absolute</span><span class="p">())</span>
+
+            <span class="k">if</span> <span class="n">dispatch</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">collect_history</span> <span class="ow">and</span> <span class="n">history</span><span class="p">:</span>
+                <span class="n">unavailable_outputs</span><span class="p">[</span><span class="s2">"history_control"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="s2">"Engine returned history despite the collection request"</span>
+                <span class="p">)</span>
+            <span class="n">output_status</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">"collection_control"</span><span class="p">:</span> <span class="s2">"engine"</span> <span class="k">if</span> <span class="n">dispatch</span> <span class="k">else</span> <span class="s2">"uncontrolled"</span><span class="p">,</span>
+                <span class="s2">"collect_history"</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="n">history</span><span class="p">),</span>
+                <span class="s2">"unavailable"</span><span class="p">:</span> <span class="n">unavailable_outputs</span><span class="p">,</span>
+            <span class="p">}</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_artifact_options</span><span class="p">()</span><span class="o">.</span><span class="n">retain_history</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">collect_history</span><span class="p">:</span>
                 <span class="n">history</span> <span class="o">=</span> <span class="p">[]</span>
 
             <span class="k">return</span> <span class="n">RunResult</span><span class="p">(</span>
@@ -650,6 +765,11 @@
                 <span class="n">history</span><span class="o">=</span><span class="n">history</span><span class="p">,</span>
                 <span class="n">duration_seconds</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span>
                 <span class="n">timings</span><span class="o">=</span><span class="n">timings</span><span class="p">,</span>
+                <span class="n">artifacts</span><span class="o">=</span><span class="n">artifacts</span><span class="p">,</span>
+                <span class="n">solution</span><span class="o">=</span><span class="n">standard_json</span><span class="p">(</span><span class="n">solution</span><span class="p">),</span>
+                <span class="n">initialization</span><span class="o">=</span><span class="n">initialization</span><span class="p">,</span>
+                <span class="n">output_status</span><span class="o">=</span><span class="n">output_status</span><span class="p">,</span>
+                <span class="n">unavailable_metrics</span><span class="o">=</span><span class="n">unavailable_metrics</span><span class="p">,</span>
                 <span class="n">timing_metadata</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">engine_result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"timing_metadata"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}),</span>
                 <span class="n">metric_metadata</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">engine_result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"metric_metadata"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}),</span>
             <span class="p">)</span>
@@ -746,6 +866,8 @@
 
 <span class="c1"># Deferred import to break circular dependency with composer</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.engine_protocol</span><span class="w"> </span><span class="kn">import</span> <span class="n">Engine</span> <span class="k">as</span> <span class="n">Engine</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.engine_protocol</span><span class="w"> </span><span class="kn">import</span> <span class="n">EngineOutputOptions</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.experiment_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">RunArtifactOptions</span>
 </pre></div>
         </article>
       </div>

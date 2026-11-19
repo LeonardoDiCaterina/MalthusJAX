@@ -11,6 +11,8 @@ hierarchical architecture optimized for JIT compilation and GPU acceleration.
    :caption: User Guide:
 
    quickstart
+   toml_guide
+   research_workflows
    1-ARCHITECTURE_DEEP_DIVE
    2-CORE_ABSTRACTIONS
    3-GENETIC_OPERATORS
@@ -24,7 +26,6 @@ hierarchical architecture optimized for JIT compilation and GPU acceleration.
 
    evaluator_design
    extension_cli_guide
-   toml_guide
    framework_guides/index
 
 .. toctree::

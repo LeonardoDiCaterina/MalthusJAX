@@ -21,7 +21,7 @@ Using immutable dataclasses provides full IDE autocompletion, type checking via 
 from malthusjax.composer.experiment_config import (
     ExperimentConfig, PopulationConfig, ExecutionConfig, MalthusJAXBackendConfig
 )
-from malthusjax.composer.engine_factory import EngineFactory
+from malthusjax.composer import EngineFactory
 from malthusjax.benchmarking.runner import BenchmarkRunner
 
 # 1. Define immutable configuration tree
@@ -36,7 +36,7 @@ config = ExperimentConfig(
         seeds=(42, 43, 44),
     ),
     backend=MalthusJAXBackendConfig(
-        fitness="sphere:dim=10",
+        fitness="native_sphere",
         selection="tournament:tournament_size=3",
         crossover="blend:alpha=0.5",
         mutation="gaussian:mutation_rate=0.1",
@@ -57,13 +57,13 @@ print(result.aggregated_summary())
 ```
 
 ### 5.1.2. Method B: Declarative TOML Files
-For reproducible research, automated benchmark sweeps, and cluster submission:
+Run the Python example from a copy of the [corridor example](research_workflows.md), where the local plugin and `sensors.toml` live.
 
 ```python
 from malthusjax.composer import Composer
 
 composer = Composer.create_default()
-comparison = composer.from_toml("configs/benchmark.toml")
+comparison = composer.from_toml("sensors.toml")
 
 print(comparison.summary_table())
 comparison.plot_convergence()
@@ -77,7 +77,7 @@ from malthusjax.composer import Composer
 
 composer = Composer.create_default()
 result = composer.quick_run(
-    fitness="sphere:dim=10",
+    fitness="native_sphere",
     selection="tournament:tournament_size=3",
     crossover="blend:alpha=0.5",
     mutation="gaussian:mutation_rate=0.1",
@@ -97,14 +97,18 @@ print(result.aggregated_summary())
 The `EngineFactory` acts as the single boundary separating configuration from instantiation.
 
 ```python
-from malthusjax.composer.engine_factory import EngineFactory
+from malthusjax.composer import EngineFactory
 
 # Build engine directly from config
 engine = EngineFactory.build(config)
 
-# Or inject a pre-resolved custom evaluator callable
-engine = EngineFactory.build_with_evaluator(config, evaluator=custom_fitness_fn)
+# Resolve the configured fitness spec and get both objects back
+engine, evaluator = EngineFactory.build_with_evaluator(config)
 ```
+
+For custom fitness, register a factory with `@register_fitness` and put its name in
+`config.backend.fitness` or in the TOML fitness spec. The CLI imports local
+plugins from `./plugins/` relative to its working directory.
 
 ### How `EngineFactory` Works
 1. **Validation**: Calls `config.validate()`, verifying bounds, non-empty seeds, and positive generation/population counts.
@@ -153,7 +157,7 @@ interval     = 25
 nan_watchdog = true
 
 [experiment.shared]
-fitness       = "sphere:dim=10"
+fitness       = "native_sphere"
 pop_size      = 50
 generations   = 100
 genome_length = 10
@@ -210,7 +214,7 @@ comparison = composer.compare(
             "strategy_name": "CMA_ES",
         },
     },
-    fitness="sphere:dim=10",
+    fitness="native_sphere",
     pop_size=64,
     generations=100,
     seeds=[42, 43, 44],

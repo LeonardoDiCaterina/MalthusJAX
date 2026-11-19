@@ -194,6 +194,8 @@
   <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="toml_guide.html">TOML experiments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="research_workflows.html">Research workflows</a></li>
 <li class="toctree-l1"><a class="reference internal" href="1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
 <li class="toctree-l1"><a class="reference internal" href="2-CORE_ABSTRACTIONS.html">Core Abstractions: Genomes, Populations, and Fitness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html">Genetic Operators: Selection, Variation, and Emitters</a></li>
@@ -204,6 +206,7 @@
 <p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extension_cli_guide.html">Develop a local extension</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
@@ -261,10 +264,8 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="api/malthusjax.core.html">malthusjax.core package</a><input aria-label="Toggle navigation of malthusjax.core package" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.core.fitness.html">malthusjax.core.fitness package</a><input aria-label="Toggle navigation of malthusjax.core.fitness package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.base.html">malthusjax.core.fitness.base module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.bbob_evaluator.html">malthusjax.core.fitness.bbob_evaluator module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.binary_evaluators.html">malthusjax.core.fitness.binary_evaluators module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.linear_gp_evaluator.html">malthusjax.core.fitness.linear_gp_evaluator module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.real_evaluators.html">malthusjax.core.fitness.real_evaluators module</a></li>
 </ul>
 </li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.core.genome.html">malthusjax.core.genome package</a><input aria-label="Toggle navigation of malthusjax.core.genome package" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -357,10 +358,16 @@ hierarchical architecture optimized for JIT compilation and GPU acceleration.</p
 <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="quickstart.html#installation">Installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="quickstart.html#running-your-first-experiment-toml">Running Your First Experiment (TOML)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="quickstart.html#running-via-the-python-api">Running via the Python API</a></li>
-<li class="toctree-l2"><a class="reference internal" href="quickstart.html#integrating-external-libraries">Integrating External Libraries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#build-and-install-the-wheel">Build and install the wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#run-a-sphere-optimization">Run a Sphere optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#run-the-same-optimization-from-toml">Run the same optimization from TOML</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="toml_guide.html">TOML experiments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="research_workflows.html">Research workflows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="research_workflows.html#try-evosax-and-qdax">Try EvoSAX and QDax</a></li>
+<li class="toctree-l2"><a class="reference internal" href="research_workflows.html#compare-a-custom-objective-across-search-methods">Compare a custom objective across search methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="research_workflows.html#historical-benchmark-migration-note">Historical benchmark migration note</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a><ul>
@@ -426,6 +433,7 @@ hierarchical architecture optimized for JIT compilation and GPU acceleration.</p
 <li class="toctree-l2"><a class="reference internal" href="evaluator_design.html#design-decisions">7. Design Decisions</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="extension_cli_guide.html">Develop a local extension</a></li>
 <li class="toctree-l1"><a class="reference internal" href="framework_guides/index.html">Developer &amp; Framework Guides</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="framework_guides/index.html#architectural-level-guides">Architectural Level Guides</a></li>
 <li class="toctree-l2"><a class="reference internal" href="framework_guides/index.html#extension-component-guides">Extension &amp; Component Guides</a></li>
@@ -698,15 +706,6 @@ hierarchical architecture optimized for JIT compilation and GPU acceleration.</p
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.StepLoggingConfig.log_nan_watchdog"><code class="docutils literal notranslate"><span class="pre">StepLoggingConfig.log_nan_watchdog</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.StepLoggingConfig.logger_name"><code class="docutils literal notranslate"><span class="pre">StepLoggingConfig.logger_name</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.StepLoggingConfig.is_active"><code class="docutils literal notranslate"><span class="pre">StepLoggingConfig.is_active()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#malthusjax.Composer"><code class="docutils literal notranslate"><span class="pre">Composer</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.Composer.registry"><code class="docutils literal notranslate"><span class="pre">Composer.registry</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.Composer.config"><code class="docutils literal notranslate"><span class="pre">Composer.config</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.Composer.quick_run"><code class="docutils literal notranslate"><span class="pre">Composer.quick_run()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.Composer.compare"><code class="docutils literal notranslate"><span class="pre">Composer.compare()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.Composer.from_toml"><code class="docutils literal notranslate"><span class="pre">Composer.from_toml()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/malthusjax.html#malthusjax.Composer.create_default"><code class="docutils literal notranslate"><span class="pre">Composer.create_default()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="api/malthusjax.html#subpackages">Subpackages</a><ul>

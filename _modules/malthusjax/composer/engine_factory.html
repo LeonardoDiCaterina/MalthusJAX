@@ -193,6 +193,8 @@
   <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../toml_guide.html">TOML experiments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../research_workflows.html">Research workflows</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../2-CORE_ABSTRACTIONS.html">Core Abstractions: Genomes, Populations, and Fitness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../3-GENETIC_OPERATORS.html">Genetic Operators: Selection, Variation, and Emitters</a></li>
@@ -203,6 +205,7 @@
 <p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extension_cli_guide.html">Develop a local extension</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
@@ -260,10 +263,8 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/malthusjax.core.html">malthusjax.core package</a><input aria-label="Toggle navigation of malthusjax.core package" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/malthusjax.core.fitness.html">malthusjax.core.fitness package</a><input aria-label="Toggle navigation of malthusjax.core.fitness package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.base.html">malthusjax.core.fitness.base module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.bbob_evaluator.html">malthusjax.core.fitness.bbob_evaluator module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.binary_evaluators.html">malthusjax.core.fitness.binary_evaluators module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.linear_gp_evaluator.html">malthusjax.core.fitness.linear_gp_evaluator module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.real_evaluators.html">malthusjax.core.fitness.real_evaluators module</a></li>
 </ul>
 </li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/malthusjax.core.genome.html">malthusjax.core.genome package</a><input aria-label="Toggle navigation of malthusjax.core.genome package" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -358,7 +359,7 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">replace</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">chex</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
@@ -366,12 +367,14 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">..core.genome.binary_genome</span><span class="w"> </span><span class="kn">import</span> <span class="n">BinaryGenomeConfig</span>
 
 <span class="c1"># for now it only supports real genomes but it will be extended in the future</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">..core.genome.real_genome</span><span class="w"> </span><span class="kn">import</span> <span class="n">RealGenome</span><span class="p">,</span> <span class="n">RealGenomeConfig</span><span class="p">,</span> <span class="n">RealPopulation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..core.genome.real_genome</span><span class="w"> </span><span class="kn">import</span> <span class="n">RealGenomeConfig</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..core.logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">StepLoggingConfig</span><span class="p">,</span> <span class="n">get_logger</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..core.random</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_prng_impl</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..core.timing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TimingCapture</span><span class="p">,</span> <span class="n">block_until_ready</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..engine.genetic_fastengine</span><span class="w"> </span><span class="kn">import</span> <span class="n">GeneticEngine</span><span class="p">,</span> <span class="n">GeneticEngineParams</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">..engine.schedules</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrackBest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..engine.schedules</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrackBest</span><span class="p">,</span> <span class="n">TrackMetrics</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.engine_protocol</span><span class="w"> </span><span class="kn">import</span> <span class="n">EngineOutputOptions</span><span class="p">,</span> <span class="n">population_fingerprint</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.initial_population</span><span class="w"> </span><span class="kn">import</span> <span class="n">prepare_initial_population</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="s2">"composer.adapters"</span><span class="p">)</span>
 
@@ -429,6 +432,24 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">run_once</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">step_logging</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">StepLoggingConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">EngineOutputOptions</span><span class="p">(),</span> <span class="n">step_logging</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">"solution"</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">"summary"</span><span class="p">][</span><span class="s2">"best_solution"</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">"solution"</span><span class="p">][</span><span class="s2">"value"</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="GeneticEngineAdapter.run_with_options">
+<a class="viewcode-back" href="../../../api/malthusjax.composer.engine_factory.html#malthusjax.composer.engine_factory.GeneticEngineAdapter.run_with_options">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run_with_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="n">EngineOutputOptions</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">key</span><span class="p">:</span> <span class="n">chex</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span>
+        <span class="n">options</span><span class="p">:</span> <span class="n">EngineOutputOptions</span><span class="p">,</span>
+        <span class="n">step_logging</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">StepLoggingConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Run one evolutionary experiment and return BenchmarkRunner-compatible results.</span>
 
 <span class="sd">        Notes</span>
@@ -449,14 +470,14 @@
         <span class="n">initial_best</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">best_fitness</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_population</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">arr</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_population</span><span class="p">)</span>
-            <span class="n">pop</span> <span class="o">=</span> <span class="n">RealPopulation</span><span class="o">.</span><span class="n">from_array</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">genome_config</span><span class="p">,</span> <span class="n">RealGenome</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">pop</span> <span class="o">=</span> <span class="n">prepare_initial_population</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">initial_population</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">genome_config</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">genetic_engine</span><span class="o">.</span><span class="n">engine_params</span><span class="o">.</span><span class="n">pop_size</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.fitness.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">dispatch_evaluate_population</span>
 
-            <span class="n">evaluated_pop</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span>
-                <span class="n">RealPopulation</span><span class="p">,</span>
-                <span class="n">dispatch_evaluate_population</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">genetic_engine</span><span class="o">.</span><span class="n">evaluator</span><span class="p">,</span> <span class="n">pop</span><span class="p">,</span> <span class="n">key</span><span class="p">),</span>
-            <span class="p">)</span>
+            <span class="n">evaluated_pop</span> <span class="o">=</span> <span class="n">dispatch_evaluate_population</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">genetic_engine</span><span class="o">.</span><span class="n">evaluator</span><span class="p">,</span> <span class="n">pop</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
 
             <span class="n">fitness</span> <span class="o">=</span> <span class="n">evaluated_pop</span><span class="o">.</span><span class="n">fitness</span>
             <span class="c1"># Engine internals are minimization-based; evaluator-level maximize</span>
@@ -474,18 +495,32 @@
             <span class="c1"># Update initial_best if initial_population was provided</span>
             <span class="n">initial_best</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">best_fitness</span><span class="p">)</span>
 
+        <span class="n">initialization</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">fingerprint_seconds</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">capture_population_fingerprint</span><span class="p">:</span>
+            <span class="n">fingerprint_started</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+            <span class="n">initialization</span> <span class="o">=</span> <span class="n">population_fingerprint</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">population</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>
+            <span class="n">fingerprint_seconds</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">fingerprint_started</span>
+
         <span class="c1"># JIT compilation warmup — trigger tracing + XLA optimisation so</span>
         <span class="c1"># the cost is captured in the "warmup" bucket, not "execution".</span>
         <span class="n">active_logging</span> <span class="o">=</span> <span class="n">step_logging</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">step_logging</span>
         <span class="n">capture</span><span class="o">.</span><span class="n">initialized</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">genetic_engine</span><span class="p">)</span>
-        <span class="n">prepared</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">genetic_engine</span><span class="o">.</span><span class="n">prepare_run</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">step_logging</span><span class="o">=</span><span class="n">active_logging</span><span class="p">)</span>
+        <span class="n">prepared</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">genetic_engine</span><span class="o">.</span><span class="n">prepare_run</span><span class="p">(</span>
+            <span class="n">state</span><span class="p">,</span> <span class="n">step_logging</span><span class="o">=</span><span class="n">active_logging</span><span class="p">,</span> <span class="n">return_history</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">collect_history</span>
+        <span class="p">)</span>
         <span class="n">capture</span><span class="o">.</span><span class="n">prepared</span><span class="p">()</span>
         <span class="n">t_warmup_end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
 
         <span class="c1"># ---- Execution phase: run the pre-compiled scan (JIT cache warm) ----</span>
         <span class="n">t_exec_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
         <span class="n">final_state</span><span class="p">,</span> <span class="n">scan_history</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">genetic_engine</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
-            <span class="n">state</span><span class="p">,</span> <span class="n">time_it</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="nb">compile</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">step_logging</span><span class="o">=</span><span class="n">active_logging</span><span class="p">,</span> <span class="n">prepared_run</span><span class="o">=</span><span class="n">prepared</span>
+            <span class="n">state</span><span class="p">,</span>
+            <span class="n">time_it</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="nb">compile</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">step_logging</span><span class="o">=</span><span class="n">active_logging</span><span class="p">,</span>
+            <span class="n">prepared_run</span><span class="o">=</span><span class="n">prepared</span><span class="p">,</span>
+            <span class="n">return_history</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">collect_history</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="c1"># GeneticEngine.run performs best-genome finalization after its base scan.</span>
         <span class="n">block_until_ready</span><span class="p">((</span><span class="n">final_state</span><span class="p">,</span> <span class="n">scan_history</span><span class="p">),</span> <span class="n">effects</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -498,11 +533,17 @@
 
         <span class="n">track_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">history_metrics</span> <span class="ow">or</span> <span class="p">[</span><span class="s2">"best_fitness"</span><span class="p">,</span> <span class="s2">"mean_fitness"</span><span class="p">,</span> <span class="s2">"std_fitness"</span><span class="p">]</span>
 
+        <span class="n">track_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">genetic_engine</span><span class="o">.</span><span class="n">engine_params</span><span class="o">.</span><span class="n">track_metrics</span>
+        <span class="n">unavailable_metrics</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">track_metrics</span> <span class="o">==</span> <span class="n">TrackMetrics</span><span class="o">.</span><span class="n">NONE</span><span class="p">:</span>
+            <span class="n">unavailable_metrics</span><span class="p">[</span><span class="s2">"mean_fitness"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"Mean fitness tracking disabled"</span>
+        <span class="k">if</span> <span class="n">track_metrics</span> <span class="ow">in</span> <span class="p">(</span><span class="n">TrackMetrics</span><span class="o">.</span><span class="n">NONE</span><span class="p">,</span> <span class="n">TrackMetrics</span><span class="o">.</span><span class="n">BASIC</span><span class="p">):</span>
+            <span class="n">unavailable_metrics</span><span class="p">[</span><span class="s2">"std_fitness"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"Fitness deviation tracking disabled"</span>
         <span class="n">fitness_auc</span> <span class="o">=</span> <span class="mf">0.0</span>
-        <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_gens</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_gens</span> <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">collect_history</span> <span class="k">else</span> <span class="mi">0</span><span class="p">):</span>
             <span class="n">gen_stats</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"generation"</span><span class="p">:</span> <span class="n">g</span> <span class="o">+</span> <span class="mi">1</span><span class="p">}</span>
             <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">track_keys</span><span class="p">:</span>
-                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">scan_history</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">unavailable_metrics</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">scan_history</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
                     <span class="n">val</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">scan_history</span><span class="p">,</span> <span class="n">k</span><span class="p">)[</span><span class="n">g</span><span class="p">]</span>
                     <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"best_fitness"</span><span class="p">,</span> <span class="s2">"mean_fitness"</span><span class="p">):</span>
                         <span class="n">val</span> <span class="o">=</span> <span class="n">val</span> <span class="o">*</span> <span class="n">sign</span>
@@ -514,17 +555,32 @@
         <span class="n">total_evals</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">final_state</span><span class="o">.</span><span class="n">generation</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">genetic_engine</span><span class="o">.</span><span class="n">engine_params</span><span class="o">.</span><span class="n">pop_size</span><span class="p">)</span>
         <span class="n">report_initial</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">sign</span> <span class="o">*</span> <span class="n">initial_best</span><span class="p">)</span>
         <span class="n">report_best</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">sign</span> <span class="o">*</span> <span class="n">final_state</span><span class="o">.</span><span class="n">best_fitness</span><span class="p">)</span>
-        <span class="kn">import</span><span class="w"> </span><span class="nn">jax.flatten_util</span>
-
-        <span class="n">best_genome_flat</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">flatten_util</span><span class="o">.</span><span class="n">ravel_pytree</span><span class="p">(</span><span class="n">final_state</span><span class="o">.</span><span class="n">best_genome</span><span class="p">)</span>
         <span class="n">summary</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">"initial_fitness"</span><span class="p">:</span> <span class="n">report_initial</span><span class="p">,</span>
             <span class="s2">"best_fitness"</span><span class="p">:</span> <span class="n">report_best</span><span class="p">,</span>
-            <span class="s2">"fitness_auc"</span><span class="p">:</span> <span class="n">fitness_auc</span><span class="p">,</span>
-            <span class="s2">"best_solution"</span><span class="p">:</span> <span class="n">best_genome_flat</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
             <span class="s2">"final_generation"</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">final_state</span><span class="o">.</span><span class="n">generation</span><span class="p">),</span>
             <span class="s2">"total_evaluations"</span><span class="p">:</span> <span class="n">total_evals</span><span class="p">,</span>
         <span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">collect_history</span> <span class="ow">and</span> <span class="s2">"best_fitness"</span> <span class="ow">in</span> <span class="n">track_keys</span><span class="p">:</span>
+            <span class="n">summary</span><span class="p">[</span><span class="s2">"fitness_auc"</span><span class="p">]</span> <span class="o">=</span> <span class="n">fitness_auc</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">unavailable_metrics</span><span class="p">[</span><span class="s2">"fitness_auc"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"Best-fitness history was not collected"</span>
+
+        <span class="n">solution</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">capture_solution</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">jax.flatten_util</span><span class="w"> </span><span class="kn">import</span> <span class="n">ravel_pytree</span>
+
+            <span class="n">best_genome_flat</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">ravel_pytree</span><span class="p">(</span><span class="n">final_state</span><span class="o">.</span><span class="n">best_genome</span><span class="p">)</span>
+            <span class="n">best_seen</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">genetic_engine</span><span class="o">.</span><span class="n">engine_params</span><span class="o">.</span><span class="n">track_best</span> <span class="o">==</span> <span class="n">TrackBest</span><span class="o">.</span><span class="n">FULL</span>
+            <span class="n">solution</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">"representation"</span><span class="p">:</span> <span class="s2">"encoded_genome"</span><span class="p">,</span>
+                <span class="s2">"selection_scope"</span><span class="p">:</span> <span class="s2">"best_seen"</span> <span class="k">if</span> <span class="n">best_seen</span> <span class="k">else</span> <span class="s2">"final_population_best"</span><span class="p">,</span>
+                <span class="s2">"value"</span><span class="p">:</span> <span class="n">best_genome_flat</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+                <span class="s2">"fitness"</span><span class="p">:</span> <span class="n">report_best</span>
+                <span class="k">if</span> <span class="n">best_seen</span>
+                <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">sign</span> <span class="o">*</span> <span class="n">jnp</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">final_state</span><span class="o">.</span><span class="n">population</span><span class="o">.</span><span class="n">fitness</span><span class="p">)),</span>
+            <span class="p">}</span>
 
         <span class="c1"># Add gap to optimum if available</span>
         <span class="n">gap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">genetic_engine</span><span class="o">.</span><span class="n">evaluator</span><span class="o">.</span><span class="n">get_gap_to_optimum</span><span class="p">(</span><span class="n">report_best</span><span class="p">)</span>
@@ -537,6 +593,9 @@
             <span class="s2">"total"</span><span class="p">:</span> <span class="n">t_exec_end</span> <span class="o">-</span> <span class="n">t_warmup_start</span><span class="p">,</span>
         <span class="p">}</span>
 
+        <span class="k">if</span> <span class="n">fingerprint_seconds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">timings</span><span class="p">[</span><span class="s2">"population_fingerprint"</span><span class="p">]</span> <span class="o">=</span> <span class="n">fingerprint_seconds</span>
+
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
             <span class="s2">"GeneticEngineAdapter completed in </span><span class="si">%.4f</span><span class="s2">s (warmup: </span><span class="si">%.4f</span><span class="s2">s, exec: </span><span class="si">%.4f</span><span class="s2">s)"</span><span class="p">,</span>
             <span class="n">timings</span><span class="p">[</span><span class="s2">"total"</span><span class="p">],</span>
@@ -547,10 +606,12 @@
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">"history"</span><span class="p">:</span> <span class="n">history</span><span class="p">,</span>
             <span class="s2">"summary"</span><span class="p">:</span> <span class="n">summary</span><span class="p">,</span>
+            <span class="s2">"initialization"</span><span class="p">:</span> <span class="n">initialization</span><span class="p">,</span>
+            <span class="s2">"unavailable_metrics"</span><span class="p">:</span> <span class="n">unavailable_metrics</span><span class="p">,</span>
+            <span class="o">**</span><span class="p">({</span><span class="s2">"solution"</span><span class="p">:</span> <span class="n">solution</span><span class="p">}</span> <span class="k">if</span> <span class="n">solution</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}),</span>
             <span class="s2">"timings"</span><span class="p">:</span> <span class="n">timings</span><span class="p">,</span>
             <span class="s2">"timing_metadata"</span><span class="p">:</span> <span class="n">capture</span><span class="o">.</span><span class="n">metadata</span><span class="p">(),</span>
         <span class="p">}</span></div>
-</div>
 
 
 
@@ -667,11 +728,23 @@
         <span class="s2">"initial_strength"</span><span class="p">,</span>
         <span class="s2">"final_strength"</span><span class="p">,</span>
         <span class="s2">"track_best"</span><span class="p">,</span>
+        <span class="s2">"track_metrics"</span><span class="p">,</span>
     <span class="p">]</span>
     <span class="n">schedule_extra</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">_schedule_keys</span><span class="p">}</span>
 
     <span class="k">if</span> <span class="s2">"track_best"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">schedule_extra</span><span class="p">:</span>
         <span class="n">schedule_extra</span><span class="p">[</span><span class="s2">"track_best"</span><span class="p">]</span> <span class="o">=</span> <span class="n">TrackBest</span><span class="o">.</span><span class="n">LIGHT</span>
+
+    <span class="k">if</span> <span class="s2">"track_metrics"</span> <span class="ow">in</span> <span class="n">schedule_extra</span><span class="p">:</span>
+        <span class="n">metrics</span> <span class="o">=</span> <span class="n">schedule_extra</span><span class="p">[</span><span class="s2">"track_metrics"</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="n">metrics</span> <span class="o">=</span> <span class="n">TrackMetrics</span><span class="o">.</span><span class="n">ALL</span> <span class="k">if</span> <span class="n">metrics</span> <span class="k">else</span> <span class="n">TrackMetrics</span><span class="o">.</span><span class="n">NONE</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">metrics</span> <span class="o">=</span> <span class="n">TrackMetrics</span><span class="p">[</span><span class="n">metrics</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown track_metrics mode: </span><span class="si">{</span><span class="n">metrics</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">schedule_extra</span><span class="p">[</span><span class="s2">"track_metrics"</span><span class="p">]</span> <span class="o">=</span> <span class="n">TrackMetrics</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span>
 
     <span class="n">engine_cls</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"engine_cls"</span><span class="p">,</span> <span class="n">GeneticEngine</span><span class="p">)</span>
     <span class="n">step_logging</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"step_logging"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>

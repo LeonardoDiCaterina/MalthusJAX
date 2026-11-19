@@ -194,6 +194,8 @@
   <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../toml_guide.html">TOML experiments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../research_workflows.html">Research workflows</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../2-CORE_ABSTRACTIONS.html">Core Abstractions: Genomes, Populations, and Fitness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../3-GENETIC_OPERATORS.html">Genetic Operators: Selection, Variation, and Emitters</a></li>
@@ -204,6 +206,7 @@
 <p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extension_cli_guide.html">Develop a local extension</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
@@ -261,10 +264,8 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="malthusjax.core.html">malthusjax.core package</a><input aria-label="Toggle navigation of malthusjax.core package" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="malthusjax.core.fitness.html">malthusjax.core.fitness package</a><input aria-label="Toggle navigation of malthusjax.core.fitness package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l4"><a class="reference internal" href="malthusjax.core.fitness.base.html">malthusjax.core.fitness.base module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="malthusjax.core.fitness.bbob_evaluator.html">malthusjax.core.fitness.bbob_evaluator module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="malthusjax.core.fitness.binary_evaluators.html">malthusjax.core.fitness.binary_evaluators module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="malthusjax.core.fitness.linear_gp_evaluator.html">malthusjax.core.fitness.linear_gp_evaluator module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="malthusjax.core.fitness.real_evaluators.html">malthusjax.core.fitness.real_evaluators module</a></li>
 </ul>
 </li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="malthusjax.core.genome.html">malthusjax.core.genome package</a><input aria-label="Toggle navigation of malthusjax.core.genome package" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -845,7 +846,7 @@ transparent to the user (controlled by ComparisonResult.negate_map).</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="malthusjax.composer.Composer.from_toml">
-<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_toml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pipelines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shared_initial_population</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">123</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">configure_log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/composer.html#Composer.from_toml"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.Composer.from_toml" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_toml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pipelines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shared_initial_population</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">123</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">configure_log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_artifacts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">artifact_root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/composer.html#Composer.from_toml"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.Composer.from_toml" title="Link to this definition">¶</a></dt>
 <dd><p>Load and execute a declarative TOML experiment specification.</p>
 <p>This classmethod provides a reproducible, version-controllable way to
 define and run experiments. TOML files specify shared configuration,
@@ -983,6 +984,8 @@ override them. Pipeline-specific values take precedence.</p>
 <li><p><strong>trace_dir</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><em>Path</em></a><em> | </em><em>None</em>)</p></li>
 <li><p><strong>log_interval</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> | </em><em>None</em>)</p></li>
 <li><p><strong>configure_log</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
+<li><p><strong>write_artifacts</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
+<li><p><strong>artifact_root</strong> (<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><em>Path</em></a><em> | </em><em>None</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -1075,6 +1078,72 @@ This replaces implicit and duplicate protocol definitions.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.RunOutput" title="malthusjax.composer.engine_protocol.RunOutput"><em>RunOutput</em></a> | <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.15)"><em>Dict</em></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.composer.EngineOutputOptions">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.composer.</span></span><span class="sig-name descname"><span class="pre">EngineOutputOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capture_population_fingerprint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_solution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_archive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collect_history</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_pareto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/engine_protocol.html#EngineOutputOptions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.EngineOutputOptions" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Per-execution controls shared by output-aware engine extensions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>capture_population_fingerprint</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
+<li><p><strong>capture_solution</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
+<li><p><strong>export_archive</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
+<li><p><strong>collect_history</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
+<li><p><strong>export_pareto</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.composer.EngineOutputOptions.capture_population_fingerprint">
+<span class="sig-name descname"><span class="pre">capture_population_fingerprint</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#malthusjax.composer.EngineOutputOptions.capture_population_fingerprint" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.composer.EngineOutputOptions.capture_solution">
+<span class="sig-name descname"><span class="pre">capture_solution</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#malthusjax.composer.EngineOutputOptions.capture_solution" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.composer.EngineOutputOptions.export_archive">
+<span class="sig-name descname"><span class="pre">export_archive</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#malthusjax.composer.EngineOutputOptions.export_archive" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.composer.EngineOutputOptions.collect_history">
+<span class="sig-name descname"><span class="pre">collect_history</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#malthusjax.composer.EngineOutputOptions.collect_history" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.composer.EngineOutputOptions.export_pareto">
+<span class="sig-name descname"><span class="pre">export_pareto</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#malthusjax.composer.EngineOutputOptions.export_pareto" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="malthusjax.composer.OutputConfigurableEngine">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.composer.</span></span><span class="sig-name descname"><span class="pre">OutputConfigurableEngine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/engine_protocol.html#OutputConfigurableEngine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.OutputConfigurableEngine" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.composer.OutputConfigurableEngine.run_with_options">
+<span class="sig-name descname"><span class="pre">run_with_options</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/engine_protocol.html#OutputConfigurableEngine.run_with_options"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.OutputConfigurableEngine.run_with_options" title="Link to this definition">¶</a></dt>
+<dd><p>Execute with explicitly requested outputs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><em>Array</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>options</strong> (<a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.EngineOutputOptions" title="malthusjax.composer.engine_protocol.EngineOutputOptions"><em>EngineOutputOptions</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.RunOutput" title="malthusjax.composer.engine_protocol.RunOutput"><em>RunOutput</em></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1296,6 +1365,36 @@ A <code class="docutils literal notranslate"><span class="pre">KeyError</span></
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.composer.RunOutput.timing_record">
 <span class="sig-name descname"><span class="pre">timing_record</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.15)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.composer.RunOutput.timing_record" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.composer.RunOutput.solution">
+<span class="sig-name descname"><span class="pre">solution</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.15)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.composer.RunOutput.solution" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.composer.RunOutput.initialization">
+<span class="sig-name descname"><span class="pre">initialization</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.15)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.composer.RunOutput.initialization" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.composer.RunOutput.archive">
+<span class="sig-name descname"><span class="pre">archive</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.15)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.composer.RunOutput.archive" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.composer.RunOutput.pareto">
+<span class="sig-name descname"><span class="pre">pareto</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.15)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.composer.RunOutput.pareto" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.composer.RunOutput.unavailable_outputs">
+<span class="sig-name descname"><span class="pre">unavailable_outputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.15)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.composer.RunOutput.unavailable_outputs" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.composer.RunOutput.unavailable_metrics">
+<span class="sig-name descname"><span class="pre">unavailable_metrics</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.15)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#malthusjax.composer.RunOutput.unavailable_metrics" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1558,11 +1657,27 @@ A <code class="docutils literal notranslate"><span class="pre">KeyError</span></
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="malthusjax.composer.MOEngineAdapter.run_with_options">
+<span class="sig-name descname"><span class="pre">run_with_options</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/mo_factory.html#MOEngineAdapter.run_with_options"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.MOEngineAdapter.run_with_options" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><em>Array</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.5)"><em>number</em></a>)</p></li>
+<li><p><strong>options</strong> (<a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.EngineOutputOptions" title="malthusjax.composer.engine_protocol.EngineOutputOptions"><em>EngineOutputOptions</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.15)"><em>Dict</em></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="malthusjax.composer.build_mo_engine">
-<span class="sig-prename descclassname"><span class="pre">malthusjax.composer.</span></span><span class="sig-name descname"><span class="pre">build_mo_engine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fitness_evaluator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emitter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'real'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-5.0,</span> <span class="pre">5.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">history_metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/mo_factory.html#build_mo_engine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.build_mo_engine" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">malthusjax.composer.</span></span><span class="sig-name descname"><span class="pre">build_mo_engine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fitness_evaluator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emitter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'real'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-5.0,</span> <span class="pre">5.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">history_metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/mo_factory.html#build_mo_engine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.build_mo_engine" title="Link to this definition">¶</a></dt>
 <dd><p>Build a MOEngine from concrete operator instances.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1575,6 +1690,7 @@ A <code class="docutils literal notranslate"><span class="pre">KeyError</span></
 <li><p><strong>genome_shape</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.15)"><em>Tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>...</em><em>]</em>)</p></li>
 <li><p><strong>bounds</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.15)"><em>Tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>]</em>)</p></li>
 <li><p><strong>history_metrics</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.15)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>genome_config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
 <li><p><strong>kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>)</p></li>
 </ul>
 </dd>
@@ -1586,7 +1702,7 @@ A <code class="docutils literal notranslate"><span class="pre">KeyError</span></
 
 <dl class="py class">
 <dt class="sig sig-object py" id="malthusjax.composer.ExperimentConfig">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.composer.</span></span><span class="sig-name descname"><span class="pre">ExperimentConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">population</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">execution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logging</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/experiment_config.html#ExperimentConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.ExperimentConfig" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">malthusjax.composer.</span></span><span class="sig-name descname"><span class="pre">ExperimentConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">population</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">execution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logging</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine_outputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">artifacts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/malthusjax/composer/experiment_config.html#ExperimentConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#malthusjax.composer.ExperimentConfig" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Complete, serializable experiment specification.</p>
 <p>No runtime objects — purely data describing what to build and run.
@@ -1599,6 +1715,8 @@ This is the single argument to EngineFactory.build().</p>
 <li><p><strong>backend</strong> (<a class="reference internal" href="malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.BackendConfig" title="malthusjax.composer.experiment_config.BackendConfig"><em>BackendConfig</em></a>)</p></li>
 <li><p><strong>logging</strong> (<a class="reference internal" href="malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.LoggingConfig" title="malthusjax.composer.experiment_config.LoggingConfig"><em>LoggingConfig</em></a>)</p></li>
 <li><p><strong>output</strong> (<a class="reference internal" href="malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.OutputConfig" title="malthusjax.composer.experiment_config.OutputConfig"><em>OutputConfig</em></a>)</p></li>
+<li><p><strong>engine_outputs</strong> (<a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.EngineOutputOptions" title="malthusjax.composer.engine_protocol.EngineOutputOptions"><em>EngineOutputOptions</em></a>)</p></li>
+<li><p><strong>artifacts</strong> (<a class="reference internal" href="malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.RunArtifactOptions" title="malthusjax.composer.experiment_config.RunArtifactOptions"><em>RunArtifactOptions</em></a>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -1625,6 +1743,16 @@ This is the single argument to EngineFactory.build().</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="malthusjax.composer.ExperimentConfig.output">
 <span class="sig-name descname"><span class="pre">output</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.OutputConfig" title="malthusjax.composer.experiment_config.OutputConfig"><span class="pre">OutputConfig</span></a></span><a class="headerlink" href="#malthusjax.composer.ExperimentConfig.output" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.composer.ExperimentConfig.engine_outputs">
+<span class="sig-name descname"><span class="pre">engine_outputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.EngineOutputOptions" title="malthusjax.composer.engine_protocol.EngineOutputOptions"><span class="pre">EngineOutputOptions</span></a></span><a class="headerlink" href="#malthusjax.composer.ExperimentConfig.engine_outputs" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="malthusjax.composer.ExperimentConfig.artifacts">
+<span class="sig-name descname"><span class="pre">artifacts</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.RunArtifactOptions" title="malthusjax.composer.experiment_config.RunArtifactOptions"><span class="pre">RunArtifactOptions</span></a></span><a class="headerlink" href="#malthusjax.composer.ExperimentConfig.artifacts" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -2206,6 +2334,12 @@ non-positive population size/generations, or operator/genome mismatches.</p>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="malthusjax.composer.experiment_config.html">malthusjax.composer.experiment_config module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.RunArtifactOptions"><code class="docutils literal notranslate"><span class="pre">RunArtifactOptions</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.RunArtifactOptions.retain_history"><code class="docutils literal notranslate"><span class="pre">RunArtifactOptions.retain_history</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.RunArtifactOptions.write_history_csv"><code class="docutils literal notranslate"><span class="pre">RunArtifactOptions.write_history_csv</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.normalize_output_aliases"><code class="docutils literal notranslate"><span class="pre">normalize_output_aliases()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.PopulationConfig"><code class="docutils literal notranslate"><span class="pre">PopulationConfig</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.PopulationConfig.size"><code class="docutils literal notranslate"><span class="pre">PopulationConfig.size</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.PopulationConfig.genome_type"><code class="docutils literal notranslate"><span class="pre">PopulationConfig.genome_type</span></code></a></li>
@@ -2296,6 +2430,8 @@ non-positive population size/generations, or operator/genome mismatches.</p>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.ExperimentConfig.backend"><code class="docutils literal notranslate"><span class="pre">ExperimentConfig.backend</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.ExperimentConfig.logging"><code class="docutils literal notranslate"><span class="pre">ExperimentConfig.logging</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.ExperimentConfig.output"><code class="docutils literal notranslate"><span class="pre">ExperimentConfig.output</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.ExperimentConfig.engine_outputs"><code class="docutils literal notranslate"><span class="pre">ExperimentConfig.engine_outputs</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.ExperimentConfig.artifacts"><code class="docutils literal notranslate"><span class="pre">ExperimentConfig.artifacts</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.ExperimentConfig.to_dict"><code class="docutils literal notranslate"><span class="pre">ExperimentConfig.to_dict()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.ExperimentConfig.from_dict"><code class="docutils literal notranslate"><span class="pre">ExperimentConfig.from_dict()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.ExperimentConfig.from_quick_run_kwargs"><code class="docutils literal notranslate"><span class="pre">ExperimentConfig.from_quick_run_kwargs()</span></code></a></li>
@@ -2311,6 +2447,7 @@ non-positive population size/generations, or operator/genome mismatches.</p>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.engine_factory.html#malthusjax.composer.engine_factory.GeneticEngineAdapter.step"><code class="docutils literal notranslate"><span class="pre">GeneticEngineAdapter.step()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.engine_factory.html#malthusjax.composer.engine_factory.GeneticEngineAdapter.run"><code class="docutils literal notranslate"><span class="pre">GeneticEngineAdapter.run()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.engine_factory.html#malthusjax.composer.engine_factory.GeneticEngineAdapter.run_once"><code class="docutils literal notranslate"><span class="pre">GeneticEngineAdapter.run_once()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.engine_factory.html#malthusjax.composer.engine_factory.GeneticEngineAdapter.run_with_options"><code class="docutils literal notranslate"><span class="pre">GeneticEngineAdapter.run_with_options()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="malthusjax.composer.engine_factory.html#malthusjax.composer.engine_factory.build_engine"><code class="docutils literal notranslate"><span class="pre">build_engine()</span></code></a></li>
@@ -2323,6 +2460,19 @@ non-positive population size/generations, or operator/genome mismatches.</p>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="malthusjax.composer.engine_protocol.html">malthusjax.composer.engine_protocol module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.EngineOutputOptions"><code class="docutils literal notranslate"><span class="pre">EngineOutputOptions</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.EngineOutputOptions.capture_population_fingerprint"><code class="docutils literal notranslate"><span class="pre">EngineOutputOptions.capture_population_fingerprint</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.EngineOutputOptions.capture_solution"><code class="docutils literal notranslate"><span class="pre">EngineOutputOptions.capture_solution</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.EngineOutputOptions.export_archive"><code class="docutils literal notranslate"><span class="pre">EngineOutputOptions.export_archive</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.EngineOutputOptions.collect_history"><code class="docutils literal notranslate"><span class="pre">EngineOutputOptions.collect_history</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.EngineOutputOptions.export_pareto"><code class="docutils literal notranslate"><span class="pre">EngineOutputOptions.export_pareto</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.population_fingerprint"><code class="docutils literal notranslate"><span class="pre">population_fingerprint()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.OutputConfigurableEngine"><code class="docutils literal notranslate"><span class="pre">OutputConfigurableEngine</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.OutputConfigurableEngine.run_with_options"><code class="docutils literal notranslate"><span class="pre">OutputConfigurableEngine.run_with_options()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.StepMetrics"><code class="docutils literal notranslate"><span class="pre">StepMetrics</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.StepMetrics.best_fitness"><code class="docutils literal notranslate"><span class="pre">StepMetrics.best_fitness</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.StepMetrics.mean_fitness"><code class="docutils literal notranslate"><span class="pre">StepMetrics.mean_fitness</span></code></a></li>
@@ -2337,6 +2487,12 @@ non-positive population size/generations, or operator/genome mismatches.</p>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.RunOutput.metric_metadata"><code class="docutils literal notranslate"><span class="pre">RunOutput.metric_metadata</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.RunOutput.timing_metadata"><code class="docutils literal notranslate"><span class="pre">RunOutput.timing_metadata</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.RunOutput.timing_record"><code class="docutils literal notranslate"><span class="pre">RunOutput.timing_record</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.RunOutput.solution"><code class="docutils literal notranslate"><span class="pre">RunOutput.solution</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.RunOutput.initialization"><code class="docutils literal notranslate"><span class="pre">RunOutput.initialization</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.RunOutput.archive"><code class="docutils literal notranslate"><span class="pre">RunOutput.archive</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.RunOutput.pareto"><code class="docutils literal notranslate"><span class="pre">RunOutput.pareto</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.RunOutput.unavailable_outputs"><code class="docutils literal notranslate"><span class="pre">RunOutput.unavailable_outputs</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.RunOutput.unavailable_metrics"><code class="docutils literal notranslate"><span class="pre">RunOutput.unavailable_metrics</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.Engine"><code class="docutils literal notranslate"><span class="pre">Engine</span></code></a><ul>
@@ -2513,6 +2669,18 @@ non-positive population size/generations, or operator/genome mismatches.</p>
 <li><a class="reference internal" href="#malthusjax.composer.Engine.run_once"><code class="docutils literal notranslate"><span class="pre">Engine.run_once()</span></code></a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#malthusjax.composer.EngineOutputOptions"><code class="docutils literal notranslate"><span class="pre">EngineOutputOptions</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.composer.EngineOutputOptions.capture_population_fingerprint"><code class="docutils literal notranslate"><span class="pre">EngineOutputOptions.capture_population_fingerprint</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.EngineOutputOptions.capture_solution"><code class="docutils literal notranslate"><span class="pre">EngineOutputOptions.capture_solution</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.EngineOutputOptions.export_archive"><code class="docutils literal notranslate"><span class="pre">EngineOutputOptions.export_archive</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.EngineOutputOptions.collect_history"><code class="docutils literal notranslate"><span class="pre">EngineOutputOptions.collect_history</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.EngineOutputOptions.export_pareto"><code class="docutils literal notranslate"><span class="pre">EngineOutputOptions.export_pareto</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#malthusjax.composer.OutputConfigurableEngine"><code class="docutils literal notranslate"><span class="pre">OutputConfigurableEngine</span></code></a><ul>
+<li><a class="reference internal" href="#malthusjax.composer.OutputConfigurableEngine.run_with_options"><code class="docutils literal notranslate"><span class="pre">OutputConfigurableEngine.run_with_options()</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#malthusjax.composer.EngineFactory"><code class="docutils literal notranslate"><span class="pre">EngineFactory</span></code></a><ul>
 <li><a class="reference internal" href="#malthusjax.composer.EngineFactory.build"><code class="docutils literal notranslate"><span class="pre">EngineFactory.build()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.composer.EngineFactory.build_with_evaluator"><code class="docutils literal notranslate"><span class="pre">EngineFactory.build_with_evaluator()</span></code></a></li>
@@ -2533,6 +2701,12 @@ non-positive population size/generations, or operator/genome mismatches.</p>
 <li><a class="reference internal" href="#malthusjax.composer.RunOutput.metric_metadata"><code class="docutils literal notranslate"><span class="pre">RunOutput.metric_metadata</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.composer.RunOutput.timing_metadata"><code class="docutils literal notranslate"><span class="pre">RunOutput.timing_metadata</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.composer.RunOutput.timing_record"><code class="docutils literal notranslate"><span class="pre">RunOutput.timing_record</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.RunOutput.solution"><code class="docutils literal notranslate"><span class="pre">RunOutput.solution</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.RunOutput.initialization"><code class="docutils literal notranslate"><span class="pre">RunOutput.initialization</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.RunOutput.archive"><code class="docutils literal notranslate"><span class="pre">RunOutput.archive</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.RunOutput.pareto"><code class="docutils literal notranslate"><span class="pre">RunOutput.pareto</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.RunOutput.unavailable_outputs"><code class="docutils literal notranslate"><span class="pre">RunOutput.unavailable_outputs</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.RunOutput.unavailable_metrics"><code class="docutils literal notranslate"><span class="pre">RunOutput.unavailable_metrics</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#malthusjax.composer.StepMetrics"><code class="docutils literal notranslate"><span class="pre">StepMetrics</span></code></a><ul>
@@ -2555,6 +2729,7 @@ non-positive population size/generations, or operator/genome mismatches.</p>
 <li><a class="reference internal" href="#malthusjax.composer.register_genome"><code class="docutils literal notranslate"><span class="pre">register_genome()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.composer.MOEngineAdapter"><code class="docutils literal notranslate"><span class="pre">MOEngineAdapter</span></code></a><ul>
 <li><a class="reference internal" href="#malthusjax.composer.MOEngineAdapter.run_once"><code class="docutils literal notranslate"><span class="pre">MOEngineAdapter.run_once()</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.MOEngineAdapter.run_with_options"><code class="docutils literal notranslate"><span class="pre">MOEngineAdapter.run_with_options()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#malthusjax.composer.build_mo_engine"><code class="docutils literal notranslate"><span class="pre">build_mo_engine()</span></code></a></li>
@@ -2564,6 +2739,8 @@ non-positive population size/generations, or operator/genome mismatches.</p>
 <li><a class="reference internal" href="#malthusjax.composer.ExperimentConfig.backend"><code class="docutils literal notranslate"><span class="pre">ExperimentConfig.backend</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.composer.ExperimentConfig.logging"><code class="docutils literal notranslate"><span class="pre">ExperimentConfig.logging</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.composer.ExperimentConfig.output"><code class="docutils literal notranslate"><span class="pre">ExperimentConfig.output</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.ExperimentConfig.engine_outputs"><code class="docutils literal notranslate"><span class="pre">ExperimentConfig.engine_outputs</span></code></a></li>
+<li><a class="reference internal" href="#malthusjax.composer.ExperimentConfig.artifacts"><code class="docutils literal notranslate"><span class="pre">ExperimentConfig.artifacts</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.composer.ExperimentConfig.to_dict"><code class="docutils literal notranslate"><span class="pre">ExperimentConfig.to_dict()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.composer.ExperimentConfig.from_dict"><code class="docutils literal notranslate"><span class="pre">ExperimentConfig.from_dict()</span></code></a></li>
 <li><a class="reference internal" href="#malthusjax.composer.ExperimentConfig.from_quick_run_kwargs"><code class="docutils literal notranslate"><span class="pre">ExperimentConfig.from_quick_run_kwargs()</span></code></a></li>

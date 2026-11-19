@@ -3,10 +3,10 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="TOML Configuration &amp; Scaffolding Guide" href="toml_guide.html"><link rel="prev" title="Evaluator Architecture: Composable Fitness Evaluation" href="evaluator_design.html">
+<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="Developer &amp; Framework Guides" href="framework_guides/index.html"><link rel="prev" title="Evaluator Architecture: Composable Fitness Evaluation" href="evaluator_design.html">
 
-    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
-        <title>Extension CLI Guide: Building MalthusJAX Projects - MalthusJAX documentation</title>
+    <!-- Generated with Sphinx 9.1.1 and Furo 2025.12.19 -->
+        <title>Develop a local extension - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -194,6 +194,8 @@
   <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="toml_guide.html">TOML experiments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="research_workflows.html">Research workflows</a></li>
 <li class="toctree-l1"><a class="reference internal" href="1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
 <li class="toctree-l1"><a class="reference internal" href="2-CORE_ABSTRACTIONS.html">Core Abstractions: Genomes, Populations, and Fitness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html">Genetic Operators: Selection, Variation, and Emitters</a></li>
@@ -204,8 +206,7 @@
 <p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Extension CLI Guide: Building MalthusJAX Projects</a></li>
-<li class="toctree-l1"><a class="reference internal" href="toml_guide.html">TOML Configuration &amp; Scaffolding Guide</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Develop a local extension</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
@@ -263,10 +264,8 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="api/malthusjax.core.html">malthusjax.core package</a><input aria-label="Toggle navigation of malthusjax.core package" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.core.fitness.html">malthusjax.core.fitness package</a><input aria-label="Toggle navigation of malthusjax.core.fitness package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.base.html">malthusjax.core.fitness.base module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.bbob_evaluator.html">malthusjax.core.fitness.bbob_evaluator module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.binary_evaluators.html">malthusjax.core.fitness.binary_evaluators module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.linear_gp_evaluator.html">malthusjax.core.fitness.linear_gp_evaluator module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.real_evaluators.html">malthusjax.core.fitness.real_evaluators module</a></li>
 </ul>
 </li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.core.genome.html">malthusjax.core.genome package</a><input aria-label="Toggle navigation of malthusjax.core.genome package" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -346,230 +345,24 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="extension-cli-guide-building-malthusjax-projects">
-<h1>Extension CLI Guide: Building MalthusJAX Projects<a class="headerlink" href="#extension-cli-guide-building-malthusjax-projects" title="Link to this heading">¶</a></h1>
-<p>The MalthusJAX framework provides a powerful Extension CLI (<code class="docutils literal notranslate"><span class="pre">scripts/scaffold.py</span></code>) designed to help you rapidly prototype new algorithms, custom operators, and entire plugins from scratch.</p>
-<p>This guide explains how to use the CLI to generate JAX-compliant templates, automatically write your testing boilerplate, and safely isolate your project components.</p>
-<blockquote>
-<div><p>[!TIP]
-The Extension CLI is not limited to any single “level” of the MalthusJAX API—it touches everything from defining fundamental <code class="docutils literal notranslate"><span class="pre">Genome</span></code> states to creating custom <code class="docutils literal notranslate"><span class="pre">Engine</span></code> pipelines.</p>
-</div></blockquote>
-<hr class="docutils" />
-<section id="why-use-the-scaffolding-cli">
-<h2>1. Why Use the Scaffolding CLI?<a class="headerlink" href="#why-use-the-scaffolding-cli" title="Link to this heading">¶</a></h2>
-<p>When building evolutionary algorithms in JAX, strict adherence to <code class="docutils literal notranslate"><span class="pre">flax.struct.dataclass</span></code> constraints and array shapes is mandatory to ensure compilation (<code class="docutils literal notranslate"><span class="pre">&#64;jax.jit</span></code>) and vectorization (<code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code>) work safely.</p>
-<p>The CLI automates these constraints for you. By scaffolding components, you automatically get:</p>
-<ul class="simple">
-<li><p><strong>JAX-Compliant PyTrees:</strong> All scaffolded classes are pre-decorated with <code class="docutils literal notranslate"><span class="pre">&#64;struct.dataclass</span></code>.</p></li>
-<li><p><strong>Automatic Registration:</strong> Components are automatically wired into the Composer catalog using <code class="docutils literal notranslate"><span class="pre">&#64;register_...</span></code> decorators.</p></li>
-<li><p><strong>Boilerplate Compliance Testing:</strong> The CLI writes <code class="docutils literal notranslate"><span class="pre">pytest</span></code> suites for your new components. These tests inherit from MalthusJAX’s rigorous <code class="docutils literal notranslate"><span class="pre">ComplianceSuite</span></code> bases, automatically fuzz-testing your code against JAX constraints without you writing a single test case yourself!</p></li>
-<li><p><strong>Pre-Configured Unified Logging:</strong> All scaffolded components import and instantiate <code class="docutils literal notranslate"><span class="pre">logger</span> <span class="pre">=</span> <span class="pre">get_logger(...)</span></code>, providing immediate diagnostic tracing without manual setup.</p></li>
-</ul>
-</section>
-<hr class="docutils" />
-<section id="command-reference">
-<h2>2. Command Reference<a class="headerlink" href="#command-reference" title="Link to this heading">¶</a></h2>
-<p>The Extension CLI is executed via <code class="docutils literal notranslate"><span class="pre">scripts/scaffold.py</span></code>.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>scripts/scaffold.py<span class="w"> </span>-t<span class="w"> </span>&lt;type&gt;<span class="w"> </span>-n<span class="w"> </span>&lt;ClassName&gt;<span class="w"> </span>-k<span class="w"> </span>&lt;registry_key&gt;
-</pre></div>
-</div>
-<section id="arguments">
-<h3>Arguments:<a class="headerlink" href="#arguments" title="Link to this heading">¶</a></h3>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">-t</span></code> / <code class="docutils literal notranslate"><span class="pre">--type</span></code> (Required): The type of component to scaffold. Valid options: <code class="docutils literal notranslate"><span class="pre">genome</span></code>, <code class="docutils literal notranslate"><span class="pre">population</span></code>, <code class="docutils literal notranslate"><span class="pre">selection</span></code>, <code class="docutils literal notranslate"><span class="pre">mutation</span></code>, <code class="docutils literal notranslate"><span class="pre">crossover</span></code>, <code class="docutils literal notranslate"><span class="pre">fitness</span></code>, <code class="docutils literal notranslate"><span class="pre">engine</span></code>, <code class="docutils literal notranslate"><span class="pre">interpreter</span></code>, <code class="docutils literal notranslate"><span class="pre">environment</span></code>, <code class="docutils literal notranslate"><span class="pre">adapter</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">-n</span></code> / <code class="docutils literal notranslate"><span class="pre">--name</span></code> (Required): The Python class name for your component (e.g., <code class="docutils literal notranslate"><span class="pre">QuantumMutation</span></code>).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">-k</span></code> / <code class="docutils literal notranslate"><span class="pre">--key</span></code> (Required): The unique string key used to register the component in the composer catalog (e.g., <code class="docutils literal notranslate"><span class="pre">quantum_mutation</span></code>).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--impl-dir</span></code>: (Optional) The output directory for the implementation file. Defaults to <code class="docutils literal notranslate"><span class="pre">plugins</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--test-dir</span></code>: (Optional) The output directory for the test file. Defaults to <code class="docutils literal notranslate"><span class="pre">tests/plugins</span></code>.</p></li>
-</ul>
-<blockquote>
-<div><p>[!IMPORTANT]
-The <code class="docutils literal notranslate"><span class="pre">--impl-dir</span></code> and <code class="docutils literal notranslate"><span class="pre">--test-dir</span></code> flags are crucial for <strong>plugin isolation</strong>. When creating an independent project (like a new algorithm), you should direct the scaffolding tools to output to your project’s specific namespace rather than polluting the core <code class="docutils literal notranslate"><span class="pre">plugins/</span></code> directory.</p>
-</div></blockquote>
-</section>
-</section>
-<hr class="docutils" />
-<section id="walkthrough-building-quantum-gp-from-scratch">
-<h2>3. Walkthrough: Building “Quantum GP” from Scratch<a class="headerlink" href="#walkthrough-building-quantum-gp-from-scratch" title="Link to this heading">¶</a></h2>
-<p>Let’s walk through an example of building a brand-new experimental plugin called <strong>Quantum Genetic Programming (QGP)</strong>. We want this project isolated in its own folder structure: <code class="docutils literal notranslate"><span class="pre">plugins/qgp/</span></code>.</p>
-<section id="step-1-scaffold-the-state-components">
-<h3>Step 1: Scaffold the State Components<a class="headerlink" href="#step-1-scaffold-the-state-components" title="Link to this heading">¶</a></h3>
-<p>Evolutionary states require a <code class="docutils literal notranslate"><span class="pre">Genome</span></code> (representing the individual) and a <code class="docutils literal notranslate"><span class="pre">Population</span></code> (representing the batch).</p>
-<p>Let’s generate them, directing the CLI to our <code class="docutils literal notranslate"><span class="pre">qgp/</span></code> folder:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Scaffold the Genome</span>
-python<span class="w"> </span>scripts/scaffold.py<span class="w"> </span>-t<span class="w"> </span>genome<span class="w"> </span>-n<span class="w"> </span>QuantumGenome<span class="w"> </span>-k<span class="w"> </span>quantum_genome<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--impl-dir<span class="w"> </span>plugins/qgp/genomes<span class="w"> </span>--test-dir<span class="w"> </span>plugins/qgp/tests
-
-<span class="c1"># Scaffold the Population</span>
-python<span class="w"> </span>scripts/scaffold.py<span class="w"> </span>-t<span class="w"> </span>population<span class="w"> </span>-n<span class="w"> </span>QuantumPopulation<span class="w"> </span>-k<span class="w"> </span>quantum_population<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--impl-dir<span class="w"> </span>plugins/qgp/populations<span class="w"> </span>--test-dir<span class="w"> </span>plugins/qgp/tests
-</pre></div>
-</div>
-</section>
-<section id="step-2-scaffold-the-operators">
-<h3>Step 2: Scaffold the Operators<a class="headerlink" href="#step-2-scaffold-the-operators" title="Link to this heading">¶</a></h3>
-<p>Next, we need the genetic operators that manipulate the quantum states.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Scaffold the Mutation Operator</span>
-python<span class="w"> </span>scripts/scaffold.py<span class="w"> </span>-t<span class="w"> </span>mutation<span class="w"> </span>-n<span class="w"> </span>QuantumMutation<span class="w"> </span>-k<span class="w"> </span>quantum_mutation<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--impl-dir<span class="w"> </span>plugins/qgp/operators<span class="w"> </span>--test-dir<span class="w"> </span>plugins/qgp/tests
-
-<span class="c1"># Scaffold the Crossover Operator</span>
-python<span class="w"> </span>scripts/scaffold.py<span class="w"> </span>-t<span class="w"> </span>crossover<span class="w"> </span>-n<span class="w"> </span>QuantumCrossover<span class="w"> </span>-k<span class="w"> </span>quantum_crossover<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--impl-dir<span class="w"> </span>plugins/qgp/operators<span class="w"> </span>--test-dir<span class="w"> </span>plugins/qgp/tests
-</pre></div>
-</div>
-</section>
-<section id="step-3-implement-the-logic">
-<h3>Step 3: Implement the Logic<a class="headerlink" href="#step-3-implement-the-logic" title="Link to this heading">¶</a></h3>
-<p>The CLI will generate <code class="docutils literal notranslate"><span class="pre">plugins/qgp/operators/quantum_mutation.py</span></code> that looks like this:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">flax</span><span class="w"> </span><span class="kn">import</span> <span class="n">struct</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.operators.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseMutation</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_mutation</span>
-
-<span class="nd">@register_mutation</span><span class="p">(</span><span class="s2">"quantum_mutation"</span><span class="p">,</span> <span class="n">override</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">compatible_genomes</span><span class="o">=</span><span class="p">[</span><span class="s2">"real"</span><span class="p">,</span> <span class="s2">"continuous"</span><span class="p">])</span>
-<span class="nd">@struct</span><span class="o">.</span><span class="n">dataclass</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">QuantumMutation</span><span class="p">(</span><span class="n">BaseMutation</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""A custom mutation operator."""</span>
-    
-    <span class="n">mutation_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_mutate_one</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rng</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">genome</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
-        <span class="c1"># TODO: Implement your mutation logic here</span>
-        <span class="k">return</span> <span class="n">genome</span>
-</pre></div>
-</div>
-<p>All you need to do is fill in the <code class="docutils literal notranslate"><span class="pre">TODO</span></code> block! Because you inherit from <code class="docutils literal notranslate"><span class="pre">BaseMutation</span></code>, MalthusJAX will handle parallelizing this <code class="docutils literal notranslate"><span class="pre">_mutate_one</span></code> logic across the entire batch natively.</p>
-</section>
-<section id="step-4-run-the-compliance-suites">
-<h3>Step 4: Run the Compliance Suites<a class="headerlink" href="#step-4-run-the-compliance-suites" title="Link to this heading">¶</a></h3>
-<p>When you scaffolded the components, the CLI also generated <code class="docutils literal notranslate"><span class="pre">plugins/qgp/tests/test_quantum_mutation.py</span></code>.</p>
-<p>Without writing any extra test logic, simply run:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">PYTHONPATH</span><span class="o">=</span>.<span class="w"> </span>pytest<span class="w"> </span>plugins/qgp/tests/
-</pre></div>
-</div>
-<p>MalthusJAX will aggressively validate your new component to ensure:</p>
-<ul class="simple">
-<li><p>It acts as a static JAX PyTree.</p></li>
-<li><p>It doesn’t leak tracers or execute Python side-effects during JIT compilation.</p></li>
-<li><p>It complies with structural shape requirements.</p></li>
-</ul>
-</section>
-<section id="step-5-compose-your-project">
-<h3>Step 5: Compose Your Project<a class="headerlink" href="#step-5-compose-your-project" title="Link to this heading">¶</a></h3>
-<p>Once your components pass compliance, they are automatically available in the MalthusJAX ecosystem! You can assemble your QGP project instantly using the Composer:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Composer</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">plugins.qgp.operators.quantum_mutation</span>  <span class="c1"># Ensure it registers</span>
-
-<span class="c1"># MalthusJAX knows about your plugin via the "quantum_mutation" key!</span>
-<span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">"engine"</span><span class="p">:</span> <span class="s2">"genetic"</span><span class="p">,</span>
-    <span class="s2">"population_size"</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
-    <span class="s2">"mutation"</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"quantum_mutation"</span><span class="p">,</span>
-        <span class="s2">"mutation_rate"</span><span class="p">:</span> <span class="mf">0.05</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-
-<span class="n">engine</span><span class="p">,</span> <span class="n">state</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>By following this workflow, your custom projects remain cleanly isolated in their own domains, strictly compliant with JAX arrays, and immediately compatible with all higher-level MalthusJAX abstractions.</p>
-</section>
-</section>
-<hr class="docutils" />
-<section id="scaffolding-composable-evaluator-components">
-<h2>4. Scaffolding Composable Evaluator Components<a class="headerlink" href="#scaffolding-composable-evaluator-components" title="Link to this heading">¶</a></h2>
-<p>With the new Composable Evaluator architecture, you evaluate genomes by composing an <strong>Environment</strong> and an <strong>Interpreter</strong>. You can scaffold these primitives directly!</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Scaffold an Interpreter (Genome Decoder)</span>
-python<span class="w"> </span>scripts/scaffold.py<span class="w"> </span>-t<span class="w"> </span>interpreter<span class="w"> </span>-n<span class="w"> </span>TransformerInterpreter<span class="w"> </span>-k<span class="w"> </span>transformer<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--impl-dir<span class="w"> </span>plugins/interpreters<span class="w"> </span>--test-dir<span class="w"> </span>plugins/tests
-
-<span class="c1"># Scaffold an Environment (Dataset/Problem)</span>
-python<span class="w"> </span>scripts/scaffold.py<span class="w"> </span>-t<span class="w"> </span>environment<span class="w"> </span>-n<span class="w"> </span>JumanjiEnv<span class="w"> </span>-k<span class="w"> </span>jumanji<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--impl-dir<span class="w"> </span>plugins/environments<span class="w"> </span>--test-dir<span class="w"> </span>plugins/tests
-</pre></div>
-</div>
-<p>These generate boilerplate subclasses of <code class="docutils literal notranslate"><span class="pre">BaseInterpreter</span></code> and <code class="docutils literal notranslate"><span class="pre">BaseOptimizationEnvironment</span></code>, respectively, along with tests inheriting from <code class="docutils literal notranslate"><span class="pre">InterpreterComplianceSuite</span></code> and <code class="docutils literal notranslate"><span class="pre">EnvironmentComplianceSuite</span></code>.</p>
-</section>
-<hr class="docutils" />
-<section id="scaffolding-third-party-framework-adapters">
-<h2>5. Scaffolding Third-Party Framework Adapters<a class="headerlink" href="#scaffolding-third-party-framework-adapters" title="Link to this heading">¶</a></h2>
-<p>MalthusJAX can bridge external evolutionary frameworks (like Evosax or TensorNEAT) via <strong>Universal Adapters</strong>. The Scaffolding CLI can generate the boilerplate necessary to wrap external libraries!</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Scaffold an adapter for a framework called 'my_framework'</span>
-python<span class="w"> </span>scripts/scaffold.py<span class="w"> </span>-t<span class="w"> </span>adapter<span class="w"> </span>-n<span class="w"> </span>MyFrameworkAdapter<span class="w"> </span>-k<span class="w"> </span>my_framework<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--impl-dir<span class="w"> </span>plugins/adapters<span class="w"> </span>--test-dir<span class="w"> </span>plugins/tests
-</pre></div>
-</div>
-<p>This will generate an <code class="docutils literal notranslate"><span class="pre">AdapterComplianceSuite</span></code> test file and a source implementation looking like this:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.adapters</span><span class="w"> </span><span class="kn">import</span> <span class="n">adapter</span><span class="p">,</span> <span class="n">EvalMode</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.adapters.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricSpec</span>
-
-<span class="n">ADAPTER_METRICS</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">MetricSpec</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"best_fitness"</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">"best_fitness"</span><span class="p">,</span> <span class="n">is_objective_value</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-    <span class="n">MetricSpec</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"mean_fitness"</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">"mean_fitness"</span><span class="p">,</span> <span class="n">is_objective_value</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-<span class="p">]</span>
-
-<span class="nd">@adapter</span><span class="p">(</span>
-    <span class="n">framework</span><span class="o">=</span><span class="s2">"my_framework"</span><span class="p">,</span>
-    <span class="n">state_mapping</span><span class="o">=</span><span class="p">{</span><span class="s2">"init"</span><span class="p">:</span> <span class="s2">"_adapter_init"</span><span class="p">,</span> <span class="s2">"step"</span><span class="p">:</span> <span class="s2">"_adapter_step"</span><span class="p">},</span>
-    <span class="n">eval_translators</span><span class="o">=</span><span class="p">{</span><span class="n">EvalMode</span><span class="o">.</span><span class="n">NATIVE</span><span class="p">:</span> <span class="k">lambda</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="n">EvalMode</span><span class="o">.</span><span class="n">MALTHUSJAX</span><span class="p">:</span> <span class="k">lambda</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
-    <span class="n">metrics_catalog</span><span class="o">=</span><span class="n">ADAPTER_METRICS</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">MyFrameworkAdapter</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Universal Adapter for my_framework."""</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_adapter_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strategy</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">pop_init</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="c1"># TODO: Initialize your framework's state here</span>
-        <span class="k">return</span> <span class="kc">None</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_adapter_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strategy</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">eval_translator</span><span class="p">):</span>
-        <span class="c1"># TODO: Implement a single step of your framework</span>
-        <span class="k">return</span> <span class="n">state</span><span class="p">,</span> <span class="p">{}</span>
-</pre></div>
-</div>
-<p>The <code class="docutils literal notranslate"><span class="pre">&#64;adapter</span></code> decorator automatically injects MalthusJAX’s <code class="docutils literal notranslate"><span class="pre">run_once</span></code> execution engine and bridges the fitness evaluation modes. The CLI also provides <code class="docutils literal notranslate"><span class="pre">pytest</span></code> compliance tests to ensure your wrapper seamlessly operates within the Composer ecosystem.</p>
-</section>
-<hr class="docutils" />
-<section id="scaffolding-toml-configurations-scripts-scaffold-toml-py">
-<h2>6. Scaffolding TOML Configurations (<code class="docutils literal notranslate"><span class="pre">scripts/scaffold_toml.py</span></code>)<a class="headerlink" href="#scaffolding-toml-configurations-scripts-scaffold-toml-py" title="Link to this heading">¶</a></h2>
-<p>In addition to Python component boilerplate, MalthusJAX provides an automated generator for compliant TOML configuration files via <code class="docutils literal notranslate"><span class="pre">scripts/scaffold_toml.py</span></code> (or <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">scaffold-toml</span></code>).</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># List all available configuration recipes</span>
-python<span class="w"> </span>scripts/scaffold_toml.py<span class="w"> </span>--list-recipes
-
-<span class="c1"># Scaffold a quick single-run experiment:</span>
-python<span class="w"> </span>scripts/scaffold_toml.py<span class="w"> </span>-r<span class="w"> </span>single_run<span class="w"> </span>-o<span class="w"> </span>configs/my_sphere.toml
-
-<span class="c1"># Scaffold an operator ablation comparing crossover variants on Rastrigin:</span>
-python<span class="w"> </span>scripts/scaffold_toml.py<span class="w"> </span>-r<span class="w"> </span>ablation<span class="w"> </span>-o<span class="w"> </span>configs/ablation_rastrigin.toml<span class="w"> </span>-f<span class="w"> </span><span class="s2">"rastrigin:dim=30"</span>
-
-<span class="c1"># Scaffold a multi-dimensional Latin Hypercube Sampling (LHS) benchmarking suite:</span>
-python<span class="w"> </span>scripts/scaffold_toml.py<span class="w"> </span>-r<span class="w"> </span>benchmark_lhs<span class="w"> </span>-o<span class="w"> </span>configs/cluster_scaling.toml<span class="w"> </span>-n<span class="w"> </span>cluster_scaling<span class="w"> </span>-s<span class="w"> </span><span class="m">50</span>
-</pre></div>
-</div>
-<section id="supported-recipes">
-<h3>Supported Recipes:<a class="headerlink" href="#supported-recipes" title="Link to this heading">¶</a></h3>
-<ul class="simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">single_run</span></code></strong>: Single pipeline with pre-configured unified logging (<code class="docutils literal notranslate"><span class="pre">[logging]</span></code>).</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">ablation</span></code></strong>: Multi-operator ablation on a shared objective with identical population seeds.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">parity</span></code></strong>: Statistical parity comparison between MalthusJAX and EvoSAX.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">backend_comparison</span></code></strong>: Multi-backend performance study (MalthusJAX vs. CMA-ES vs. OpenES).</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">quality_diversity</span></code></strong>: MAP-Elites parameter study with tessellated archive grids.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">composable_rl</span></code></strong>: Composable RL pipeline wrapping Brax environments and MLP interpreters.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">data_registry</span></code></strong>: Combinatorial optimization (e.g. TSP) with decoupled <code class="docutils literal notranslate"><span class="pre">[data.*]</span></code> registries.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">benchmark_cartesian</span></code></strong>: Systematic Cartesian grid sweep suite.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">benchmark_lhs</span></code></strong>: Latin Hypercube Sampling space-filling benchmark suite.</p></li>
-</ul>
-<p>For the exhaustive specification of all TOML keys, backends, operator DSL syntax, conflict resolution rules, and profiling options, see the <span class="xref myst">TOML Configuration Guide</span>.</p>
-</section>
-</section>
+          <section id="develop-a-local-extension">
+<h1>Develop a local extension<a class="headerlink" href="#develop-a-local-extension" title="Link to this heading">¶</a></h1>
+<p>Use the <span class="xref myst">plugin architecture guide</span>
+or <a class="reference internal" href="research_workflows.html"><span class="std std-doc">corridor example</span></a> to register a fitness or operator
+and refer to its registered name in Python or TOML.</p>
+<p>Composer can execute Python files under the current working directory’s
+<code class="docutils literal notranslate"><span class="pre">plugins/</span></code> directory at import time. Run it from a trusted project directory.
+Discovery uses module stems as import names. Choose unique stems and avoid
+importing a discovered plugin again under a different name.</p>
+<p>From a checkout, <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">scripts/scaffold.py</span> <span class="pre">--help</span></code> lists the available
+scaffolds. The operator catalog resolves operators, the native engine
+registry constructs engines, and the backend registry connects Composer
+to providers.</p>
 </section>
 
         </article>
@@ -577,12 +370,12 @@ python<span class="w"> </span>scripts/scaffold_toml.py<span class="w"> </span>-r
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="toml_guide.html">
+          <a class="next-page" href="framework_guides/index.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">TOML Configuration &amp; Scaffolding Guide</div>
+                <div class="title">Developer &amp; Framework Guides</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -615,45 +408,8 @@ python<span class="w"> </span>scripts/scaffold_toml.py<span class="w"> </span>-r
         
       </footer>
     </div>
-    <aside class="toc-drawer">
+    <aside class="toc-drawer no-toc">
       
-      
-      <div class="toc-sticky toc-scroll">
-        <div class="toc-title-container">
-          <span class="toc-title">
-            On this page
-          </span>
-        </div>
-        <div class="toc-tree-container">
-          <div class="toc-tree">
-            <ul>
-<li><a class="reference internal" href="#">Extension CLI Guide: Building MalthusJAX Projects</a><ul>
-<li><a class="reference internal" href="#why-use-the-scaffolding-cli">1. Why Use the Scaffolding CLI?</a></li>
-<li><a class="reference internal" href="#command-reference">2. Command Reference</a><ul>
-<li><a class="reference internal" href="#arguments">Arguments:</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#walkthrough-building-quantum-gp-from-scratch">3. Walkthrough: Building “Quantum GP” from Scratch</a><ul>
-<li><a class="reference internal" href="#step-1-scaffold-the-state-components">Step 1: Scaffold the State Components</a></li>
-<li><a class="reference internal" href="#step-2-scaffold-the-operators">Step 2: Scaffold the Operators</a></li>
-<li><a class="reference internal" href="#step-3-implement-the-logic">Step 3: Implement the Logic</a></li>
-<li><a class="reference internal" href="#step-4-run-the-compliance-suites">Step 4: Run the Compliance Suites</a></li>
-<li><a class="reference internal" href="#step-5-compose-your-project">Step 5: Compose Your Project</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#scaffolding-composable-evaluator-components">4. Scaffolding Composable Evaluator Components</a></li>
-<li><a class="reference internal" href="#scaffolding-third-party-framework-adapters">5. Scaffolding Third-Party Framework Adapters</a></li>
-<li><a class="reference internal" href="#scaffolding-toml-configurations-scripts-scaffold-toml-py">6. Scaffolding TOML Configurations (<code class="docutils literal notranslate"><span class="pre">scripts/scaffold_toml.py</span></code>)</a><ul>
-<li><a class="reference internal" href="#supported-recipes">Supported Recipes:</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-
-          </div>
-        </div>
-      </div>
       
       
     </aside>

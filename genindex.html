@@ -192,6 +192,8 @@
   <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="toml_guide.html">TOML experiments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="research_workflows.html">Research workflows</a></li>
 <li class="toctree-l1"><a class="reference internal" href="1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
 <li class="toctree-l1"><a class="reference internal" href="2-CORE_ABSTRACTIONS.html">Core Abstractions: Genomes, Populations, and Fitness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html">Genetic Operators: Selection, Variation, and Emitters</a></li>
@@ -202,6 +204,7 @@
 <p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extension_cli_guide.html">Develop a local extension</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
@@ -259,10 +262,8 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="api/malthusjax.core.html">malthusjax.core package</a><input aria-label="Toggle navigation of malthusjax.core package" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.core.fitness.html">malthusjax.core.fitness package</a><input aria-label="Toggle navigation of malthusjax.core.fitness package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.base.html">malthusjax.core.fitness.base module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.bbob_evaluator.html">malthusjax.core.fitness.bbob_evaluator module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.binary_evaluators.html">malthusjax.core.fitness.binary_evaluators module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.linear_gp_evaluator.html">malthusjax.core.fitness.linear_gp_evaluator module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.real_evaluators.html">malthusjax.core.fitness.real_evaluators module</a></li>
 </ul>
 </li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.core.genome.html">malthusjax.core.genome package</a><input aria-label="Toggle navigation of malthusjax.core.genome package" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -458,8 +459,6 @@
           <li><a href="api/malthusjax.core.fitness.html#malthusjax.core.fitness.MLPInterpreter.apply">(malthusjax.core.fitness.MLPInterpreter method)</a>
 </li>
         </ul></li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/malthusjax.operators.base.html#malthusjax.operators.base.BaseCrossover.apply_fastpath">apply_fastpath() (malthusjax.operators.base.BaseCrossover method)</a>
 
         <ul>
@@ -478,16 +477,34 @@
           <li><a href="api/malthusjax.operators.mutation.html#malthusjax.operators.mutation.EvosaxGaussianWrapper.apply_fastpath">(malthusjax.operators.mutation.EvosaxGaussianWrapper method)</a>
 </li>
         </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="api/malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.RunOutput.archive">archive (malthusjax.composer.engine_protocol.RunOutput attribute)</a>
+
+        <ul>
+          <li><a href="api/malthusjax.composer.html#malthusjax.composer.RunOutput.archive">(malthusjax.composer.RunOutput attribute)</a>
+</li>
+        </ul></li>
         <li><a href="api/malthusjax.core.genome.linear_genome.html#malthusjax.core.genome.linear_genome.LinearGenome.args">args (malthusjax.core.genome.linear_genome.LinearGenome attribute)</a>
 
         <ul>
           <li><a href="api/malthusjax.core.genome.html#malthusjax.core.genome.LinearGenome.args">(malthusjax.core.genome.LinearGenome attribute)</a>
 </li>
         </ul></li>
+        <li><a href="api/malthusjax.benchmarking.html#malthusjax.benchmarking.BenchmarkRunner.artifact_options">artifact_options (malthusjax.benchmarking.BenchmarkRunner attribute)</a>
+
+        <ul>
+          <li><a href="api/malthusjax.benchmarking.runner.html#malthusjax.benchmarking.runner.BenchmarkRunner.artifact_options">(malthusjax.benchmarking.runner.BenchmarkRunner attribute)</a>
+</li>
+        </ul></li>
         <li><a href="api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.results.RunResult.artifacts">artifacts (malthusjax.benchmarking.results.RunResult attribute)</a>
 
         <ul>
           <li><a href="api/malthusjax.benchmarking.html#malthusjax.benchmarking.RunResult.artifacts">(malthusjax.benchmarking.RunResult attribute)</a>
+</li>
+          <li><a href="api/malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.ExperimentConfig.artifacts">(malthusjax.composer.experiment_config.ExperimentConfig attribute)</a>
+</li>
+          <li><a href="api/malthusjax.composer.html#malthusjax.composer.ExperimentConfig.artifacts">(malthusjax.composer.ExperimentConfig attribute)</a>
 </li>
         </ul></li>
         <li><a href="api/malthusjax.engine.genetic_fastengine.html#malthusjax.engine.genetic_fastengine.GeneticEngine.ask">ask() (malthusjax.engine.genetic_fastengine.GeneticEngine method)</a>
@@ -920,6 +937,18 @@
           <li><a href="api/malthusjax.html#malthusjax.KnapsackConfig.capacity">(malthusjax.KnapsackConfig attribute)</a>
 </li>
         </ul></li>
+        <li><a href="api/malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.EngineOutputOptions.capture_population_fingerprint">capture_population_fingerprint (malthusjax.composer.engine_protocol.EngineOutputOptions attribute)</a>
+
+        <ul>
+          <li><a href="api/malthusjax.composer.html#malthusjax.composer.EngineOutputOptions.capture_population_fingerprint">(malthusjax.composer.EngineOutputOptions attribute)</a>
+</li>
+        </ul></li>
+        <li><a href="api/malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.EngineOutputOptions.capture_solution">capture_solution (malthusjax.composer.engine_protocol.EngineOutputOptions attribute)</a>
+
+        <ul>
+          <li><a href="api/malthusjax.composer.html#malthusjax.composer.EngineOutputOptions.capture_solution">(malthusjax.composer.EngineOutputOptions attribute)</a>
+</li>
+        </ul></li>
         <li><a href="api/malthusjax.html#malthusjax.CategoricalGenome">CategoricalGenome (class in malthusjax)</a>
 
         <ul>
@@ -1010,17 +1039,21 @@
           <li><a href="api/malthusjax.core.html#malthusjax.core.BasePopulation.clone_buffers">(malthusjax.core.BasePopulation method)</a>
 </li>
         </ul></li>
+        <li><a href="api/malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.EngineOutputOptions.collect_history">collect_history (malthusjax.composer.engine_protocol.EngineOutputOptions attribute)</a>
+
+        <ul>
+          <li><a href="api/malthusjax.composer.html#malthusjax.composer.EngineOutputOptions.collect_history">(malthusjax.composer.EngineOutputOptions attribute)</a>
+</li>
+        </ul></li>
         <li><a href="api/malthusjax.benchmarking.html#malthusjax.benchmarking.ExperimentResult.combined_history">combined_history() (malthusjax.benchmarking.ExperimentResult method)</a>
 
         <ul>
           <li><a href="api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.results.ExperimentResult.combined_history">(malthusjax.benchmarking.results.ExperimentResult method)</a>
 </li>
         </ul></li>
-        <li><a href="api/malthusjax.html#malthusjax.Composer.compare">compare() (malthusjax.Composer method)</a>
+        <li><a href="api/malthusjax.composer.html#malthusjax.composer.Composer.compare">compare() (malthusjax.composer.Composer method)</a>
 
         <ul>
-          <li><a href="api/malthusjax.composer.html#malthusjax.composer.Composer.compare">(malthusjax.composer.Composer method)</a>
-</li>
           <li><a href="api/malthusjax.composer.composer.html#malthusjax.composer.composer.Composer.compare">(malthusjax.composer.composer.Composer method)</a>
 </li>
         </ul></li>
@@ -1040,11 +1073,9 @@
           <li><a href="api/malthusjax.composer.html#malthusjax.composer.TensorneatBackendConfig.composable">(malthusjax.composer.TensorneatBackendConfig attribute)</a>
 </li>
         </ul></li>
-        <li><a href="api/malthusjax.html#malthusjax.Composer">Composer (class in malthusjax)</a>
+        <li><a href="api/malthusjax.composer.html#malthusjax.composer.Composer">Composer (class in malthusjax.composer)</a>
 
         <ul>
-          <li><a href="api/malthusjax.composer.html#malthusjax.composer.Composer">(class in malthusjax.composer)</a>
-</li>
           <li><a href="api/malthusjax.composer.composer.html#malthusjax.composer.composer.Composer">(class in malthusjax.composer.composer)</a>
 </li>
         </ul></li>
@@ -1096,8 +1127,6 @@
           <li><a href="api/malthusjax.html#malthusjax.BasePopulation.config">(malthusjax.BasePopulation attribute)</a>
 </li>
           <li><a href="api/malthusjax.html#malthusjax.BinarySumEvaluator.config">(malthusjax.BinarySumEvaluator attribute)</a>
-</li>
-          <li><a href="api/malthusjax.html#malthusjax.Composer.config">(malthusjax.Composer attribute)</a>
 </li>
           <li><a href="api/malthusjax.composer.html#malthusjax.composer.Composer.config">(malthusjax.composer.Composer attribute)</a>
 </li>
@@ -1210,11 +1239,9 @@
           <li><a href="api/malthusjax.core.fitness.html#malthusjax.core.fitness.SklearnEnv.create">(malthusjax.core.fitness.SklearnEnv class method)</a>
 </li>
         </ul></li>
-        <li><a href="api/malthusjax.html#malthusjax.Composer.create_default">create_default() (malthusjax.Composer class method)</a>
+        <li><a href="api/malthusjax.composer.html#malthusjax.composer.Composer.create_default">create_default() (malthusjax.composer.Composer class method)</a>
 
         <ul>
-          <li><a href="api/malthusjax.composer.html#malthusjax.composer.Composer.create_default">(malthusjax.composer.Composer class method)</a>
-</li>
           <li><a href="api/malthusjax.composer.composer.html#malthusjax.composer.composer.Composer.create_default">(malthusjax.composer.composer.Composer class method)</a>
 </li>
         </ul></li>
@@ -1304,6 +1331,8 @@
           <li><a href="api/malthusjax.operators.crossover.evosax_crossover.html#malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper.crossover_rate">(malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper attribute)</a>
 </li>
           <li><a href="api/malthusjax.operators.crossover.html#malthusjax.operators.crossover.EvosaxUniformCrossoverWrapper.crossover_rate">(malthusjax.operators.crossover.EvosaxUniformCrossoverWrapper attribute)</a>
+</li>
+          <li><a href="api/malthusjax.operators.crossover.html#malthusjax.operators.crossover.OrderCrossover.crossover_rate">(malthusjax.operators.crossover.OrderCrossover attribute)</a>
 </li>
           <li><a href="api/malthusjax.operators.crossover.real.html#malthusjax.operators.crossover.real.BinomialCrossover.crossover_rate">(malthusjax.operators.crossover.real.BinomialCrossover attribute)</a>
 </li>
@@ -1584,6 +1613,16 @@
           <li><a href="api/malthusjax.engine.html#malthusjax.engine.IslandEngineAdapter.engine">(malthusjax.engine.IslandEngineAdapter property)</a>
 </li>
         </ul></li>
+        <li><a href="api/malthusjax.benchmarking.html#malthusjax.benchmarking.BenchmarkRunner.engine_outputs">engine_outputs (malthusjax.benchmarking.BenchmarkRunner attribute)</a>
+
+        <ul>
+          <li><a href="api/malthusjax.benchmarking.runner.html#malthusjax.benchmarking.runner.BenchmarkRunner.engine_outputs">(malthusjax.benchmarking.runner.BenchmarkRunner attribute)</a>
+</li>
+          <li><a href="api/malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.ExperimentConfig.engine_outputs">(malthusjax.composer.experiment_config.ExperimentConfig attribute)</a>
+</li>
+          <li><a href="api/malthusjax.composer.html#malthusjax.composer.ExperimentConfig.engine_outputs">(malthusjax.composer.ExperimentConfig attribute)</a>
+</li>
+        </ul></li>
         <li><a href="api/malthusjax.html#malthusjax.AbstractEngine.engine_params">engine_params (malthusjax.AbstractEngine attribute)</a>
 
         <ul>
@@ -1602,6 +1641,12 @@
 
         <ul>
           <li><a href="api/malthusjax.composer.engine_factory.html#malthusjax.composer.engine_factory.EngineFactory">(class in malthusjax.composer.engine_factory)</a>
+</li>
+        </ul></li>
+        <li><a href="api/malthusjax.composer.html#malthusjax.composer.EngineOutputOptions">EngineOutputOptions (class in malthusjax.composer)</a>
+
+        <ul>
+          <li><a href="api/malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.EngineOutputOptions">(class in malthusjax.composer.engine_protocol)</a>
 </li>
         </ul></li>
         <li><a href="api/malthusjax.composer.html#malthusjax.composer.EngineRegistry">EngineRegistry (class in malthusjax.composer)</a>
@@ -1822,6 +1867,18 @@
           <li><a href="api/malthusjax.html#malthusjax.ScheduleType.EXPONENTIAL_DECAY">(malthusjax.ScheduleType attribute)</a>
 </li>
         </ul></li>
+        <li><a href="api/malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.EngineOutputOptions.export_archive">export_archive (malthusjax.composer.engine_protocol.EngineOutputOptions attribute)</a>
+
+        <ul>
+          <li><a href="api/malthusjax.composer.html#malthusjax.composer.EngineOutputOptions.export_archive">(malthusjax.composer.EngineOutputOptions attribute)</a>
+</li>
+        </ul></li>
+        <li><a href="api/malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.EngineOutputOptions.export_pareto">export_pareto (malthusjax.composer.engine_protocol.EngineOutputOptions attribute)</a>
+
+        <ul>
+          <li><a href="api/malthusjax.composer.html#malthusjax.composer.EngineOutputOptions.export_pareto">(malthusjax.composer.EngineOutputOptions attribute)</a>
+</li>
+        </ul></li>
         <li><a href="api/malthusjax.composer.html#malthusjax.composer.BackendConfig.extra_kwargs">extra_kwargs (malthusjax.composer.BackendConfig attribute)</a>
 
         <ul>
@@ -2026,11 +2083,9 @@
           <li><a href="api/malthusjax.html#malthusjax.RealGenome.from_tensor">(malthusjax.RealGenome class method)</a>
 </li>
         </ul></li>
-        <li><a href="api/malthusjax.html#malthusjax.Composer.from_toml">from_toml() (malthusjax.Composer class method)</a>
+        <li><a href="api/malthusjax.composer.html#malthusjax.composer.Composer.from_toml">from_toml() (malthusjax.composer.Composer class method)</a>
 
         <ul>
-          <li><a href="api/malthusjax.composer.html#malthusjax.composer.Composer.from_toml">(malthusjax.composer.Composer class method)</a>
-</li>
           <li><a href="api/malthusjax.composer.composer.html#malthusjax.composer.composer.Composer.from_toml">(malthusjax.composer.composer.Composer class method)</a>
 </li>
           <li><a href="api/malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.ExperimentConfig.from_toml">(malthusjax.composer.experiment_config.ExperimentConfig class method)</a>
@@ -2510,6 +2565,16 @@
           <li><a href="api/malthusjax.engine.html#malthusjax.engine.GeneticEngineParams.initial_strength">(malthusjax.engine.GeneticEngineParams attribute)</a>
 </li>
           <li><a href="api/malthusjax.html#malthusjax.GeneticEngineParams.initial_strength">(malthusjax.GeneticEngineParams attribute)</a>
+</li>
+        </ul></li>
+        <li><a href="api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.results.RunResult.initialization">initialization (malthusjax.benchmarking.results.RunResult attribute)</a>
+
+        <ul>
+          <li><a href="api/malthusjax.benchmarking.html#malthusjax.benchmarking.RunResult.initialization">(malthusjax.benchmarking.RunResult attribute)</a>
+</li>
+          <li><a href="api/malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.RunOutput.initialization">(malthusjax.composer.engine_protocol.RunOutput attribute)</a>
+</li>
+          <li><a href="api/malthusjax.composer.html#malthusjax.composer.RunOutput.initialization">(malthusjax.composer.RunOutput attribute)</a>
 </li>
         </ul></li>
         <li><a href="api/malthusjax.operators.crossover.evosax_crossover.html#malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper.injection_mode">injection_mode (malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper attribute)</a>
@@ -3677,6 +3742,8 @@
           <li><a href="api/malthusjax.html#malthusjax.RealGenome.normalize">(malthusjax.RealGenome method)</a>
 </li>
         </ul></li>
+        <li><a href="api/malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.normalize_output_aliases">normalize_output_aliases() (in module malthusjax.composer.experiment_config)</a>
+</li>
         <li><a href="api/malthusjax.composer.config.html#malthusjax.composer.config.normalize_seeds">normalize_seeds() (in module malthusjax.composer.config)</a>
 </li>
         <li><a href="api/malthusjax.benchmarking.html#malthusjax.benchmarking.ComparisonResult.normalized_runs">normalized_runs() (malthusjax.benchmarking.ComparisonResult method)</a>
@@ -3833,6 +3900,8 @@
           <li><a href="api/malthusjax.operators.crossover.evosax_crossover.html#malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper.num_keys_per_atomic_operation">(malthusjax.operators.crossover.evosax_crossover.EvosaxUniformCrossoverWrapper property)</a>
 </li>
           <li><a href="api/malthusjax.operators.crossover.html#malthusjax.operators.crossover.EvosaxUniformCrossoverWrapper.num_keys_per_atomic_operation">(malthusjax.operators.crossover.EvosaxUniformCrossoverWrapper property)</a>
+</li>
+          <li><a href="api/malthusjax.operators.crossover.html#malthusjax.operators.crossover.OrderCrossover.num_keys_per_atomic_operation">(malthusjax.operators.crossover.OrderCrossover property)</a>
 </li>
           <li><a href="api/malthusjax.operators.crossover.real.html#malthusjax.operators.crossover.real.BatchedUniformCrossover.num_keys_per_atomic_operation">(malthusjax.operators.crossover.real.BatchedUniformCrossover property)</a>
 </li>
@@ -4095,14 +4164,14 @@
 </li>
         <li><a href="api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.linear_gp_evaluator.op_or">op_or() (in module malthusjax.core.fitness.linear_gp_evaluator)</a>
 </li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.linear_gp_evaluator.op_pow">op_pow() (in module malthusjax.core.fitness.linear_gp_evaluator)</a>
 </li>
         <li><a href="api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.linear_gp_evaluator.op_sign">op_sign() (in module malthusjax.core.fitness.linear_gp_evaluator)</a>
 </li>
         <li><a href="api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.linear_gp_evaluator.op_sin">op_sin() (in module malthusjax.core.fitness.linear_gp_evaluator)</a>
 </li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.linear_gp_evaluator.op_sqrt">op_sqrt() (in module malthusjax.core.fitness.linear_gp_evaluator)</a>
 </li>
         <li><a href="api/malthusjax.core.fitness.linear_gp_evaluator.html#malthusjax.core.fitness.linear_gp_evaluator.op_sstep">op_sstep() (in module malthusjax.core.fitness.linear_gp_evaluator)</a>
@@ -4135,6 +4204,8 @@
         </ul></li>
         <li><a href="api/malthusjax.core.fitness.html#malthusjax.core.fitness.OptimizationEvaluator">OptimizationEvaluator (class in malthusjax.core.fitness)</a>
 </li>
+        <li><a href="api/malthusjax.operators.crossover.html#malthusjax.operators.crossover.OrderCrossover">OrderCrossover (class in malthusjax.operators.crossover)</a>
+</li>
         <li><a href="api/malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.ExperimentConfig.output">output (malthusjax.composer.experiment_config.ExperimentConfig attribute)</a>
 
         <ul>
@@ -4157,10 +4228,22 @@
           <li><a href="api/malthusjax.composer.html#malthusjax.composer.OutputConfig.output_dir">(malthusjax.composer.OutputConfig attribute)</a>
 </li>
         </ul></li>
+        <li><a href="api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.results.RunResult.output_status">output_status (malthusjax.benchmarking.results.RunResult attribute)</a>
+
+        <ul>
+          <li><a href="api/malthusjax.benchmarking.html#malthusjax.benchmarking.RunResult.output_status">(malthusjax.benchmarking.RunResult attribute)</a>
+</li>
+        </ul></li>
         <li><a href="api/malthusjax.composer.html#malthusjax.composer.OutputConfig">OutputConfig (class in malthusjax.composer)</a>
 
         <ul>
           <li><a href="api/malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.OutputConfig">(class in malthusjax.composer.experiment_config)</a>
+</li>
+        </ul></li>
+        <li><a href="api/malthusjax.composer.html#malthusjax.composer.OutputConfigurableEngine">OutputConfigurableEngine (class in malthusjax.composer)</a>
+
+        <ul>
+          <li><a href="api/malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.OutputConfigurableEngine">(class in malthusjax.composer.engine_protocol)</a>
 </li>
         </ul></li>
     </ul></td>
@@ -4181,6 +4264,12 @@
         </ul></li>
         <li><a href="api/malthusjax.composer.node.html#malthusjax.composer.node.Node.params">params (malthusjax.composer.node.Node attribute)</a>
 </li>
+        <li><a href="api/malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.RunOutput.pareto">pareto (malthusjax.composer.engine_protocol.RunOutput attribute)</a>
+
+        <ul>
+          <li><a href="api/malthusjax.composer.html#malthusjax.composer.RunOutput.pareto">(malthusjax.composer.RunOutput attribute)</a>
+</li>
+        </ul></li>
         <li><a href="api/malthusjax.composer.catalog.html#malthusjax.composer.catalog.OperatorCatalog.parse_spec">parse_spec() (malthusjax.composer.catalog.OperatorCatalog method)</a>
 
         <ul>
@@ -4287,6 +4376,8 @@
         </ul></li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="api/malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.population_fingerprint">population_fingerprint() (in module malthusjax.composer.engine_protocol)</a>
+</li>
         <li><a href="api/malthusjax.composer.html#malthusjax.composer.PopulationConfig">PopulationConfig (class in malthusjax.composer)</a>
 
         <ul>
@@ -4413,11 +4504,9 @@
     <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/malthusjax.core.fitness.html#malthusjax.core.fitness.QDOutput">QDOutput (class in malthusjax.core.fitness)</a>
 </li>
-        <li><a href="api/malthusjax.html#malthusjax.Composer.quick_run">quick_run() (malthusjax.Composer method)</a>
+        <li><a href="api/malthusjax.composer.html#malthusjax.composer.Composer.quick_run">quick_run() (malthusjax.composer.Composer method)</a>
 
         <ul>
-          <li><a href="api/malthusjax.composer.html#malthusjax.composer.Composer.quick_run">(malthusjax.composer.Composer method)</a>
-</li>
           <li><a href="api/malthusjax.composer.composer.html#malthusjax.composer.composer.Composer.quick_run">(malthusjax.composer.composer.Composer method)</a>
 </li>
         </ul></li>
@@ -4557,11 +4646,9 @@
 </li>
         <li><a href="api/malthusjax.composer.registry.html#malthusjax.composer.registry.Registry">Registry (class in malthusjax.composer.registry)</a>
 </li>
-        <li><a href="api/malthusjax.html#malthusjax.Composer.registry">registry (malthusjax.Composer attribute)</a>
+        <li><a href="api/malthusjax.composer.html#malthusjax.composer.Composer.registry">registry (malthusjax.composer.Composer attribute)</a>
 
         <ul>
-          <li><a href="api/malthusjax.composer.html#malthusjax.composer.Composer.registry">(malthusjax.composer.Composer attribute)</a>
-</li>
           <li><a href="api/malthusjax.composer.composer.html#malthusjax.composer.composer.Composer.registry">(malthusjax.composer.composer.Composer attribute)</a>
 </li>
         </ul></li>
@@ -4860,6 +4947,8 @@
 </li>
           <li><a href="api/malthusjax.operators.crossover.html#malthusjax.operators.crossover.EvosaxUniformCrossoverWrapper.replace">(malthusjax.operators.crossover.EvosaxUniformCrossoverWrapper method)</a>
 </li>
+          <li><a href="api/malthusjax.operators.crossover.html#malthusjax.operators.crossover.OrderCrossover.replace">(malthusjax.operators.crossover.OrderCrossover method)</a>
+</li>
           <li><a href="api/malthusjax.operators.crossover.real.html#malthusjax.operators.crossover.real.BatchedUniformCrossover.replace">(malthusjax.operators.crossover.real.BatchedUniformCrossover method)</a>
 </li>
           <li><a href="api/malthusjax.operators.crossover.real.html#malthusjax.operators.crossover.real.BinomialCrossover.replace">(malthusjax.operators.crossover.real.BinomialCrossover method)</a>
@@ -5025,6 +5114,8 @@
 </li>
         <li><a href="api/malthusjax.engine.resource_mapper.html#malthusjax.engine.resource_mapper.ResourceMap">ResourceMap (class in malthusjax.engine.resource_mapper)</a>
 </li>
+        <li><a href="api/malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.RunArtifactOptions.retain_history">retain_history (malthusjax.composer.experiment_config.RunArtifactOptions attribute)</a>
+</li>
         <li><a href="api/malthusjax.engine.base.html#malthusjax.engine.base.PreparedEvolution.return_history">return_history (malthusjax.engine.base.PreparedEvolution attribute)</a>
 </li>
         <li><a href="api/malthusjax.engine.html#malthusjax.engine.RingTopologyIsland">RingTopologyIsland (class in malthusjax.engine)</a>
@@ -5095,6 +5186,20 @@
           <li><a href="api/malthusjax.engine.html#malthusjax.engine.IslandEngineAdapter.run_once">(malthusjax.engine.IslandEngineAdapter method)</a>
 </li>
         </ul></li>
+        <li><a href="api/malthusjax.composer.engine_factory.html#malthusjax.composer.engine_factory.GeneticEngineAdapter.run_with_options">run_with_options() (malthusjax.composer.engine_factory.GeneticEngineAdapter method)</a>
+
+        <ul>
+          <li><a href="api/malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.OutputConfigurableEngine.run_with_options">(malthusjax.composer.engine_protocol.OutputConfigurableEngine method)</a>
+</li>
+          <li><a href="api/malthusjax.composer.html#malthusjax.composer.MOEngineAdapter.run_with_options">(malthusjax.composer.MOEngineAdapter method)</a>
+</li>
+          <li><a href="api/malthusjax.composer.html#malthusjax.composer.OutputConfigurableEngine.run_with_options">(malthusjax.composer.OutputConfigurableEngine method)</a>
+</li>
+          <li><a href="api/malthusjax.engine.html#malthusjax.engine.IslandEngineAdapter.run_with_options">(malthusjax.engine.IslandEngineAdapter method)</a>
+</li>
+        </ul></li>
+        <li><a href="api/malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.RunArtifactOptions">RunArtifactOptions (class in malthusjax.composer.experiment_config)</a>
+</li>
         <li><a href="api/malthusjax.composer.html#malthusjax.composer.RunOutput">RunOutput (class in malthusjax.composer)</a>
 
         <ul>
@@ -5349,14 +5454,14 @@
           <li><a href="api/malthusjax.operators.crossover.real.html#malthusjax.operators.crossover.real.SimulatedBinaryCrossover">(class in malthusjax.operators.crossover.real)</a>
 </li>
         </ul></li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/malthusjax.operators.crossover.html#malthusjax.operators.crossover.SimulatedBinaryCrossover_injection">SimulatedBinaryCrossover_injection (class in malthusjax.operators.crossover)</a>
 
         <ul>
           <li><a href="api/malthusjax.operators.crossover.real.html#malthusjax.operators.crossover.real.SimulatedBinaryCrossover_injection">(class in malthusjax.operators.crossover.real)</a>
 </li>
         </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/malthusjax.operators.html#malthusjax.operators.SinglePointCrossover">SinglePointCrossover (class in malthusjax.operators)</a>
 
         <ul>
@@ -5401,6 +5506,16 @@
         </ul></li>
         <li><a href="api/malthusjax.core.fitness.html#malthusjax.core.fitness.SklearnEnv">SklearnEnv (class in malthusjax.core.fitness)</a>
 </li>
+        <li><a href="api/malthusjax.benchmarking.results.html#malthusjax.benchmarking.results.RunResult.solution">solution (malthusjax.benchmarking.results.RunResult attribute)</a>
+
+        <ul>
+          <li><a href="api/malthusjax.benchmarking.html#malthusjax.benchmarking.RunResult.solution">(malthusjax.benchmarking.RunResult attribute)</a>
+</li>
+          <li><a href="api/malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.RunOutput.solution">(malthusjax.composer.engine_protocol.RunOutput attribute)</a>
+</li>
+          <li><a href="api/malthusjax.composer.html#malthusjax.composer.RunOutput.solution">(malthusjax.composer.RunOutput attribute)</a>
+</li>
+        </ul></li>
         <li><a href="api/malthusjax.html#malthusjax.BasePopulation.spawn_offspring">spawn_offspring() (malthusjax.BasePopulation method)</a>
 
         <ul>
@@ -5830,6 +5945,16 @@
         <ul>
           <li><a href="api/malthusjax.benchmarking.html#malthusjax.benchmarking.RunResult.unavailable_metrics">(malthusjax.benchmarking.RunResult attribute)</a>
 </li>
+          <li><a href="api/malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.RunOutput.unavailable_metrics">(malthusjax.composer.engine_protocol.RunOutput attribute)</a>
+</li>
+          <li><a href="api/malthusjax.composer.html#malthusjax.composer.RunOutput.unavailable_metrics">(malthusjax.composer.RunOutput attribute)</a>
+</li>
+        </ul></li>
+        <li><a href="api/malthusjax.composer.engine_protocol.html#malthusjax.composer.engine_protocol.RunOutput.unavailable_outputs">unavailable_outputs (malthusjax.composer.engine_protocol.RunOutput attribute)</a>
+
+        <ul>
+          <li><a href="api/malthusjax.composer.html#malthusjax.composer.RunOutput.unavailable_outputs">(malthusjax.composer.RunOutput attribute)</a>
+</li>
         </ul></li>
         <li><a href="api/malthusjax.operators.html#malthusjax.operators.UniformCrossover">UniformCrossover (class in malthusjax.operators)</a>
 
@@ -5843,14 +5968,14 @@
         </ul></li>
         <li><a href="api/malthusjax.operators.crossover.real.html#malthusjax.operators.crossover.real.UniformCrossover_injection">UniformCrossover_injection (class in malthusjax.operators.crossover.real)</a>
 </li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/malthusjax.html#malthusjax.uninstall_crash_handler">uninstall_crash_handler() (in module malthusjax)</a>
 
         <ul>
           <li><a href="api/malthusjax.core.html#malthusjax.core.uninstall_crash_handler">(in module malthusjax.core)</a>
 </li>
         </ul></li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/malthusjax.html#malthusjax.AbstractEngineParams.unroll_num">unroll_num (malthusjax.AbstractEngineParams attribute)</a>
 
         <ul>
@@ -5967,6 +6092,8 @@
           <li><a href="api/malthusjax.benchmarking.io.html#malthusjax.benchmarking.io.write_histories_csv">(in module malthusjax.benchmarking.io)</a>
 </li>
         </ul></li>
+        <li><a href="api/malthusjax.composer.experiment_config.html#malthusjax.composer.experiment_config.RunArtifactOptions.write_history_csv">write_history_csv (malthusjax.composer.experiment_config.RunArtifactOptions attribute)</a>
+</li>
         <li><a href="api/malthusjax.benchmarking.html#malthusjax.benchmarking.write_summary_json">write_summary_json() (in module malthusjax.benchmarking)</a>
 
         <ul>

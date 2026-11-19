@@ -193,6 +193,8 @@
   <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../toml_guide.html">TOML experiments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../research_workflows.html">Research workflows</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../2-CORE_ABSTRACTIONS.html">Core Abstractions: Genomes, Populations, and Fitness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../3-GENETIC_OPERATORS.html">Genetic Operators: Selection, Variation, and Emitters</a></li>
@@ -203,6 +205,7 @@
 <p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extension_cli_guide.html">Develop a local extension</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
@@ -260,10 +263,8 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/malthusjax.core.html">malthusjax.core package</a><input aria-label="Toggle navigation of malthusjax.core package" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/malthusjax.core.fitness.html">malthusjax.core.fitness package</a><input aria-label="Toggle navigation of malthusjax.core.fitness package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.base.html">malthusjax.core.fitness.base module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.bbob_evaluator.html">malthusjax.core.fitness.bbob_evaluator module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.binary_evaluators.html">malthusjax.core.fitness.binary_evaluators module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.linear_gp_evaluator.html">malthusjax.core.fitness.linear_gp_evaluator module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../api/malthusjax.core.fitness.real_evaluators.html">malthusjax.core.fitness.real_evaluators module</a></li>
 </ul>
 </li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/malthusjax.core.genome.html">malthusjax.core.genome package</a><input aria-label="Toggle navigation of malthusjax.core.genome package" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -346,15 +347,19 @@
 <span></span><span class="sd">"""Unified CLI interface for MalthusJAX benchmarking and analysis."""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.benchmarking.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_experiment_artifacts</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Composer</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.catalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorCatalog</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.composer.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_experiment_config</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.diagnostics</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_environment_diagnostics</span><span class="p">,</span> <span class="n">uninstall_crash_handler</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.core.logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">configure_logging</span><span class="p">,</span> <span class="n">get_logger</span>
 
@@ -383,36 +388,119 @@
     <span class="n">data_dir</span> <span class="o">=</span> <span class="n">out_dir</span> <span class="o">/</span> <span class="s2">"data"</span>
     <span class="n">data_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">pipe_name</span><span class="p">,</span> <span class="n">exp_result</span> <span class="ow">in</span> <span class="n">comparison</span><span class="o">.</span><span class="n">pipelines</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">pipe_dir</span> <span class="o">=</span> <span class="n">data_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"pipeline_</span><span class="si">{</span><span class="n">pipe_name</span><span class="si">}</span><span class="s2">"</span>
-        <span class="n">pipe_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">run_result</span> <span class="ow">in</span> <span class="n">exp_result</span><span class="o">.</span><span class="n">runs</span><span class="p">:</span>
-            <span class="n">seed</span> <span class="o">=</span> <span class="n">run_result</span><span class="o">.</span><span class="n">seed</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">pipe_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"seed_</span><span class="si">{</span><span class="n">seed</span><span class="si">}</span><span class="s2">.json"</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">run_result</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">manifest</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"schema_version"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"pipelines"</span><span class="p">:</span> <span class="p">{}}</span>
+    <span class="n">history_rows</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">csv_enabled</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">experiment</span> <span class="ow">in</span> <span class="n">comparison</span><span class="o">.</span><span class="n">pipelines</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">_validate_pipeline_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">pipe_dir</span> <span class="o">=</span> <span class="n">data_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"pipeline_</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">pipe_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">()</span>
+        <span class="n">records</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="n">experiment</span><span class="o">.</span><span class="n">runs</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">artifact_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"archive"</span><span class="p">,</span> <span class="s2">"pareto"</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">artifact_name</span> <span class="ow">in</span> <span class="n">run</span><span class="o">.</span><span class="n">artifacts</span><span class="p">:</span>
+                    <span class="n">run</span><span class="o">.</span><span class="n">artifacts</span><span class="p">[</span><span class="n">artifact_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">Path</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">artifacts</span><span class="p">[</span><span class="n">artifact_name</span><span class="p">])</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">out_dir</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>
+                    <span class="p">)</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">pipe_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"seed_</span><span class="si">{</span><span class="n">run</span><span class="o">.</span><span class="n">seed</span><span class="si">}</span><span class="s2">.json"</span>
+            <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"x"</span><span class="p">)</span> <span class="k">as</span> <span class="n">stream</span><span class="p">:</span>
+                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="n">stream</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">allow_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">records</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">seed</span><span class="p">)]</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">out_dir</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="n">experiment</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"output_options"</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">write_history</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"write_history_csv"</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">csv_enabled</span> <span class="o">|=</span> <span class="n">write_history</span>
+        <span class="n">manifest</span><span class="p">[</span><span class="s2">"pipelines"</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"records"</span><span class="p">:</span> <span class="n">records</span><span class="p">,</span>
+            <span class="s2">"output_options"</span><span class="p">:</span> <span class="n">options</span><span class="p">,</span>
+            <span class="s2">"maximize"</span><span class="p">:</span> <span class="n">comparison</span><span class="o">.</span><span class="n">negate_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="n">write_experiment_artifacts</span><span class="p">(</span>
+            <span class="n">experiment</span><span class="p">,</span> <span class="n">out_dir</span> <span class="o">/</span> <span class="s2">"exports"</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"pipeline_</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">write_history_csv</span><span class="o">=</span><span class="n">write_history</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">write_history</span><span class="p">:</span>
+            <span class="n">history_rows</span><span class="o">.</span><span class="n">extend</span><span class="p">({</span><span class="o">**</span><span class="n">row</span><span class="p">,</span> <span class="s2">"pipeline"</span><span class="p">:</span> <span class="n">name</span><span class="p">}</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">experiment</span><span class="o">.</span><span class="n">combined_history</span><span class="p">())</span>
+
+    <span class="k">if</span> <span class="n">csv_enabled</span><span class="p">:</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"pipeline"</span><span class="p">,</span> <span class="s2">"seed"</span><span class="p">}</span>
+        <span class="n">fields</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">key</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">history_rows</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">row</span><span class="p">)</span>
+        <span class="k">with</span> <span class="p">(</span><span class="n">out_dir</span> <span class="o">/</span> <span class="s2">"histories_combined.csv"</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"w"</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">""</span><span class="p">)</span> <span class="k">as</span> <span class="n">stream</span><span class="p">:</span>
+            <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictWriter</span><span class="p">(</span>
+                <span class="n">stream</span><span class="p">,</span> <span class="n">fieldnames</span><span class="o">=</span><span class="p">[</span><span class="s2">"pipeline"</span><span class="p">,</span> <span class="s2">"seed"</span><span class="p">,</span> <span class="o">*</span><span class="nb">sorted</span><span class="p">(</span><span class="n">fields</span> <span class="o">-</span> <span class="p">{</span><span class="s2">"pipeline"</span><span class="p">,</span> <span class="s2">"seed"</span><span class="p">})]</span>
+            <span class="p">)</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">writeheader</span><span class="p">()</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="n">history_rows</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">meta_dir</span> <span class="o">/</span> <span class="s2">"run_manifest.json"</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_validate_pipeline_name</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span> <span class="ow">or</span> <span class="s2">"/"</span> <span class="ow">in</span> <span class="n">name</span> <span class="ow">or</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">"</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Invalid pipeline name for result export: </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_run_comparison</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="n">config_path</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">config</span>
+    <span class="n">config_bytes</span> <span class="o">=</span> <span class="n">config_path</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">load_experiment_config</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">config_path</span><span class="p">),</span> <span class="n">contents</span><span class="o">=</span><span class="n">config_bytes</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">pipelines</span><span class="p">:</span>
+        <span class="n">_validate_pipeline_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">shared</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s2">"shared"</span><span class="p">]</span>
+    <span class="n">configured_dir</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">"output_dir"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="n">shared</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"output_dir"</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="n">config</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"output_dir"</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">out_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">configured_dir</span> <span class="ow">or</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"results"</span><span class="p">)</span> <span class="o">/</span> <span class="n">config_path</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span><span class="o">.</span><span class="n">absolute</span><span class="p">()</span>
+    <span class="n">out_dir</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Reserve the destination before optimization. The staged directory is on</span>
+    <span class="c1"># the same filesystem so publishing it is one rename.</span>
+    <span class="n">lock</span> <span class="o">=</span> <span class="n">out_dir</span><span class="o">.</span><span class="n">with_name</span><span class="p">(</span><span class="sa">f</span><span class="s2">".</span><span class="si">{</span><span class="n">out_dir</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.lock"</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">lock</span><span class="o">.</span><span class="n">mkdir</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">FileExistsError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Result destination is reserved: </span><span class="si">{</span><span class="n">out_dir</span><span class="si">}</span><span class="s2">. Choose a fresh --output-dir."</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">out_dir</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">or</span> <span class="n">out_dir</span><span class="o">.</span><span class="n">is_symlink</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Result directory already exists: </span><span class="si">{</span><span class="n">out_dir</span><span class="si">}</span><span class="s2">. Choose a fresh --output-dir."</span>
+            <span class="p">)</span>
+        <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">(</span>
+            <span class="n">prefix</span><span class="o">=</span><span class="sa">f</span><span class="s2">".</span><span class="si">{</span><span class="n">out_dir</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-"</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=</span><span class="n">out_dir</span><span class="o">.</span><span class="n">parent</span>
+        <span class="p">)</span> <span class="k">as</span> <span class="n">temporary</span><span class="p">:</span>
+            <span class="n">staged</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">temporary</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"run"</span>
+            <span class="n">snapshot</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">temporary</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"config_snapshot.toml"</span>
+            <span class="n">snapshot</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">config_bytes</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Running experiment from </span><span class="si">%s</span><span class="s2">..."</span><span class="p">,</span> <span class="n">config_path</span><span class="p">)</span>
+            <span class="n">started</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+            <span class="n">comparison</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">from_toml</span><span class="p">(</span>
+                <span class="n">snapshot</span><span class="p">,</span>
+                <span class="n">log_interval</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">"log_interval"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="n">configure_log</span><span class="o">=</span><span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">"_cli_logging_configured"</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+                <span class="n">write_artifacts</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">artifact_root</span><span class="o">=</span><span class="n">staged</span> <span class="o">/</span> <span class="s2">"exports"</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">_dump_results</span><span class="p">(</span><span class="n">comparison</span><span class="p">,</span> <span class="n">staged</span><span class="p">,</span> <span class="n">snapshot</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">out_dir</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">or</span> <span class="n">out_dir</span><span class="o">.</span><span class="n">is_symlink</span><span class="p">():</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Result directory appeared during execution: </span><span class="si">{</span><span class="n">out_dir</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">staged</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">out_dir</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s2">"Experiment complete in </span><span class="si">%.2f</span><span class="s2">s. Results saved to </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">started</span><span class="p">,</span>
+                <span class="n">out_dir</span><span class="p">,</span>
+            <span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">lock</span><span class="o">.</span><span class="n">rmdir</span><span class="p">()</span>
+    <span class="k">return</span> <span class="mi">0</span>
 
 
 <div class="viewcode-block" id="handle_run">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.cli.html#malthusjax.benchmarking.cli.handle_run">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">handle_run</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Handle `mjax run`."""</span>
-    <span class="n">config_path</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">config</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Running experiment from </span><span class="si">%s</span><span class="s2">..."</span><span class="p">,</span> <span class="n">config_path</span><span class="p">)</span>
-    <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-    <span class="n">comparison</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">from_toml</span><span class="p">(</span>
-        <span class="n">config_path</span><span class="p">,</span>
-        <span class="n">shared_initial_population</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">log_interval</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">"log_interval"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-        <span class="n">configure_log</span><span class="o">=</span><span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">"_cli_logging_configured"</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
-    <span class="p">)</span>
-    <span class="n">dur</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span>
-
-    <span class="n">out_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"results"</span><span class="p">)</span> <span class="o">/</span> <span class="n">config_path</span><span class="o">.</span><span class="n">stem</span>
-    <span class="n">_dump_results</span><span class="p">(</span><span class="n">comparison</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">,</span> <span class="n">config_path</span><span class="p">)</span>
-
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Experiment complete in </span><span class="si">%.2f</span><span class="s2">s."</span><span class="p">,</span> <span class="n">dur</span><span class="p">)</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Raw data saved to </span><span class="si">%s</span><span class="s2">/data"</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">)</span>
-    <span class="k">return</span> <span class="mi">0</span></div>
+    <span class="k">return</span> <span class="n">_run_comparison</span><span class="p">(</span><span class="n">args</span><span class="p">)</span></div>
 
 
 
@@ -420,24 +508,7 @@
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.cli.html#malthusjax.benchmarking.cli.handle_parity">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">handle_parity</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Handle `mjax parity`."""</span>
-    <span class="n">config_path</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">config</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Running statistical parity execution from </span><span class="si">%s</span><span class="s2">..."</span><span class="p">,</span> <span class="n">config_path</span><span class="p">)</span>
-    <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-    <span class="c1"># parity implies enforcing a shared initial pop for exact alignment</span>
-    <span class="n">comparison</span> <span class="o">=</span> <span class="n">Composer</span><span class="o">.</span><span class="n">from_toml</span><span class="p">(</span>
-        <span class="n">config_path</span><span class="p">,</span>
-        <span class="n">shared_initial_population</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">log_interval</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">"log_interval"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-        <span class="n">configure_log</span><span class="o">=</span><span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">"_cli_logging_configured"</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
-    <span class="p">)</span>
-    <span class="n">dur</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span>
-
-    <span class="n">out_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"results"</span><span class="p">)</span> <span class="o">/</span> <span class="n">config_path</span><span class="o">.</span><span class="n">stem</span>
-    <span class="n">_dump_results</span><span class="p">(</span><span class="n">comparison</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">,</span> <span class="n">config_path</span><span class="p">)</span>
-
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Parity execution complete in </span><span class="si">%.2f</span><span class="s2">s."</span><span class="p">,</span> <span class="n">dur</span><span class="p">)</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Raw data saved to </span><span class="si">%s</span><span class="s2">/data"</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">)</span>
-    <span class="k">return</span> <span class="mi">0</span></div>
+    <span class="k">return</span> <span class="n">_run_comparison</span><span class="p">(</span><span class="n">args</span><span class="p">)</span></div>
 
 
 
@@ -453,17 +524,50 @@
 <span class="w">    </span><span class="sd">"""Rebuild a ComparisonResult from the disk schema."""</span>
     <span class="n">data_dir</span> <span class="o">=</span> <span class="n">results_dir</span> <span class="o">/</span> <span class="s2">"data"</span>
     <span class="n">pipelines</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">pipe_dir</span> <span class="ow">in</span> <span class="n">data_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"pipeline_*"</span><span class="p">):</span>
-        <span class="n">pipe_name</span> <span class="o">=</span> <span class="n">pipe_dir</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"pipeline_"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
-        <span class="n">runs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">seed_file</span> <span class="ow">in</span> <span class="n">pipe_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"seed_*.json"</span><span class="p">):</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">seed_file</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-                <span class="c1"># handle if it was just dumped via run_result.to_dict()</span>
-                <span class="n">runs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RunResult</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
-        <span class="n">pipelines</span><span class="p">[</span><span class="n">pipe_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">ExperimentResult</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">pipe_name</span><span class="p">,</span> <span class="n">runs</span><span class="o">=</span><span class="n">runs</span><span class="p">)</span>
+    <span class="n">negate_map</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">manifest_path</span> <span class="o">=</span> <span class="n">results_dir</span> <span class="o">/</span> <span class="s2">"metadata"</span> <span class="o">/</span> <span class="s2">"run_manifest.json"</span>
+    <span class="k">if</span> <span class="n">manifest_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">manifest</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">manifest_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"schema_version"</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unsupported run manifest version in </span><span class="si">{</span><span class="n">manifest_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">expected</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">manifest</span><span class="p">[</span><span class="s2">"pipelines"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">_validate_pipeline_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">negate_map</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"maximize"</span><span class="p">]</span>
+            <span class="n">runs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">seed</span><span class="p">,</span> <span class="n">relative</span> <span class="ow">in</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"records"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">relative</span> <span class="o">!=</span> <span class="sa">f</span><span class="s2">"data/pipeline_</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">/seed_</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span><span class="si">}</span><span class="s2">.json"</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Invalid seed record path in run manifest: </span><span class="si">{</span><span class="n">relative</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="n">expected</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">relative</span><span class="p">)</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="n">results_dir</span> <span class="o">/</span> <span class="n">relative</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Missing manifest seed record: </span><span class="si">{</span><span class="n">relative</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="n">run</span> <span class="o">=</span> <span class="n">RunResult</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">read_text</span><span class="p">()))</span>
+                <span class="k">if</span> <span class="n">run</span><span class="o">.</span><span class="n">seed</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">(</span><span class="n">seed</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Seed does not match manifest record: </span><span class="si">{</span><span class="n">relative</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="n">runs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">run</span><span class="p">)</span>
+            <span class="n">pipelines</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">ExperimentResult</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">runs</span><span class="o">=</span><span class="n">runs</span><span class="p">)</span>
+        <span class="n">actual</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">results_dir</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">data_dir</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="s2">"seed_*.json"</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">actual</span> <span class="o">!=</span> <span class="n">expected</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Unexpected seed records outside run manifest: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">actual</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">expected</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s2">"Legacy result directory </span><span class="si">%s</span><span class="s2"> has no run manifest. Seed membership is unverified."</span><span class="p">,</span>
+            <span class="n">results_dir</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">pipe_dir</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">data_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"pipeline_*"</span><span class="p">)):</span>
+            <span class="n">pipe_name</span> <span class="o">=</span> <span class="n">pipe_dir</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="s2">"pipeline_"</span><span class="p">)</span>
+            <span class="n">runs</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">RunResult</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">read_text</span><span class="p">()))</span>
+                <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pipe_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"seed_*.json"</span><span class="p">))</span>
+            <span class="p">]</span>
+            <span class="n">pipelines</span><span class="p">[</span><span class="n">pipe_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">ExperimentResult</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">pipe_name</span><span class="p">,</span> <span class="n">runs</span><span class="o">=</span><span class="n">runs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ComparisonResult</span><span class="p">(</span>
-        <span class="n">pipelines</span><span class="o">=</span><span class="n">pipelines</span><span class="p">,</span> <span class="n">shared_config</span><span class="o">=</span><span class="p">{},</span> <span class="n">initial_population</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">negate_map</span><span class="o">=</span><span class="p">{}</span>
+        <span class="n">pipelines</span><span class="o">=</span><span class="n">pipelines</span><span class="p">,</span> <span class="n">shared_config</span><span class="o">=</span><span class="p">{},</span> <span class="n">initial_population</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">negate_map</span><span class="o">=</span><span class="n">negate_map</span>
     <span class="p">)</span>
 
 
@@ -681,6 +785,12 @@
 
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_show_skill</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">malthusjax.skill</span><span class="w"> </span><span class="kn">import</span> <span class="n">main</span> <span class="k">as</span> <span class="n">skill_main</span>
+
+    <span class="k">return</span> <span class="n">skill_main</span><span class="p">([])</span>
+
+
 <div class="viewcode-block" id="main">
 <a class="viewcode-back" href="../../../api/malthusjax.benchmarking.cli.html#malthusjax.benchmarking.cli.main">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -737,6 +847,7 @@
         <span class="s2">"run"</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">log_parser</span><span class="p">],</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Run an experiment from a TOML config"</span>
     <span class="p">)</span>
     <span class="n">parser_run</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"config"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Path to experiment TOML config"</span><span class="p">)</span>
+    <span class="n">parser_run</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--output-dir"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Fresh result directory"</span><span class="p">)</span>
     <span class="n">parser_run</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">handle_run</span><span class="p">)</span>
 
     <span class="c1"># 2. PARITY</span>
@@ -746,6 +857,7 @@
         <span class="n">help</span><span class="o">=</span><span class="s2">"Run seed-aligned statistical parity between pipelines"</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser_parity</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"config"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Path to parity TOML config"</span><span class="p">)</span>
+    <span class="n">parser_parity</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--output-dir"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Fresh result directory"</span><span class="p">)</span>
     <span class="n">parser_parity</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">handle_parity</span><span class="p">)</span>
 
     <span class="c1"># 3. ANALYZE</span>
@@ -794,6 +906,9 @@
         <span class="n">help</span><span class="o">=</span><span class="s2">"One or more experiment result directories"</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser_aggregate</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">handle_aggregate</span><span class="p">)</span>
+
+    <span class="n">skill_parser</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"skill"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Print the bundled agent skill"</span><span class="p">)</span>
+    <span class="n">skill_parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">_show_skill</span><span class="p">)</span>
 
     <span class="c1"># 7. CATALOG</span>
     <span class="n">parser_catalog</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>

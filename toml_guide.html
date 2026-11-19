@@ -3,10 +3,10 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="Developer &amp; Framework Guides" href="framework_guides/index.html"><link rel="prev" title="Extension CLI Guide: Building MalthusJAX Projects" href="extension_cli_guide.html">
+<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="Research workflows" href="research_workflows.html"><link rel="prev" title="Quick Start" href="quickstart.html">
 
-    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
-        <title>TOML Configuration &amp; Scaffolding Guide - MalthusJAX documentation</title>
+    <!-- Generated with Sphinx 9.1.1 and Furo 2025.12.19 -->
+        <title>TOML experiments - MalthusJAX documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -192,8 +192,10 @@
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">TOML experiments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="research_workflows.html">Research workflows</a></li>
 <li class="toctree-l1"><a class="reference internal" href="1-ARCHITECTURE_DEEP_DIVE.html">Architecture Deep Dive: MalthusJAX Framework</a></li>
 <li class="toctree-l1"><a class="reference internal" href="2-CORE_ABSTRACTIONS.html">Core Abstractions: Genomes, Populations, and Fitness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="3-GENETIC_OPERATORS.html">Genetic Operators: Selection, Variation, and Emitters</a></li>
@@ -202,10 +204,9 @@
 <li class="toctree-l1"><a class="reference internal" href="6-BENCHMARKING_FRAMEWORK.html">Benchmarking Framework: Multi-Seed Execution and Results Schema</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Developer &amp; Architecture Guides:</span></p>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="evaluator_design.html">Evaluator Architecture: Composable Fitness Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="extension_cli_guide.html">Extension CLI Guide: Building MalthusJAX Projects</a></li>
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">TOML Configuration &amp; Scaffolding Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extension_cli_guide.html">Develop a local extension</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="framework_guides/index.html">Developer &amp; Framework Guides</a><input aria-label="Toggle navigation of Developer &amp; Framework Guides" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="framework_guides/level_1_core_guide.html">Level 1: The Core – Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="framework_guides/level_2_operators_guide.html">Level 2: Operators &amp; Emitters – Guide</a></li>
@@ -263,10 +264,8 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="api/malthusjax.core.html">malthusjax.core package</a><input aria-label="Toggle navigation of malthusjax.core package" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.core.fitness.html">malthusjax.core.fitness package</a><input aria-label="Toggle navigation of malthusjax.core.fitness package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.base.html">malthusjax.core.fitness.base module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.bbob_evaluator.html">malthusjax.core.fitness.bbob_evaluator module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.binary_evaluators.html">malthusjax.core.fitness.binary_evaluators module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.linear_gp_evaluator.html">malthusjax.core.fitness.linear_gp_evaluator module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/malthusjax.core.fitness.real_evaluators.html">malthusjax.core.fitness.real_evaluators module</a></li>
 </ul>
 </li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="api/malthusjax.core.genome.html">malthusjax.core.genome package</a><input aria-label="Toggle navigation of malthusjax.core.genome package" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -346,408 +345,22 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="toml-configuration-scaffolding-guide">
-<h1>TOML Configuration &amp; Scaffolding Guide<a class="headerlink" href="#toml-configuration-scaffolding-guide" title="Link to this heading">¶</a></h1>
-<p>MalthusJAX uses declarative TOML configurations to manage experiments, benchmark suites, cross-backend comparisons, and automated parameter sweeps.</p>
-<p>This guide explains the dual-architecture configuration system, how inheritance and conflict resolution operate, how to control PRNG algorithms and capture Perfetto execution traces, and how to rapidly scaffold configurations using <code class="docutils literal notranslate"><span class="pre">scripts/scaffold_toml.py</span></code>.</p>
-<hr class="docutils" />
-<section id="dual-architecture-overview">
-<h2>1. Dual-Architecture Overview<a class="headerlink" href="#dual-architecture-overview" title="Link to this heading">¶</a></h2>
-<p>MalthusJAX separates experiment specifications into two specialized schemas:</p>
-<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>graph TD
-    subgraph S1["Schema 1: Composer Experiment Config"]
-        T1["experiment.toml"] --&gt; P1["Composer.from_toml()&lt;br&gt;Composer.quick_run()"]
-        P1 --&gt; CLI1["mjax run&lt;br&gt;mjax parity"]
-    end
-
-    subgraph S2["Schema 2: Benchmarking Suite Config"]
-        T2["suite_config.toml"] --&gt; P2["BenchmarkConfig.from_toml()&lt;br&gt;generate_grid()"]
-        P2 --&gt; CLI2["python scripts/benchmark_runner.py"]
-    end
-
-    CLI1 --&gt; RES["results/&lt;experiment_name&gt;/"]
-    CLI2 --&gt; RES
-</pre></div>
-</div>
-<div class="table-wrapper colwidths-auto docutils container">
-<table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head text-left"><p>Dimension</p></th>
-<th class="head text-left"><p>Schema 1: Composer Experiment TOML</p></th>
-<th class="head text-left"><p>Schema 2: Benchmarking Suite TOML</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td class="text-left"><p><strong>Primary Parser</strong></p></td>
-<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">malthusjax.composer.config.load_experiment_config</span></code></p></td>
-<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">malthusjax.benchmarking.config.BenchmarkConfig.from_toml</span></code></p></td>
-</tr>
-<tr class="row-odd"><td class="text-left"><p><strong>Primary Executor</strong></p></td>
-<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">malthusjax.composer.Composer.from_toml</span></code></p></td>
-<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">scripts/benchmark_runner.py</span></code></p></td>
-</tr>
-<tr class="row-even"><td class="text-left"><p><strong>CLI Commands</strong></p></td>
-<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">mjax</span> <span class="pre">run</span> <span class="pre">&lt;config&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">mjax</span> <span class="pre">parity</span> <span class="pre">&lt;config&gt;</span></code></p></td>
-<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">scripts/benchmark_runner.py</span> <span class="pre">&lt;config&gt;</span></code></p></td>
-</tr>
-<tr class="row-odd"><td class="text-left"><p><strong>Core Intent</strong></p></td>
-<td class="text-left"><p>Single runs, multi-operator ablations, cross-backend comparisons, composable RL</p></td>
-<td class="text-left"><p>Systematic Cartesian grids &amp; Latin Hypercube Sampling (LHS) sweeps</p></td>
-</tr>
-<tr class="row-even"><td class="text-left"><p><strong>Root Sections</strong></p></td>
-<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">[experiment]</span></code>, <code class="docutils literal notranslate"><span class="pre">[logging]</span></code>, <code class="docutils literal notranslate"><span class="pre">[data]</span></code>, <code class="docutils literal notranslate"><span class="pre">[pipelines]</span></code></p></td>
-<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">[suite]</span></code>, <code class="docutils literal notranslate"><span class="pre">[grid]</span></code>, <code class="docutils literal notranslate"><span class="pre">[analysis]</span></code>, <code class="docutils literal notranslate"><span class="pre">[pipelines]</span></code></p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</section>
-<hr class="docutils" />
-<section id="composer-experiment-configurations-schema-1">
-<h2>2. Composer Experiment Configurations (Schema 1)<a class="headerlink" href="#composer-experiment-configurations-schema-1" title="Link to this heading">¶</a></h2>
-<section id="the-top-level-experiment-section">
-<h3>2.1 The Top-Level <code class="docutils literal notranslate"><span class="pre">[experiment]</span></code> Section<a class="headerlink" href="#the-top-level-experiment-section" title="Link to this heading">¶</a></h3>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[experiment]</span>
-<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"sphere_comparison"</span><span class="w">           </span><span class="c1"># Unique experiment name (used for output folders)</span>
-<span class="n">output_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"results/sphere_study"</span><span class="w">   </span><span class="c1"># Directory where metadata/, data/, and traces are written</span>
-<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Compare operators on 25D sphere"</span>
-<span class="n">seeds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">42</span><span class="p">,</span><span class="w"> </span><span class="mi">43</span><span class="p">,</span><span class="w"> </span><span class="mi">44</span><span class="p">]</span><span class="w">                  </span><span class="c1"># Seeds list or integer count (e.g. 5 -&gt; seeds 1..5)</span>
-</pre></div>
-</div>
-</section>
-<hr class="docutils" />
-<section id="unified-logging-logging">
-<h3>2.2 Unified Logging: <code class="docutils literal notranslate"><span class="pre">[logging]</span></code><a class="headerlink" href="#unified-logging-logging" title="Link to this heading">¶</a></h3>
-<p>MalthusJAX includes a zero-overhead host and JIT device logging subsystem:</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[logging]</span>
-<span class="n">level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"INFO"</span><span class="w">               </span><span class="c1"># "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"</span>
-<span class="n">log_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"experiment.log"</span><span class="w">  </span><span class="c1"># Optional file destination (omitted = stderr)</span>
-<span class="n">format_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"color"</span><span class="w">        </span><span class="c1"># "color" (rich ANSI console) or "json" (structured JSONL)</span>
-<span class="n">show_timestamps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w">      </span><span class="c1"># Include millisecond ISO timestamps</span>
-<span class="n">log_interval</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span><span class="w">            </span><span class="c1"># Trigger JIT host callback every N generations (None = disabled)</span>
-<span class="n">log_nan_watchdog</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">      </span><span class="c1"># Halt/alert on device-side NaN/Inf detections in fitness</span>
-</pre></div>
-</div>
-<blockquote>
-<div><p>[!TIP]
-When <code class="docutils literal notranslate"><span class="pre">log_interval</span></code> is omitted or set to <code class="docutils literal notranslate"><span class="pre">None</span></code>, <strong>zero callback instructions</strong> are inserted into the compiled XLA graph, guaranteeing 100% maximum execution speed.</p>
-</div></blockquote>
-</section>
-<hr class="docutils" />
-<section id="shared-defaults-conflict-resolution-experiment-shared">
-<h3>2.3 Shared Defaults &amp; Conflict Resolution (<code class="docutils literal notranslate"><span class="pre">[experiment.shared]</span></code>)<a class="headerlink" href="#shared-defaults-conflict-resolution-experiment-shared" title="Link to this heading">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">[experiment.shared]</span></code> section allows you to define baseline parameters once and share them across all pipeline variations.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[experiment.shared]</span>
-<span class="n">fitness</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"sphere:dim=25"</span>
-<span class="n">pop_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">64</span>
-<span class="n">generations</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">200</span>
-<span class="n">seeds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">]</span>
-<span class="n">bounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mf">-5.0</span><span class="p">,</span><span class="w"> </span><span class="mf">5.0</span><span class="p">]</span>
-<span class="n">maximize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
-<span class="n">elitism</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span>
-<span class="n">selection</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"tournament:num_selections=32,tournament_size=3"</span>
-<span class="n">mutation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"gaussian:mutation_rate=0.1,mutation_strength=0.1"</span>
-
-<span class="c1"># Pipeline 1: Inherits all shared parameters verbatim</span>
-<span class="k">[pipelines.uniform]</span>
-<span class="n">crossover</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"uniform_real"</span>
-
-<span class="c1"># Pipeline 2: Overrides pop_size to 256; inherits all other shared parameters</span>
-<span class="k">[pipelines.large_pop]</span>
-<span class="n">pop_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">256</span>
-<span class="n">crossover</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"blend:alpha=0.5"</span>
-
-<span class="c1"># Pipeline 3: Completely replaces mutation operator</span>
-<span class="k">[pipelines.polynomial]</span>
-<span class="n">mutation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"polynomial:mutation_rate=0.05,eta=20"</span>
-<span class="n">crossover</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"uniform_real"</span>
-</pre></div>
-</div>
-<section id="conflict-resolution-mechanics">
-<h4>Conflict Resolution Mechanics:<a class="headerlink" href="#conflict-resolution-mechanics" title="Link to this heading">¶</a></h4>
-<ol class="arabic simple">
-<li><p><strong>Pipeline-Specific Precedence</strong>:
-Values defined in <code class="docutils literal notranslate"><span class="pre">[pipelines.&lt;name&gt;]</span></code> <strong>strictly override</strong> identical keys in <code class="docutils literal notranslate"><span class="pre">[experiment.shared]</span></code>.</p></li>
-<li><p><strong>Shallow Key Replacement</strong>:
-Merging occurs via Python <code class="docutils literal notranslate"><span class="pre">{**shared,</span> <span class="pre">**pipeline_cfg}</span></code>. Sub-tables (like <code class="docutils literal notranslate"><span class="pre">strategy_params</span></code>) completely replace shared sub-tables; they are not recursively merged.</p></li>
-<li><p><strong>Immutable Coercion</strong>:
-Lists for <code class="docutils literal notranslate"><span class="pre">bounds</span></code> and <code class="docutils literal notranslate"><span class="pre">seeds</span></code> are automatically converted to immutable Python tuples (<code class="docutils literal notranslate"><span class="pre">(-5.0,</span> <span class="pre">5.0)</span></code>) to satisfy JAX PyTree requirements.</p></li>
-<li><p><strong>Fallback Cascade</strong>:
-If omitted from both sections, <code class="docutils literal notranslate"><span class="pre">genome_length</span></code> is inferred from <code class="docutils literal notranslate"><span class="pre">fitness</span> <span class="pre">=</span> <span class="pre">&quot;name:dim=N&quot;</span></code> (or defaults to <code class="docutils literal notranslate"><span class="pre">10</span></code>), <code class="docutils literal notranslate"><span class="pre">maximize</span></code> defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>, <code class="docutils literal notranslate"><span class="pre">elitism</span></code> defaults to <code class="docutils literal notranslate"><span class="pre">2</span></code>, and <code class="docutils literal notranslate"><span class="pre">backend</span></code> defaults to <code class="docutils literal notranslate"><span class="pre">&quot;malthusjax&quot;</span></code>.</p></li>
-<li><p><strong>Shared Initial Population</strong>:
-By default, <code class="docutils literal notranslate"><span class="pre">mjax</span> <span class="pre">run</span></code> and <code class="docutils literal notranslate"><span class="pre">Composer.from_toml</span></code> generate a single random initial population at seed 123 and inject it across all pipelines, ensuring that differences in convergence are purely algorithmic. If a pipeline defines its own <code class="docutils literal notranslate"><span class="pre">initial_population</span></code>, its explicit value takes precedence.</p></li>
-</ol>
-</section>
-</section>
-<hr class="docutils" />
-<section id="advanced-hardware-profiling-controls">
-<h3>2.4 Advanced Hardware &amp; Profiling Controls<a class="headerlink" href="#advanced-hardware-profiling-controls" title="Link to this heading">¶</a></h3>
-<section id="controlling-the-prng-implementation-prng-impl">
-<h4>Controlling the PRNG Implementation (<code class="docutils literal notranslate"><span class="pre">prng_impl</span></code>)<a class="headerlink" href="#controlling-the-prng-implementation-prng-impl" title="Link to this heading">¶</a></h4>
-<p>Select the underlying pseudo-random number generator depending on hardware and scale:</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[experiment.shared]</span>
-<span class="n">prng_impl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"philox4x32"</span><span class="w">     </span><span class="c1"># Options: "threefry2x32" (default), "philox4x32", "rbg"</span>
-</pre></div>
-</div>
-<ul class="simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">threefry2x32</span></code></strong>: Standard counter-based JAX PRNG. Strong statistical guarantees.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">philox4x32</span></code></strong>: High-throughput parallel PRNG. <strong>Recommended for large GPU runs</strong> (2–3× speedup during heavy parallel mutation).</p></li>
-</ul>
-</section>
-<section id="capturing-perfetto-profiling-traces-trace-dir">
-<h4>Capturing Perfetto Profiling Traces (<code class="docutils literal notranslate"><span class="pre">trace_dir</span></code>)<a class="headerlink" href="#capturing-perfetto-profiling-traces-trace-dir" title="Link to this heading">¶</a></h4>
-<p>Generate execution traces to profile XLA compilation and kernel timelines:</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[experiment.shared]</span>
-<span class="n">trace_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"results/traces"</span>
-</pre></div>
-</div>
-<p>Inspect traces interactively:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tensorboard<span class="w"> </span>--logdir<span class="w"> </span>results/traces<span class="w"> </span>--port<span class="w"> </span><span class="m">6006</span>
-</pre></div>
-</div>
-<p>Or open <a class="reference external" href="https://ui.perfetto.dev">ui.perfetto.dev</a> and drag-and-drop the generated trace file.</p>
-</section>
-</section>
-<hr class="docutils" />
-<section id="operator-string-specification-dsl">
-<h3>2.5 Operator String-Specification DSL<a class="headerlink" href="#operator-string-specification-dsl" title="Link to this heading">¶</a></h3>
-<p>MalthusJAX uses a concise string syntax for operator instantiation: <code class="docutils literal notranslate"><span class="pre">&quot;name:key1=val1,key2=val2&quot;</span></code>.</p>
-<section id="selection-operators">
-<h4>Selection Operators:<a class="headerlink" href="#selection-operators" title="Link to this heading">¶</a></h4>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;tournament:num_selections=N,tournament_size=K&quot;</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;roulette:num_selections=N&quot;</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;elite_pool:num_selections=N,elite_k=K&quot;</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;evosax_mimic_selection:num_selections=N,elite_k=K&quot;</span></code> (Exact bit-for-bit EvoSAX parity)</p></li>
-</ul>
-</section>
-<section id="crossover-operators">
-<h4>Crossover Operators:<a class="headerlink" href="#crossover-operators" title="Link to this heading">¶</a></h4>
-<ul class="simple">
-<li><p>Real: <code class="docutils literal notranslate"><span class="pre">&quot;uniform_real&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;blend:alpha=0.5&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;simulated_binary:eta=20.0&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;binomial:cr=0.8&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;batched_evosax_uniform:crossover_rate=0.3&quot;</span></code></p></li>
-<li><p>Binary: <code class="docutils literal notranslate"><span class="pre">&quot;single_point&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;uniform_binary&quot;</span></code></p></li>
-</ul>
-</section>
-<section id="mutation-operators">
-<h4>Mutation Operators:<a class="headerlink" href="#mutation-operators" title="Link to this heading">¶</a></h4>
-<ul class="simple">
-<li><p>Real: <code class="docutils literal notranslate"><span class="pre">&quot;gaussian:mutation_rate=0.1,mutation_strength=0.1&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;ball:radius=0.5&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;polynomial:mutation_rate=0.1,eta=20.0&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;batched_evosax_gaussian:mutation_strength=0.1&quot;</span></code></p></li>
-<li><p>Binary: <code class="docutils literal notranslate"><span class="pre">&quot;bitflip:mutation_rate=0.05&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;swap:mutation_rate=0.1&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;scramble:mutation_rate=0.1&quot;</span></code></p></li>
-</ul>
-</section>
-<section id="fitness-functions">
-<h4>Fitness Functions:<a class="headerlink" href="#fitness-functions" title="Link to this heading">¶</a></h4>
-<ul class="simple">
-<li><p>Continuous: <code class="docutils literal notranslate"><span class="pre">&quot;sphere:dim=N&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;rastrigin:dim=N&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;rosenbrock:dim=N&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;griewank:dim=N&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;bbob:fn=1..24,dims=N&quot;</span></code></p></li>
-<li><p>Combinatorial / Binary: <code class="docutils literal notranslate"><span class="pre">&quot;knapsack:capacity=N,num_items=M&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;binary_sum:length=N&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;tsp:data_id=ID&quot;</span></code></p></li>
-</ul>
-</section>
-</section>
-<hr class="docutils" />
-<section id="external-framework-adapters">
-<h3>2.6 External Framework Adapters<a class="headerlink" href="#external-framework-adapters" title="Link to this heading">¶</a></h3>
-<p>MalthusJAX can orchestrate external evolutionary libraries with zero python overhead:</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. EvoSAX Backend</span>
-<span class="k">[pipelines.cma_es]</span>
-<span class="n">backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"evosax"</span>
-<span class="n">evosax_strategy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"CMA_ES"</span><span class="w">   </span><span class="c1"># "SimpleGA", "OpenES", "DifferentialEvolution", "PGPE", "ARS"</span>
-
-<span class="k">[pipelines.cma_es.strategy_params]</span>
-<span class="n">sigma_init</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.5</span>
-<span class="n">elite_ratio</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.5</span>
-
-<span class="c1"># 2. QDax Backend (MAP-Elites)</span>
-<span class="k">[pipelines.map_elites]</span>
-<span class="n">backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"qdax"</span>
-<span class="n">qdax_strategy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"MAPElites"</span>
-<span class="n">grid_shape</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">50</span><span class="p">,</span><span class="w"> </span><span class="mi">50</span><span class="p">]</span>
-<span class="n">bd_extractors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"identity"</span><span class="p">,</span><span class="w"> </span><span class="s2">"identity"</span><span class="p">]</span>
-
-<span class="c1"># 3. Composable Reinforcement Learning (Brax + Neural MLP)</span>
-<span class="k">[pipelines.robot_ant]</span>
-<span class="n">backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"composable_evosax"</span>
-<span class="n">strategy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"OpenES"</span>
-
-<span class="k">[pipelines.robot_ant.fitness]</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"RLEvaluator"</span>
-<span class="n">max_steps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1000</span>
-
-<span class="k">[pipelines.robot_ant.fitness.env]</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"BraxEnv"</span>
-<span class="n">env_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"ant"</span>
-
-<span class="k">[pipelines.robot_ant.fitness.interpreter]</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"MLPInterpreter"</span>
-<span class="n">hidden</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">64</span><span class="p">,</span><span class="w"> </span><span class="mi">64</span><span class="p">]</span>
-<span class="n">activation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"swish"</span>
-</pre></div>
-</div>
-</section>
-</section>
-<hr class="docutils" />
-<section id="benchmarking-suite-configurations-schema-2">
-<h2>3. Benchmarking Suite Configurations (Schema 2)<a class="headerlink" href="#benchmarking-suite-configurations-schema-2" title="Link to this heading">¶</a></h2>
-<p>Benchmarking suite configurations drive systematic parameter sweeps for academic papers and scalability profiling.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[suite]</span>
-<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"scalability_study"</span>
-<span class="n">mode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"lhs"</span><span class="w">                         </span><span class="c1"># "cartesian" or "lhs"</span>
-<span class="n">output_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"results/scalability"</span>
-<span class="n">num_seeds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">50</span>
-<span class="n">aggregation_level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"summary_only"</span><span class="w">   </span><span class="c1"># "summary_only", "full_trace", "final_only"</span>
-
-<span class="c1"># Latin Hypercube Sampling Space-Filling Grid</span>
-<span class="k">[grid]</span>
-<span class="n">functions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"sphere"</span><span class="p">,</span><span class="w"> </span><span class="s2">"rosenbrock"</span><span class="p">,</span><span class="w"> </span><span class="s2">"rastrigin"</span><span class="p">,</span><span class="w"> </span><span class="s2">"schwefel"</span><span class="p">]</span>
-<span class="n">dims_min</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span>
-<span class="n">dims_max</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">500</span>
-<span class="n">pops_min</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">64</span>
-<span class="n">pops_max</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2048</span>
-<span class="n">gens_min</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">50</span>
-<span class="n">gens_max</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">500</span>
-<span class="n">num_samples</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">30</span>
-
-<span class="k">[analysis]</span>
-<span class="n">reference_pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"malthusjax_fast"</span>
-<span class="n">target_metrics</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"best_fitness"</span><span class="p">,</span><span class="w"> </span><span class="s2">"execution_time"</span><span class="p">,</span><span class="w"> </span><span class="s2">"warmup_time"</span><span class="p">]</span>
-
-<span class="c1"># Pipelines with Dynamic Coordinate Interpolation</span>
-<span class="k">[pipelines.malthusjax_fast]</span>
-<span class="n">backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"malthusjax"</span>
-<span class="n">selection</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"evosax_mimic_selection:num_selections={pop_size},elite_k={elite_k}"</span>
-<span class="n">crossover</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"batched_evosax_uniform:crossover_rate=0.3"</span>
-<span class="n">mutation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"batched_evosax_gaussian:mutation_strength=1.0"</span>
-<span class="n">elitism</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
-</pre></div>
-</div>
-<section id="dynamic-coordinate-placeholders">
-<h3>Dynamic Coordinate Placeholders:<a class="headerlink" href="#dynamic-coordinate-placeholders" title="Link to this heading">¶</a></h3>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">{pop_size}</span></code>: Evaluated population size for the coordinate.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">{genome_length}</span></code>: Evaluated problem dimension $D$.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">{generations}</span></code>: Evaluated generation limit $G$.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">{elite_k}</span></code>: Auto-computed elite size: $\max(2, \lfloor P / 6 \rfloor)$.</p></li>
-</ul>
-</section>
-</section>
-<hr class="docutils" />
-<section id="automated-toml-scaffolding-cli-scripts-scaffold-toml-py">
-<h2>4. Automated TOML Scaffolding CLI (<code class="docutils literal notranslate"><span class="pre">scripts/scaffold_toml.py</span></code>)<a class="headerlink" href="#automated-toml-scaffolding-cli-scripts-scaffold-toml-py" title="Link to this heading">¶</a></h2>
-<p>MalthusJAX provides an automated scaffolding CLI that generates compliant TOML configurations across 9 specialized recipes.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>scripts/scaffold_toml.py<span class="w"> </span>--recipe<span class="w"> </span>&lt;RECIPE&gt;<span class="w"> </span>--output<span class="w"> </span>&lt;PATH&gt;<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
-</pre></div>
-</div>
-<p>Or via <code class="docutils literal notranslate"><span class="pre">Makefile</span></code>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>scaffold-toml<span class="w"> </span><span class="nv">ARGS</span><span class="o">=</span><span class="s2">"-r &lt;RECIPE&gt; -o &lt;PATH&gt;"</span>
-</pre></div>
-</div>
-<section id="what-is-a-recipe">
-<h3>What Is a <code class="docutils literal notranslate"><span class="pre">--recipe</span></code>?<a class="headerlink" href="#what-is-a-recipe" title="Link to this heading">¶</a></h3>
-<p>A recipe is a <strong>parameterized template archetype</strong> representing a concrete scientific experimentation pattern. It automatically configures the appropriate schema, pre-wires inheritance defaults, sets up unified logging, and applies any command-line overrides.</p>
-</section>
-<section id="the-9-available-recipes">
-<h3>The 9 Available Recipes:<a class="headerlink" href="#the-9-available-recipes" title="Link to this heading">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>scaffold-toml<span class="w"> </span><span class="nv">ARGS</span><span class="o">=</span><span class="s2">"--list-recipes"</span>
-</pre></div>
-</div>
-<div class="table-wrapper colwidths-auto docutils container">
-<table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head text-left"><p>Recipe Key</p></th>
-<th class="head text-left"><p>Schema</p></th>
-<th class="head text-left"><p>Description &amp; Intent</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">single_run</span></code></p></td>
-<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">COMPOSER</span></code></p></td>
-<td class="text-left"><p>Single-pipeline experiment with pre-configured unified logging.</p></td>
-</tr>
-<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">ablation</span></code></p></td>
-<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">COMPOSER</span></code></p></td>
-<td class="text-left"><p>Multi-operator ablation (Uniform vs. BLX-$\alpha$ vs. SBX) on a shared objective.</p></td>
-</tr>
-<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">parity</span></code></p></td>
-<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">COMPOSER</span></code></p></td>
-<td class="text-left"><p>Statistical parity test between MalthusJAX and EvoSAX SimpleGA.</p></td>
-</tr>
-<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">backend_comparison</span></code></p></td>
-<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">COMPOSER</span></code></p></td>
-<td class="text-left"><p>Cross-framework comparison (MalthusJAX vs. CMA-ES vs. OpenES).</p></td>
-</tr>
-<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">quality_diversity</span></code></p></td>
-<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">COMPOSER</span></code></p></td>
-<td class="text-left"><p>MAP-Elites quality-diversity archive study.</p></td>
-</tr>
-<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">composable_rl</span></code></p></td>
-<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">COMPOSER</span></code></p></td>
-<td class="text-left"><p>Composable RL pipeline wrapping Brax environments and MLP neural network interpreters.</p></td>
-</tr>
-<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">data_registry</span></code></p></td>
-<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">COMPOSER</span></code></p></td>
-<td class="text-left"><p>Combinatorial optimization (TSP / Knapsack) with decoupled <code class="docutils literal notranslate"><span class="pre">[data.*]</span></code> registries.</p></td>
-</tr>
-<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">benchmark_cartesian</span></code></p></td>
-<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">SUITE</span></code></p></td>
-<td class="text-left"><p>High-throughput Cartesian grid sweep suite.</p></td>
-</tr>
-<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">benchmark_lhs</span></code></p></td>
-<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">SUITE</span></code></p></td>
-<td class="text-left"><p>Latin Hypercube Sampling (LHS) space-filling scalability study.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</section>
-<section id="cli-options">
-<h3>CLI Options:<a class="headerlink" href="#cli-options" title="Link to this heading">¶</a></h3>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">-r</span></code>, <code class="docutils literal notranslate"><span class="pre">--recipe</span></code>: Recipe name (default: <code class="docutils literal notranslate"><span class="pre">single_run</span></code>).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">-o</span></code>, <code class="docutils literal notranslate"><span class="pre">--output</span></code>: Output filepath (required).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">-n</span></code>, <code class="docutils literal notranslate"><span class="pre">--name</span></code>: Experiment/suite name (defaults to file stem).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">-f</span></code>, <code class="docutils literal notranslate"><span class="pre">--fitness</span></code>: Fitness spec (default: <code class="docutils literal notranslate"><span class="pre">&quot;sphere:dim=20&quot;</span></code>).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">-p</span></code>, <code class="docutils literal notranslate"><span class="pre">--pop-size</span></code>: Population size override (default: <code class="docutils literal notranslate"><span class="pre">64</span></code>).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">-g</span></code>, <code class="docutils literal notranslate"><span class="pre">--generations</span></code>: Generation limit override (default: <code class="docutils literal notranslate"><span class="pre">100</span></code>).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">-s</span></code>, <code class="docutils literal notranslate"><span class="pre">--seeds</span></code>: Seed count or list (e.g. <code class="docutils literal notranslate"><span class="pre">10</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;[1,</span> <span class="pre">2,</span> <span class="pre">3]&quot;</span></code>).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--no-logging</span></code>: Omit the <code class="docutils literal notranslate"><span class="pre">[logging]</span></code> section.</p></li>
-</ul>
-</section>
-<section id="scaffolding-examples">
-<h3>Scaffolding Examples:<a class="headerlink" href="#scaffolding-examples" title="Link to this heading">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. Quick single run with logging:</span>
-python<span class="w"> </span>scripts/scaffold_toml.py<span class="w"> </span>-r<span class="w"> </span>single_run<span class="w"> </span>-o<span class="w"> </span>configs/test_sphere.toml
-
-<span class="c1"># 2. Operator ablation on Rastrigin 30D:</span>
-python<span class="w"> </span>scripts/scaffold_toml.py<span class="w"> </span>-r<span class="w"> </span>ablation<span class="w"> </span>-o<span class="w"> </span>configs/ablation_rastrigin.toml<span class="w"> </span>-f<span class="w"> </span><span class="s2">"rastrigin:dim=30"</span>
-
-<span class="c1"># 3. Cluster LHS scaling study:</span>
-python<span class="w"> </span>scripts/scaffold_toml.py<span class="w"> </span>-r<span class="w"> </span>benchmark_lhs<span class="w"> </span>-o<span class="w"> </span>configs/cluster_lhs.toml<span class="w"> </span>-n<span class="w"> </span>cluster_scaling<span class="w"> </span>-s<span class="w"> </span><span class="m">50</span>
-</pre></div>
-</div>
-</section>
-</section>
-<hr class="docutils" />
-<section id="execution-reference">
-<h2>5. Execution Reference<a class="headerlink" href="#execution-reference" title="Link to this heading">¶</a></h2>
-<p>Once scaffolded, execute your configuration with standard MalthusJAX tools:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Execute Composer experiment (Schema 1):</span>
-mjax<span class="w"> </span>run<span class="w"> </span>configs/my_experiment.toml
-
-<span class="c1"># Execute statistical parity comparison:</span>
-mjax<span class="w"> </span>parity<span class="w"> </span>configs/parity_test.toml
-
-<span class="c1"># Execute benchmarking sweep suite (Schema 2):</span>
-python<span class="w"> </span>scripts/benchmark_runner.py<span class="w"> </span>configs/cluster_lhs.toml
-
-<span class="c1"># Run quick 2-coordinate smoke test of a suite:</span>
-python<span class="w"> </span>scripts/benchmark_runner.py<span class="w"> </span>configs/cluster_lhs.toml<span class="w"> </span>--smoke
-</pre></div>
-</div>
-</section>
+          <section id="toml-experiments">
+<h1>TOML experiments<a class="headerlink" href="#toml-experiments" title="Link to this heading">¶</a></h1>
+<p>Start with the <a class="reference internal" href="quickstart.html"><span class="std std-doc">Sphere configuration</span></a> in a scratch directory.</p>
+<p>Put common settings in <code class="docutils literal notranslate"><span class="pre">[experiment.shared]</span></code> and overrides in each
+<code class="docutils literal notranslate"><span class="pre">[pipelines.NAME]</span></code> table. Set <code class="docutils literal notranslate"><span class="pre">shared_initial_population</span> <span class="pre">=</span> <span class="pre">false</span></code> under
+<code class="docutils literal notranslate"><span class="pre">[experiment]</span></code> to let the backend initialize per optimizer seed.</p>
+<p>Run <code class="docutils literal notranslate"><span class="pre">mjax</span> <span class="pre">run</span> <span class="pre">CONFIG</span></code> or <code class="docutils literal notranslate"><span class="pre">mjax</span> <span class="pre">parity</span> <span class="pre">CONFIG</span></code>. Both publish a results
+directory. Select a fresh destination with <code class="docutils literal notranslate"><span class="pre">--output-dir</span></code> when repeating a
+run. Inspect <code class="docutils literal notranslate"><span class="pre">metadata/run_manifest.json</span></code> and <code class="docutils literal notranslate"><span class="pre">data/pipeline_*/seed_*.json</span></code>.
+The <code class="docutils literal notranslate"><span class="pre">stats</span></code> extra enables paired analysis with <code class="docutils literal notranslate"><span class="pre">mjax</span> <span class="pre">analyze</span> <span class="pre">RESULTS</span></code>.</p>
+<p>See <a class="reference internal" href="research_workflows.html"><span class="std std-doc">research workflows</span></a> for a two-pipeline example.</p>
 </section>
 
         </article>
@@ -755,23 +368,23 @@ python<span class="w"> </span>scripts/benchmark_runner.py<span class="w"> </span
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="framework_guides/index.html">
+          <a class="next-page" href="research_workflows.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Developer &amp; Framework Guides</div>
+                <div class="title">Research workflows</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="extension_cli_guide.html">
+          <a class="prev-page" href="quickstart.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Extension CLI Guide: Building MalthusJAX Projects</div>
+                <div class="title">Quick Start</div>
                 
               </div>
             </a>
@@ -793,61 +406,8 @@ python<span class="w"> </span>scripts/benchmark_runner.py<span class="w"> </span
         
       </footer>
     </div>
-    <aside class="toc-drawer">
+    <aside class="toc-drawer no-toc">
       
-      
-      <div class="toc-sticky toc-scroll">
-        <div class="toc-title-container">
-          <span class="toc-title">
-            On this page
-          </span>
-        </div>
-        <div class="toc-tree-container">
-          <div class="toc-tree">
-            <ul>
-<li><a class="reference internal" href="#">TOML Configuration &amp; Scaffolding Guide</a><ul>
-<li><a class="reference internal" href="#dual-architecture-overview">1. Dual-Architecture Overview</a></li>
-<li><a class="reference internal" href="#composer-experiment-configurations-schema-1">2. Composer Experiment Configurations (Schema 1)</a><ul>
-<li><a class="reference internal" href="#the-top-level-experiment-section">2.1 The Top-Level <code class="docutils literal notranslate"><span class="pre">[experiment]</span></code> Section</a></li>
-<li><a class="reference internal" href="#unified-logging-logging">2.2 Unified Logging: <code class="docutils literal notranslate"><span class="pre">[logging]</span></code></a></li>
-<li><a class="reference internal" href="#shared-defaults-conflict-resolution-experiment-shared">2.3 Shared Defaults &amp; Conflict Resolution (<code class="docutils literal notranslate"><span class="pre">[experiment.shared]</span></code>)</a><ul>
-<li><a class="reference internal" href="#conflict-resolution-mechanics">Conflict Resolution Mechanics:</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#advanced-hardware-profiling-controls">2.4 Advanced Hardware &amp; Profiling Controls</a><ul>
-<li><a class="reference internal" href="#controlling-the-prng-implementation-prng-impl">Controlling the PRNG Implementation (<code class="docutils literal notranslate"><span class="pre">prng_impl</span></code>)</a></li>
-<li><a class="reference internal" href="#capturing-perfetto-profiling-traces-trace-dir">Capturing Perfetto Profiling Traces (<code class="docutils literal notranslate"><span class="pre">trace_dir</span></code>)</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#operator-string-specification-dsl">2.5 Operator String-Specification DSL</a><ul>
-<li><a class="reference internal" href="#selection-operators">Selection Operators:</a></li>
-<li><a class="reference internal" href="#crossover-operators">Crossover Operators:</a></li>
-<li><a class="reference internal" href="#mutation-operators">Mutation Operators:</a></li>
-<li><a class="reference internal" href="#fitness-functions">Fitness Functions:</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#external-framework-adapters">2.6 External Framework Adapters</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#benchmarking-suite-configurations-schema-2">3. Benchmarking Suite Configurations (Schema 2)</a><ul>
-<li><a class="reference internal" href="#dynamic-coordinate-placeholders">Dynamic Coordinate Placeholders:</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#automated-toml-scaffolding-cli-scripts-scaffold-toml-py">4. Automated TOML Scaffolding CLI (<code class="docutils literal notranslate"><span class="pre">scripts/scaffold_toml.py</span></code>)</a><ul>
-<li><a class="reference internal" href="#what-is-a-recipe">What Is a <code class="docutils literal notranslate"><span class="pre">--recipe</span></code>?</a></li>
-<li><a class="reference internal" href="#the-9-available-recipes">The 9 Available Recipes:</a></li>
-<li><a class="reference internal" href="#cli-options">CLI Options:</a></li>
-<li><a class="reference internal" href="#scaffolding-examples">Scaffolding Examples:</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#execution-reference">5. Execution Reference</a></li>
-</ul>
-</li>
-</ul>
-
-          </div>
-        </div>
-      </div>
       
       
     </aside>
